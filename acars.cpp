@@ -1,5 +1,5 @@
 //
-// Acars.cpp
+// acars.cpp
 //
 //
 
@@ -14,12 +14,12 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "headers\pdw.h"
-#include "headers\initapp.h"
-#include "headers\gfx.h"
-#include "headers\misc.h"
-#include "headers\acars.h"
-#include "headers\helper_funcs.h"
+#include "headers/pdw.h"
+#include "headers/initapp.h"
+#include "headers/gfx.h"
+#include "headers/misc.h"
+#include "headers/acars.h"
+#include "headers/helper_funcs.h"
 
 
 //#define AC_OUT_DEBUG 1

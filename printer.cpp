@@ -1,5 +1,5 @@
 //
-// Printer.cpp
+// printer.c
 //
 
 #include <windows.h>
@@ -10,16 +10,16 @@
 #include <string.h>
 #include <time.h>
 
-#include "headers\resource.h"
-#include "headers\PDW.h"
-#include "headers\slicer.h"
-#include "headers\toolbar.h"
-#include "headers\gfx.h"
-#include "headers\initapp.h"
-#include "headers\sigind.h"
-#include "headers\decode.h"
-#include "headers\sound_in.h"
-#include "headers\printer.h"
+#include "headers/resource.h"
+#include "headers/pdw.h"
+#include "headers/slicer.h"
+#include "headers/toolbar.h"
+#include "headers/gfx.h"
+#include "headers/initapp.h"
+#include "headers/sigind.h"
+#include "headers/decode.h"
+#include "headers/sound_in.h"
+#include "headers/printer.h"
 
 PRINTDLG printdlg; 
 DOCINFO docinfo;

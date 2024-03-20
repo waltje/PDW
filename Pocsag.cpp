@@ -1,5 +1,5 @@
 //
-// Pocsag.cpp
+// pocsag.cpp
 //
 
 #ifndef STRICT
@@ -13,10 +13,10 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "headers\pdw.h"
-#include "headers\gfx.h"
-#include "headers\misc.h"
-#include "headers\helper_funcs.h"
+#include "headers/pdw.h"
+#include "headers/gfx.h"
+#include "headers/misc.h"
+#include "headers/helper_funcs.h"
 
 #define TYPE_TONE_ONLY	0x01
 #define TYPE_NUMERIC	0x02

@@ -1,4 +1,4 @@
-// filename:		helper_funcs.cpp
+// filename:		helper_funcs.c
 // Description:		Implementation  of commonly used functions in helper_funcs.h
 // Author:			Andreas Verhoeven
 // Last modified:	19 January 2004, 20:00
@@ -13,10 +13,10 @@
 //
 //
 
-#include "headers\helper_funcs.h"
+#include "headers/helper_funcs.h"
 #include <windows.h>
 #include <stdio.h>
-#include "utils\debug.h"
+#include "utils/debug.h"
 
 
 void GetFileName(const char* filepath, char* buffer, int buffersize)

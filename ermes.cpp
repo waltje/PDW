@@ -1,5 +1,5 @@
 //
-// ERMES.CPP
+// ermes.cpp
 //
 //
 #ifndef STRICT
@@ -15,20 +15,20 @@
 #include <ctype.h>
 #include <time.h>
 
-#include "headers\pdw.h"
-#include "headers\initapp.h"
-#include "headers\gfx.h"
-#include "headers\decode.h"
-#include "headers\misc.h"
-#include "headers\acars.h"
-#include "headers\mobitex.h"
-#include "headers\ermes.h"
-#include "headers\helper_funcs.h"
+#include "headers/pdw.h"
+#include "headers/initapp.h"
+#include "headers/gfx.h"
+#include "headers/decode.h"
+#include "headers/misc.h"
+#include "headers/acars.h"
+#include "headers/mobitex.h"
+#include "headers/ermes.h"
+#include "headers/helper_funcs.h"
 
 #define min(a,b) (((a) < (b)) ? (a) : (b))
 #define max(a,b) (((a) > (b)) ? (a) : (b))
 
-#define	APT		0x09C461C9l	// address field terminating word.
+#define	APT	0x09C461C9l	// address field terminating word.
 #define MDEL	0x3777E7ABl	// message delimiter.
 #define SYNC32	0x2288282a	// 32 bit sync (30bit sync word + 2 LSB preamble bits)
 
@@ -45,7 +45,7 @@ ERMES em;
 
 // error detection / correction matrix
 int gmat[18]={	0xF08, 0x784, 0x3C2, 0x1E1, 0xD96, 0x6CB, 0xE03, 0xA67, 0x855,
-				0x94C, 0x4A6, 0x253, 0xC4F, 0xB41, 0x8C6, 0x463, 0xF57, 0xACD };
+		0x94C, 0x4A6, 0x253, 0xC4F, 0xB41, 0x8C6, 0x463, 0xF57, 0xACD };
 
 char numformat[17]={"0123456789/ U-.%"};					// contains numeric paging data format
 char alpformat[33]={"@£$•ËÈ˘ÏÚ« ÿ¯ ≈Â            ∆Êﬂ…"};	// contains alphanumeric paging data format

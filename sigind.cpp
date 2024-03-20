@@ -1,5 +1,5 @@
 //
-// Sigind.cpp
+// sigind.c
 //
 // This file contains functions for displaying/updating
 // the signal indicator.
@@ -17,13 +17,13 @@
 #include <time.h>
 
 
-#include "headers\resource.h"
-#include "headers\PDW.h"
-#include "headers\slicer.h"
-#include "headers\toolbar.h"
-#include "headers\gfx.h"
-#include "headers\initapp.h"
-#include "headers\sigind.h"
+#include "headers/resource.h"
+#include "headers/PDW.h"
+#include "headers/slicer.h"
+#include "headers/toolbar.h"
+#include "headers/gfx.h"
+#include "headers/initapp.h"
+#include "headers/sigind.h"
 
 #define MAX_SI_POS        20	// 0-12. Max positions available to signal indicator.
 #define AUDIO_POINT_VALUE 2	// Used for working out samples per signal

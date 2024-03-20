@@ -1,4 +1,4 @@
-// Gfx.cpp
+// gfx.c
 // All graphics related stuff
 //
 // This file contains functions for the following:
@@ -21,14 +21,14 @@
 #include <string.h>
 #include <time.h>
 
-#include "headers\resource.h"
-#include "headers\PDW.h"
-#include "headers\slicer.h"
-#include "headers\toolbar.h"
-#include "headers\gfx.h"
-#include "headers\initapp.h"
-#include "headers\misc.h"
-#include "headers\acars.h"
+#include "headers/resource.h"
+#include "headers/pdw.h"
+#include "headers/slicer.h"
+#include "headers/toolbar.h"
+#include "headers/gfx.h"
+#include "headers/initapp.h"
+#include "headers/misc.h"
+#include "headers/acars.h"
 
 int PL1_SCount=0;		// pane1 label scroll position
 int PL2_SCount=0;		// pane2 label scroll position

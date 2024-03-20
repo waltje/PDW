@@ -1,5 +1,5 @@
 //
-// Toolbar.cpp
+// toolbar.c
 //
 // Functions to allocate the toolbar/buttons and button bitmaps
 // Function to set toolbar tooltips
@@ -13,8 +13,8 @@
 #include <string.h>
 #include <time.h>
 
-#include "headers\resource.h"
-#include "headers\toolbar.h"
+#include "headers/resource.h"
+#include "headers/toolbar.h"
 
 
 #define NUM_TB_BUTTONS 18   // 14 buttons and 5 seperators

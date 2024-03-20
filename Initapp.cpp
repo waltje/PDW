@@ -1,5 +1,5 @@
 //
-// Initapp.cpp
+// initapp.c
 //
 // Declares main app globals and the following functions:
 //
@@ -22,14 +22,13 @@
 #include <string.h>
 #include <time.h>
 
-#include "headers\resource.h"
-#include "headers\PDW.h"
-#include "headers\slicer.h"
-#include "headers\toolbar.h"
-#include "headers\gfx.h"
-#include "headers\initapp.h"
-
-#include "headers\helper_funcs.h"
+#include "headers/resource.h"
+#include "headers/pdw.h"
+#include "headers/slicer.h"
+#include "headers/toolbar.h"
+#include "headers/gfx.h"
+#include "headers/initapp.h"
+#include "headers/helper_funcs.h"
 
 PaneStruct Pane1;
 PaneStruct Pane2;
@@ -120,12 +119,12 @@ BOOL NEAR InitApplication(HINSTANCE hInstance)
 	GetModuleFileName((HINSTANCE) NULL, szExePathName, sizeof(szExePathName)/sizeof(TCHAR));
 	GetPathFromFullPathName(szExePathName, szPath, sizeof(szPath)/sizeof(TCHAR));
 
-	wsprintf(szLogPathName,   TEXT("%s\\%s"),		szPath, "Logfiles");
-	wsprintf(szWavePathName,  TEXT("%s\\%s"),		szPath, "Wavfiles");
+	wsprintf(szLogPathName,   TEXT("%s\\%s"),	szPath, "Logfiles");
+	wsprintf(szWavePathName,  TEXT("%s\\%s"),	szPath, "Wavfiles");
 	wsprintf(szIniPathName,   TEXT("%s\\%s.%s"),	szPath, szShortAppName, lpszIniFileExt);
 	wsprintf(szHelpPathName,  TEXT("%s\\%s.%s"),	szPath, szShortAppName, lpszHelpFileExt);
-	wsprintf(szFilterPathName,TEXT("%s\\%s"),		szPath, "filters.ini");
-	wsprintf(szFilterBackup,  TEXT("%s\\%s"),		szPath, "filters.bak");
+	wsprintf(szFilterPathName,TEXT("%s\\%s"),	szPath, "filters.ini");
+	wsprintf(szFilterBackup,  TEXT("%s\\%s"),	szPath, "filters.bak");
 
 	if (!FileExists(szWavePathName)) CreateDirectory(szWavePathName, NULL);
 
@@ -135,100 +134,92 @@ BOOL NEAR InitApplication(HINSTANCE hInstance)
 	if (!(Get_Drawing_Objects())) return(FALSE);
 
 	// register window class
-
-	wndclass.style			= 0;
+	wndclass.style		= 0;
 	wndclass.lpfnWndProc	= PDWWndProc;
-	wndclass.cbClsExtra		= 0;
-	wndclass.cbWndExtra		= sizeof(LONG);
-	wndclass.hInstance		= hInstance;
-	wndclass.hIcon			= LoadIcon(hInstance, MAKEINTRESOURCE(PDWICON));
-	wndclass.hCursor		= LoadCursor(NULL, IDC_ARROW);
-	wndclass.hbrBackground	= hbr;  // see gfx.cpp
+	wndclass.cbClsExtra	= 0;
+	wndclass.cbWndExtra	= sizeof(LONG);
+	wndclass.hInstance	= hInstance;
+	wndclass.hIcon		= LoadIcon(hInstance, MAKEINTRESOURCE(PDWICON));
+	wndclass.hCursor	= LoadCursor(NULL, IDC_ARROW);
+	wndclass.hbrBackground	= hbr;  // see gfx.c
 	wndclass.lpszMenuName	= MAKEINTRESOURCE(PDWMENU);
 	wndclass.lpszClassName	= gszPDWClass;
-
 	if (!RegisterClass(&wndclass)) return (FALSE);
 
-	wndclass.style			= 0;
+	wndclass.style		= 0;
 	wndclass.lpfnWndProc	= Pane1WndProc;
-	wndclass.cbClsExtra		= 0;
-	wndclass.cbWndExtra		= sizeof(LONG);
-	wndclass.hInstance		= hInstance;
-	wndclass.hIcon			= NULL;
-	wndclass.hCursor		= LoadCursor(NULL, IDC_ARROW);
+	wndclass.cbClsExtra	= 0;
+	wndclass.cbWndExtra	= sizeof(LONG);
+	wndclass.hInstance	= hInstance;
+	wndclass.hIcon		= NULL;
+	wndclass.hCursor	= LoadCursor(NULL, IDC_ARROW);
 	wndclass.hbrBackground	= hbr;
 	wndclass.lpszMenuName	= NULL;
 	wndclass.lpszClassName	= gszPane1Class;
-
 	if (!RegisterClass(&wndclass)) return (FALSE);
 
-	wndclass.style			= 0;
+	wndclass.style		= 0;
 	wndclass.lpfnWndProc	= Pane2WndProc;
-	wndclass.cbClsExtra		= 0;
-	wndclass.cbWndExtra		= sizeof(LONG);
-	wndclass.hInstance		= hInstance;
-	wndclass.hIcon			= NULL;
-	wndclass.hCursor		= LoadCursor(NULL, IDC_ARROW);
+	wndclass.cbClsExtra	= 0;
+	wndclass.cbWndExtra	= sizeof(LONG);
+	wndclass.hInstance	= hInstance;
+	wndclass.hIcon		= NULL;
+	wndclass.hCursor	= LoadCursor(NULL, IDC_ARROW);
 	wndclass.hbrBackground	= hbr;
 	wndclass.lpszMenuName	= NULL;
 	wndclass.lpszClassName	= gszPane2Class;
-
 	if (!RegisterClass(&wndclass)) return (FALSE);
 
-	wndclass.style			= 0;
+	wndclass.style		= 0;
 	wndclass.lpfnWndProc	= ColorWndProc;
-	wndclass.cbClsExtra		= 0;
-	wndclass.cbWndExtra		= sizeof(LONG);
-	wndclass.hInstance		= hInstance;
-	wndclass.hIcon			= NULL;
-	wndclass.hCursor		= LoadCursor(NULL, IDC_ARROW);
+	wndclass.cbClsExtra	= 0;
+	wndclass.cbWndExtra	= sizeof(LONG);
+	wndclass.hInstance	= hInstance;
+	wndclass.hIcon		= NULL;
+	wndclass.hCursor	= LoadCursor(NULL, IDC_ARROW);
 	wndclass.hbrBackground	= hboxbr;
 	wndclass.lpszMenuName	= NULL;
 	wndclass.lpszClassName	= gszColorClass;
-
 	if (!RegisterClass(&wndclass)) return (FALSE);
 
-	wndclass.style			= 0;
+	wndclass.style		= 0;
 	wndclass.lpfnWndProc	= ACARSColorWndProc;
-	wndclass.cbClsExtra		= 0;
-	wndclass.cbWndExtra		= sizeof(LONG);
-	wndclass.hInstance		= hInstance;
-	wndclass.hIcon			= NULL;
-	wndclass.hCursor		= LoadCursor(NULL, IDC_ARROW);
+	wndclass.cbClsExtra	= 0;
+	wndclass.cbWndExtra	= sizeof(LONG);
+	wndclass.hInstance	= hInstance;
+	wndclass.hIcon		= NULL;
+	wndclass.hCursor	= LoadCursor(NULL, IDC_ARROW);
 	wndclass.hbrBackground	= hboxbr;
 	wndclass.lpszMenuName	= NULL;
 	wndclass.lpszClassName	= gszACARSColorClass;
-
 	if (!RegisterClass(&wndclass)) return (FALSE);
 
-	wndclass.style			= 0;
+	wndclass.style		= 0;
 	wndclass.lpfnWndProc	= MOBITEXColorWndProc;
-	wndclass.cbClsExtra		= 0;
-	wndclass.cbWndExtra		= sizeof(LONG);
-	wndclass.hInstance		= hInstance;
-	wndclass.hIcon			= NULL;
-	wndclass.hCursor		= LoadCursor(NULL, IDC_ARROW);
+	wndclass.cbClsExtra	= 0;
+	wndclass.cbWndExtra	= sizeof(LONG);
+	wndclass.hInstance	= hInstance;
+	wndclass.hIcon		= NULL;
+	wndclass.hCursor	= LoadCursor(NULL, IDC_ARROW);
 	wndclass.hbrBackground	= hboxbr;
 	wndclass.lpszMenuName	= NULL;
 	wndclass.lpszClassName	= gszMOBITEXColorClass;
-
 	if (!RegisterClass(&wndclass)) return (FALSE);
 
-	wndclass.style			= 0;
+	wndclass.style		= 0;
 	wndclass.lpfnWndProc	= ERMESColorWndProc;
-	wndclass.cbClsExtra		= 0;
-	wndclass.cbWndExtra		= sizeof(LONG);
-	wndclass.hInstance		= hInstance;
-	wndclass.hIcon			= NULL;
-	wndclass.hCursor		= LoadCursor(NULL, IDC_ARROW);
+	wndclass.cbClsExtra	= 0;
+	wndclass.cbWndExtra	= sizeof(LONG);
+	wndclass.hInstance	= hInstance;
+	wndclass.hIcon		= NULL;
+	wndclass.hCursor	= LoadCursor(NULL, IDC_ARROW);
 	wndclass.hbrBackground	= hboxbr;
 	wndclass.lpszMenuName	= NULL;
 	wndclass.lpszClassName	= gszERMESColorClass;
-
 	if (!RegisterClass(&wndclass)) return (FALSE);
 
 	return (TRUE);
-} // end of InitApplication()
+}
 
 
 // Instance stuff
@@ -242,10 +233,10 @@ HWND NEAR InitInstance(HINSTANCE hInstance, int nCmdShow)
 	ghAccel = LoadAccelerators(hInstance, MAKEINTRESOURCE( PDWACCEL ));
 
 	ghWnd = CreateWindow(gszPDWClass, szAppName,
-						 WS_OVERLAPPEDWINDOW,
-						 Profile.xPos, Profile.yPos,
-						 Profile.xSize, Profile.ySize,
-						 NULL, NULL, hInstance, NULL);
+			     WS_OVERLAPPEDWINDOW,
+			     Profile.xPos, Profile.yPos,
+			     Profile.xSize, Profile.ySize,
+			     NULL, NULL, hInstance, NULL);
 
 	if (NULL == ghWnd) return (NULL);
 
@@ -260,8 +251,8 @@ HWND NEAR InitInstance(HINSTANCE hInstance, int nCmdShow)
 	// also set minimize info!
 	if (Profile.maximize_tmp)
 	{
-		pt1.x=0; pt1.y=0;		// Set upper left corner for when minimized.
-		pt2.x=0; pt2.y=0;		// Set upper left corner for when maximized.
+		pt1.x=0; pt1.y=0;	// Set upper left corner for when minimized.
+		pt2.x=0; pt2.y=0;	// Set upper left corner for when maximized.
 
 		// Set restore info (use profile defaults)
 		rc.left		= 0;		// Profile.xPos;
@@ -279,7 +270,7 @@ HWND NEAR InitInstance(HINSTANCE hInstance, int nCmdShow)
 		Profile.maximize_flg=1;
 	}
 	return (ghWnd);
-} // end of InitInstance()
+}
 
 
 void InitializePane(PaneStruct *pane)
@@ -310,4 +301,4 @@ void InitializePane(PaneStruct *pane)
 	SetScrollRange(pane->hWnd, SB_HORZ, 0, 0, TRUE);
 
 	return;
-} // end InitializePane
+}

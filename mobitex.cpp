@@ -1,5 +1,5 @@
 //
-//  Mobitex.cpp
+//  mobitex.cpp
 //
 //
 #ifndef STRICT
@@ -8,13 +8,13 @@
 
 #include <windows.h>
 
-#include "headers\pdw.h"
-#include "headers\initapp.h"
-#include "headers\sound_in.h"
-#include "headers\decode.h"
-#include "headers\misc.h"
-#include "headers\mobitex.h"
-#include "headers\helper_funcs.h"
+#include "headers/pdw.h"
+#include "headers/initapp.h"
+#include "headers/sound_in.h"
+#include "headers/decode.h"
+#include "headers/misc.h"
+#include "headers/mobitex.h"
+#include "headers/helper_funcs.h"
 
 #define MB_MSG_SIZE			5000  // Max length of mobitex message
 #define MAX_ERR				10    // was 15 - J.P

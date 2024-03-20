@@ -1,4 +1,4 @@
-// Decode.cpp
+// decode.cpp
 //
 // Serial port decoding routines.
 //
@@ -15,15 +15,15 @@
 
 #include <windows.h>
 
-#include "headers\PDW.h"
-#include "headers\initapp.h"
-#include "headers\sigind.h"
-#include "headers\decode.h"
-#include "headers\acars.h"
-#include "headers\mobitex.h"
-#include "headers\ermes.h"
-#include "headers\helper_funcs.h"
-#include "utils\debug.h"
+#include "headers/pdw.h"
+#include "headers/initapp.h"
+#include "headers/sigind.h"
+#include "headers/decode.h"
+#include "headers/acars.h"
+#include "headers/mobitex.h"
+#include "headers/ermes.h"
+#include "headers/helper_funcs.h"
+#include "utils/debug.h"
 
 FILE *pd_raw_fp = NULL;		// Debug - Raw data file for logging POCSAG/FLEX symbol data.
 
@@ -62,14 +62,14 @@ double rcv_clkt_em = 0.030;      // sync ups & data - Ermes
 
 // Flex globals
 FLEX phase_A, phase_B, phase_C, phase_D;	// FLEX phases
-int  flex_timer = 0;						// FLEX active timer
-bool bReflex = false;						// Reflex mode flag
-bool bFlexActive = false;					// FLEX mode flag
+int  flex_timer = 0;				// FLEX active timer
+bool bReflex = false;				// Reflex mode flag
+bool bFlexActive = false;			// FLEX mode flag
 
 // Pocsag globals
 POCSAG pocsag;
-int pocsag_baud_rate;						// Pocsag baudrate
-int pocbit = 0;								// Pocsag mode flag
+int pocsag_baud_rate;				// Pocsag baudrate
+int pocbit = 0;					// Pocsag mode flag
 
 // this table translates received modem status line combinations into
 // the received symbol; it gives the number of modem status lines that
@@ -105,34 +105,34 @@ void pd_reset_all(void)
 	pd_clk=0.0, pd_rer=0.0;
 
 	mb.reset();				// reset mobitex routines
-	acars.reset();			// reset acars routines
-	pocsag.frame(-1);		// reset pocsag routines
-	flex_reset();			// reset flex routines
+	acars.reset();				// reset acars routines
+	pocsag.frame(-1);			// reset pocsag routines
+	flex_reset();				// reset flex routines
 
-	if (Profile.monitor_acars)				// Decoding ACARS?
+	if (Profile.monitor_acars)		// Decoding ACARS?
 	{
 		exc = 0.0;
 		rcv_clkt = rcv_clkt_po;
 		ct_bit = 496.4;
 	}
-	else if (Profile.monitor_mobitex)		// Decoding Mobitex?
+	else if (Profile.monitor_mobitex)	// Decoding Mobitex?
 	{
 		exc = 0.0;
-		rcv_clkt = rcv_clkt_mb;				// sync-ups & data.
+		rcv_clkt = rcv_clkt_mb;		// sync-ups & data.
 		ct_bit = 1.0/((float) mb.bitrate * 839.22e-9);
 //		ct_bit = 993.0;
 	}
-	else if (Profile.monitor_ermes)			// Decoding Ermes?
+	else if (Profile.monitor_ermes)		// Decoding Ermes?
 	{
-		em.frame(-1);						// Reset ermes routines! 
+		em.frame(-1);			// Reset ermes routines! 
 		exc = 0.0;
-		rcv_clkt = rcv_clkt_em;				// sync-ups & data
+		rcv_clkt = rcv_clkt_em;		// sync-ups & data
 		ct_bit = 1.0/(3125.0*838.8e-9);
 	}
 	else if (Profile.monitor_paging)
 	{
-		ct_bit = ct1600;					// reset rcv clock to 1600 baud
-		rcv_clkt = rcv_clkt_hi;				// widen up rcv clk loop again
+		ct_bit = ct1600;		// reset rcv clock to 1600 baud
+		rcv_clkt = rcv_clkt_hi;		// widen up rcv clk loop again
 	}
 }
 

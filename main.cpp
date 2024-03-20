@@ -1,4 +1,4 @@
-//  PDW.cpp
+//  main.cpp
 //
 //  Main program loop.
 //
@@ -296,7 +296,6 @@
 #define STRICT 1
 #endif
 
-
 #include <windows.h>
 #include <commctrl.h>
 #include <mmsystem.h>
@@ -307,7 +306,7 @@
 #include <shlobj.h>
 
 #include "headers/resource.h"
-#include "headers/PDW.h"
+#include "headers/pdw.h"
 #include "headers/slicer.h"
 #include "headers/toolbar.h"
 #include "headers/gfx.h"
@@ -322,7 +321,7 @@
 #include "headers/language.h"
 #include "headers/mobitex.h"
 #include "headers/ermes.h"
-#include "headers/helper_funcs.h"		// Extra functies van Andreas
+#include "headers/helper_funcs.h"
 #include "headers/version.h"
 #include "utils/rs232.h"
 #include "utils/debug.h"

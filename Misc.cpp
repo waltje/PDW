@@ -1,5 +1,5 @@
 //
-// Misc.cpp
+// misc.c
 //
 
 #ifndef STRICT
@@ -7,16 +7,17 @@
 #endif
 
 #include <windows.h>
-#include "headers\pdw.h"
-#include "headers\initapp.h"
-#include "headers\gfx.h"
-#include "headers\decode.h"
-#include "headers\misc.h"
-#include "headers\language.h"
-#include "headers\sound_in.h"
-#include "headers\helper_funcs.h"
-#include "utils\binary.h"
-#include "utils\smtp.h"
+
+#include "headers/pdw.h"
+#include "headers/initapp.h"
+#include "headers/gfx.h"
+#include "headers/decode.h"
+#include "headers/misc.h"
+#include "headers/language.h"
+#include "headers/sound_in.h"
+#include "headers/helper_funcs.h"
+#include "utils/binary.h"
+#include "utils/smtp.h"
 
 #define FILTER_PARAM_LEN	500
 #define MAXIMUM_GROUPSIZE	1000

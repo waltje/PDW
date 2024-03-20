@@ -1,4 +1,4 @@
-// Flex.cpp
+// flex.cpp
 //
 // This file uses the following functions:
 //
@@ -21,12 +21,12 @@
 
 #include <windows.h>
 
-#include "headers\pdw.h"
-#include "headers\sound_in.h"
-#include "headers\misc.h"
-#include "headers\helper_funcs.h"
-#include "headers\initapp.h"
-#include "utils\debug.h"
+#include "headers/pdw.h"
+#include "headers/sound_in.h"
+#include "headers/misc.h"
+#include "headers/helper_funcs.h"
+#include "headers/initapp.h"
+#include "utils/debug.h"
 
 #define min(a,b) (((a) < (b)) ? (a) : (b))
 #define max(a,b) (((a) > (b)) ? (a) : (b))
@@ -58,12 +58,12 @@ extern PaneStruct Pane1;
 extern PaneStruct Pane2;
 
 long int capcode;
-int FlexTempAddress;			// PH: Set to corresponding groupaddress (0-15)
-int FLEX_9=0;					// PH: Set if receiving 9-digit capcodes
+int FlexTempAddress;		// PH: Set to corresponding groupaddress (0-15)
+int FLEX_9=0;			// PH: Set if receiving 9-digit capcodes
 
-bool bEmpty_Frame;				// PH: Set if FLEX-Frame=EMTPY / ERMES-Batch=0
+bool bEmpty_Frame;		// PH: Set if FLEX-Frame=EMTPY / ERMES-Batch=0
 
-bool bFLEX_groupmessage;		// PH: Set if receiving a groupmessage (2029568-2029583)
+bool bFLEX_groupmessage;	// PH: Set if receiving a groupmessage (2029568-2029583)
 bool bFLEX_Frame_contains_SI;	// PH: Set if this frame contains Short instructions
 bool bFlexTIME_detected=false;	// PH: Set if FlexTIME is detected
 bool bFlexTIME_not_used=false;	// PH: Set if FlexTIME is not used on this network
@@ -80,7 +80,7 @@ extern char ob[32];
 extern bool bFlexActive, bReflex;
 
 char vtype[8][9]={"SECURE ", " INSTR ", "SH/TONE", " StNUM ",
-				  " SfNUM ", " ALPHA ", "BINARY ", " NuNUM "};
+		  " SfNUM ", " ALPHA ", "BINARY ", " NuNUM "};
 
 int flex_speed = STAT_FLEX1600;
 int g_sps=1600;

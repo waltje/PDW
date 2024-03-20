@@ -1,4 +1,4 @@
-// Menu.cpp
+// menu.c
 //
 // Menu routines.
 //
@@ -19,19 +19,19 @@
 #include <string.h>
 #include <time.h>
 
-#include "headers\resource.h"
-#include "headers\PDW.h"
-#include "headers\slicer.h"
-#include "headers\toolbar.h"
-#include "headers\gfx.h"
-#include "headers\initapp.h"
-#include "headers\sigind.h"
-#include "headers\decode.h"
-#include "headers\sound_in.h"
-#include "headers\printer.h"
-#include "headers\misc.h"
-#include "headers\language.h"
-#include "headers\menu.h"
+#include "headers/resource.h"
+#include "headers/pdw.h"
+#include "headers/slicer.h"
+#include "headers/toolbar.h"
+#include "headers/gfx.h"
+#include "headers/initapp.h"
+#include "headers/sigind.h"
+#include "headers/decode.h"
+#include "headers/sound_in.h"
+#include "headers/printer.h"
+#include "headers/misc.h"
+#include "headers/language.h"
+#include "headers/menu.h"
 
 
 // Check/uncheck the specified menu item.

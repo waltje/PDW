@@ -1,4 +1,4 @@
-// Sound_in.cpp
+// sound_in.c
 //
 //  This file does the following:
 //
@@ -15,15 +15,15 @@
 
 #include <windows.h>
 
-#include "headers\resource.h"
-#include "headers\PDW.h"
-#include "headers\initapp.h"
-#include "headers\sigind.h"
-#include "headers\decode.h"
-#include "headers\sound_in.h"
-#include "headers\acars.h"
-#include "headers\mobitex.h"
-#include "headers\ermes.h"		// PH: new
+#include "headers/resource.h"
+#include "headers/pdw.h"
+#include "headers/initapp.h"
+#include "headers/sigind.h"
+#include "headers/decode.h"
+#include "headers/sound_in.h"
+#include "headers/acars.h"
+#include "headers/mobitex.h"
+#include "headers/ermes.h"		// PH: new
 
 // #define AU_ACARS_BIT_TEST  1
 // #define AU_PF_BIT_TEST     1
