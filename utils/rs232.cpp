@@ -1,9 +1,9 @@
 #include <windows.h>
 #include <winbase.h>
-#include "..\headers\slicer.h"
-#include "..\utils\debug.h"
-#include "..\utils\ostype.h"
-#include "..\headers\pdw.h"
+#include "../headers/pdw.h"
+#include "../headers/slicer.h"
+#include "../utils/debug.h"
+#include "../utils/ostype.h"
 #include "rs232.h"
 
 #define SLICER_BUFSIZE 10000

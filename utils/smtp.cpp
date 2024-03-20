@@ -1,4 +1,3 @@
-// 
 /*
 **	SMTP routines for mailsend - a simple mail sender via SMTP
 **
@@ -6,15 +5,15 @@
 
 #include <windows.h>
 #include <stdio.h>
-#include "..\headers\pdw.h"
+#include "../headers/pdw.h"
+#include "../utils/debug.h"
+#ifdef USE_SSL
+# include "openssl/ssl.h"
+# include "openssl/err.h"
+#endif
 #include "smtp_int.h"
 #include "smtp.h"
-#include "..\utils\debug.h"
 
-#ifdef USE_SSL
-# include "openssl\ssl.h"
-# include "openssl\err.h"
-#endif
 
 #define MY_BUFF_SIZE 1024
 
