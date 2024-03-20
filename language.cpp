@@ -186,7 +186,7 @@ BOOL find_read_string(char *name,char *id,int id_len)
 		*s = '\0';
 
 		if (c == EOF) return(FALSE);
-		if (!((stricmp(idbuf,id))== 0)) // Found id sting?
+		if (!((_stricmp(idbuf,id))== 0)) // Found id sting?
 		continue;
 
 		// Skip ' ' & '='
@@ -273,7 +273,7 @@ struct lang_db_info *read_lang_tbl(int *ok)
 
 		*s = '\0';
 
-		if((stricmp(inbuf,"[NEW"))== 0) // Found new table?
+		if((_stricmp(inbuf,"[NEW"))== 0) // Found new table?
 		{
 			while ((c = getc(lang_fp)) != EOF)
 			{

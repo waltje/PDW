@@ -10,15 +10,17 @@
 #define FILTER_TEXT_LEN     40	// PH: was 25
 #define FILTER_FILE_LEN     128	// PH: was 256
 
-#define MAX_STR_LEN			5120
+#define MAX_STR_LEN	    5120
 
-enum FILTER_TYPE {	UNUSED_FILTER  = 0,
-					FLEX_FILTER    = 1,
-					POCSAG_FILTER  = 2,
-					TEXT_FILTER    = 3,
-					ERMES_FILTER   = 4,
-					ACARS_FILTER   = 5,
-					MOBITEX_FILTER = 6	};
+enum FILTER_TYPE {
+	UNUSED_FILTER  = 0,
+	FLEX_FILTER    = 1,
+	POCSAG_FILTER  = 2,
+	TEXT_FILTER    = 3,
+	ERMES_FILTER   = 4,
+	ACARS_FILTER   = 5,
+	MOBITEX_FILTER = 6
+};
 
 typedef struct
 {
@@ -26,17 +28,17 @@ typedef struct
 	char		 capcode[FILTER_CAPCODE_LEN+1];
 	char		 label[FILTER_LABEL_LEN+1];
 	char		 text[FILTER_TEXT_LEN+1];
-	int			 match_exact_msg;
-	int			 cmd_enabled;
-	int			 reject;
-	int			 monitor_only;
-	int			 wave_number;
-	int			 label_enabled;
-	int			 label_color;
-	int			 smtp;
-	int			 sep_filterfile_en;
+	int		 match_exact_msg;
+	int		 cmd_enabled;
+	int		 reject;
+	int		 monitor_only;
+	int		 wave_number;
+	int		 label_enabled;
+	int		 label_color;
+	int		 smtp;
+	int		 sep_filterfile_en;
 	char		 sep_filterfile[3][FILTER_FILE_LEN+1];	// PH: max 3 sepfiles
-	int			 sep_filterfiles;						// PH: number of sepfiles
+	int		 sep_filterfiles;	// PH: number of sepfiles
 	unsigned int hitcounter;
 	char		 lasthit_date[10];
 	char		 lasthit_time[10];
@@ -97,96 +99,96 @@ typedef vector<FILTER> FILTERLIST;
 
 typedef struct
 {
-	int xPos;						// application window's horizontal position
-	int yPos;						// application window's vertical position
-	int xSize;						// application window's horizontal size
-	int ySize;						// application window's vertical size
-	unsigned int confirmExit;		// confirm exit flag
-	unsigned int showtone;			// show tone-only messages flag
-	unsigned int shownumeric;		// show numeric messages flag
-	unsigned int showmisc;			// show miscellaneous messages flag
-	unsigned int filterbeep;		// beep when filter is triggered
+	int xPos;			// application window's horizontal position
+	int yPos;			// application window's vertical position
+	int xSize;			// application window's horizontal size
+	int ySize;			// application window's vertical size
+	unsigned int confirmExit;	// confirm exit flag
+	unsigned int showtone;		// show tone-only messages flag
+	unsigned int shownumeric;	// show numeric messages flag
+	unsigned int showmisc;		// show miscellaneous messages flag
+	unsigned int filterbeep;	// beep when filter is triggered
 	unsigned int filterwindowonly;	// Show filtered messages only in filterwindow
-	unsigned int decodepocsag;		// flag to enable POCSAG decoding
-	unsigned int decodeflex;		// flag to enable FLEX/ReFLEX decoding
-	unsigned int showinstr;			// flag to show Short Instructions
-	unsigned int convert_si;		// flag to convert Short Instructions to textmessage
-	unsigned int pocsag_512;		// show pocsag-512  flag
-	unsigned int pocsag_1200;		// show pocsag-1200 flag
-	unsigned int pocsag_2400;		// show pocsag-2400 flag
-	unsigned int pocsag_fnu;		// Display pocsag function numbers as default (NTTA)
-	unsigned int pocsag_showboth;	// Show "difficult" messages as numeric AND alpha
-	unsigned int flex_1600;			// show flex-1600 flag
-	unsigned int flex_3200;			// show flex-3200 flag
-	unsigned int flex_6400;			// show flex-6400 flag
+	unsigned int decodepocsag;	// flag to enable POCSAG decoding
+	unsigned int decodeflex;	// flag to enable FLEX/ReFLEX decoding
+	unsigned int showinstr;		// flag to show Short Instructions
+	unsigned int convert_si;	// flag to convert Short Instructions to textmessage
+	unsigned int pocsag_512;	// show pocsag-512  flag
+	unsigned int pocsag_1200;	// show pocsag-1200 flag
+	unsigned int pocsag_2400;	// show pocsag-2400 flag
+	unsigned int pocsag_fnu;	// display pocsag function numbers as default (NTTA)
+	unsigned int pocsag_showboth;	// show "difficult" messages as numeric AND alpha
+	unsigned int flex_1600;		// show flex-1600 flag
+	unsigned int flex_3200;		// show flex-3200 flag
+	unsigned int flex_6400;		// show flex-6400 flag
 	unsigned int acars_parity_check;
-	unsigned int show_cfs;			// flag to show FLEX cycle/frame information in titlebar
+	unsigned int show_cfs;		// flag to show FLEX cycle/frame information in titlebar
 	unsigned int show_rejectblocked;// flag to show rejected/blocked messages in titlebar
 
-	int  Hide_Column;
-	int  LabelLog;					// Labels in normal logfile
-	int  LabelNewline;				// Labels on new line
-	char ColLogfile[10];			// Flag for columns to be logged in logfile
-	char ColFilterfile[10];			// Flag for columns to be logged in filterfile
-	int  Linefeed;					// Flag for converting ¯ to linefeed
-	int  Separator;					// Flag for separating messages (empty line)
-	int  MonthNumber;				// Flag for using monthnumber in logfilenames
-	int  DateFormat;				// Flag for date format
-	int  Date_USA;					// Flag for using MM-DD-YY in stead of DD-MM-YY
-	char LogfilePath[MAX_PATH];		// Flag for using monthnumber in logfilenames
-	int  BlockDuplicate;			// Flag for blocking duplicate messages
-	int  FilterWindowColors;		// Flag for showing label colors in filterwindow
-	int  FilterWindowExtra;			// Flag for showing CMD/DESC/SEP/etc in filterwindow
+	int Hide_Column;
+	int LabelLog;			// labels in normal logfile
+	int LabelNewline;		// labels on new line
+	char ColLogfile[10];		// flag for columns to be logged in logfile
+	char ColFilterfile[10];		// flag for columns to be logged in filterfile
+	int Linefeed;			// flag for converting ¯ to linefeed
+	int Separator;			// flag for separating messages (empty line)
+	int MonthNumber;		// flag for using monthnumber in logfilenames
+	int DateFormat;			// flag for date format
+	int Date_USA;			// flag for using MM-DD-YY in stead of DD-MM-YY
+	char LogfilePath[MAX_PATH];	// flag for using monthnumber in logfilenames
+	int BlockDuplicate;		// flag for blocking duplicate messages
+	int FilterWindowColors;		// flag for showing label colors in filterwindow
+	int FilterWindowExtra;		// flag for showing CMD/DESC/SEP/etc in filterwindow
 
-	int  SystemTray;				// Flag for enabeling the system tray
-	int  SystemTrayRestore;			// Flag for enabeling auto restore from tray
+	int SystemTray;			// flag for enabeling the system tray
+	int SystemTrayRestore;		// flag for enabeling auto restore from tray
 
-	int  FlexTIME;					// Flag for FlexTIME as systemtime
-	int  FlexGroupMode;				// Flag for FlexGroupMode
+	int FlexTIME;			// flag for FlexTIME as systemtime
+	int FlexGroupMode;		// flag for FlexGroupMode
 
-	int  SMTP;						// SMTP-email
+	int SMTP;			// SMTP-email
 
-	bool Trayed;					// TRUE if trayed
+	bool Trayed;			// TRUE if trayed
 
 	int comPortEnabled;
-	int comPort;					// COM port (1-4 or 5 for custom)
-	int comPortRS232;				// Special serial converter from Rene
+	int comPort;			// COM port (1-4 or 5 for custom)
+	int comPortRS232;		// Special serial converter from Rene
 	int comRS232bitrate;
-	int comPortAddr;				// COM port I/O address
-	int comPortIRQ;					// COM port IRQ vector
-	int fourlevel;					// use 4 Level FSK interface flag
-	int invert;						// invert COM port/Sound card data
-	int invert_option;				// 0=auto,1=Yes,2=No
+	int comPortAddr;		// COM port I/O address
+	int comPortIRQ;			// COM port IRQ vector
+	int fourlevel;			// use 4 Level FSK interface flag
+	int invert;			// invert COM port/Sound card data
+	int invert_option;		// 0=auto,1=Yes,2=No
 
-	int percent;					// percent of total main window area
+	int percent;			// percent of total main window area
 
 	double dRX_Quality;
 
 	LOGFONT fontInfo;
 
-	int  logfile_enabled;
+	int logfile_enabled;
 	char logfile[MAX_FILE_LEN+1];
-	int  logfile_use_date;
+	int logfile_use_date;
 
-	int  filterfile_enabled;
+	int filterfile_enabled;
 	char filterfile[MAX_FILE_LEN+1];
-	int  filterfile_use_date;
-	int  filter_cmd_file_enabled;
+	int filterfile_use_date;
+	int filter_cmd_file_enabled;
 	char filter_cmd[MAX_FILE_LEN+1];
 	char filter_cmd_args[MAX_FILE_LEN+1];
-	int  filter_default_type;
-	int  filter_searchwhiletyping;
+	int filter_default_type;
+	int filter_searchwhiletyping;
 
 	FILTERLIST filters;
 
-	char szMailHost[MAIL_TEXT_LEN] ;
-	char szMailHeloDomain[MAIL_TEXT_LEN] ;
-	char szMailTo[MAIL_TEXT_LEN * 5] ;
-	char szMailFrom[MAIL_TEXT_LEN] ;
-	char szMailUser[MAIL_TEXT_LEN] ;
-	char szMailPassword[MAIL_TEXT_LEN] ;
-	int	 iMailPort ;
-	int	 nMailOptions ;
+	char szMailHost[MAIL_TEXT_LEN];
+	char szMailHeloDomain[MAIL_TEXT_LEN];
+	char szMailTo[MAIL_TEXT_LEN * 5];
+	char szMailFrom[MAIL_TEXT_LEN];
+	char szMailUser[MAIL_TEXT_LEN];
+	char szMailPassword[MAIL_TEXT_LEN];
+	int iMailPort;
+	int nMailOptions;
 
 	COLORREF color_background;
 	COLORREF color_address;
@@ -208,8 +210,8 @@ typedef struct
 	int ScrollSpeed;
 	int ScreenColumns[7];
 
-	int  stat_file_enabled;
-	int  stat_file_use_date;
+	int stat_file_enabled;
+	int stat_file_use_date;
 	char stat_file[MAX_FILE_LEN+1];
 	char edit_save_file[MAX_FILE_LEN+1];
 	int maximize_flg;
@@ -229,14 +231,14 @@ typedef struct
 	BOOL monitor_mobitex;
 	BOOL monitor_ermes;
 	BOOL reverse_msg;
-	int lang_mi_index;          // Decides language menu item.
-	int lang_tbl_index;         // Decides language character map.
+	int lang_mi_index;		// decides language menu item.
+	int lang_tbl_index;		// decides language character map.
 	bool ssl;
 } PROFILE, *PPROFILE;
 
-extern PROFILE Profile;     // profile information
+extern PROFILE Profile;			// profile information
 
-#define LINE_SIZE 180	// PH Test : was 160 (problem Colin)
+#define LINE_SIZE 180			// PH Test : was 160 (problem Colin)
 
 typedef struct
 {
@@ -286,43 +288,43 @@ typedef struct
 class FLEX
 {
 	private:
-				void FlexTIME();
-				int  xsumchk(long int l);
-				void show_address(long int l, long int l2, bool bLongAddress);
-				void showframe(int asa, int vsa);
-				void show_phase_speed(int vt);
+		void FlexTIME();
+		int  xsumchk(long int l);
+		void show_address(long int l, long int l2, bool bLongAddress);
+		void showframe(int asa, int vsa);
+		void show_phase_speed(int vt);
 	public:
-				char block[256];		// was 300
-				long int frame[200];
-				char ppp;
-				FLEX();
-				~FLEX();
-				void showblock(int blknum);
-				void showword(int wordnum);
-				void showwordhex(int wordnum);
+		char block[256];		// was 300
+		long int frame[200];
+		char ppp;
+		FLEX();
+		~FLEX();
+		void showblock(int blknum);
+		void showword(int wordnum);
+		void showwordhex(int wordnum);
 };
 
 
 class POCSAG
 {
 	private:
-				long int pocaddr;
-				int  wordc, nalp, nnum, shown, srca, srcn;
-				bool bAddressWord; // Will be set if last word was an address flag
-				int  alp[MAX_STR_LEN], num[40];
-				int  function;
+		long int pocaddr;
+		int  wordc, nalp, nnum, shown, srca, srcn;
+		bool bAddressWord; // Will be set if last word was an address flag
+		int  alp[MAX_STR_LEN], num[40];
+		int  function;
 
-				void show_addr(bool bAlpha);
-				void show_message();
-				void logbits(char *text, bool bClose);
-				int  GetMessageType();
+		void show_addr(bool bAlpha);
+		void show_message();
+		void logbits(char *text, bool bClose);
+		int  GetMessageType();
 	public:
-				POCSAG();
-				~POCSAG();
+		POCSAG();
+		~POCSAG();
 
-				void reset();
-				void process_word(int fn2);
-				void frame(int bit);
+		void reset();
+		void process_word(int fn2);
+		void frame(int bit);
 };
 
 // ***** Globals ******
@@ -332,16 +334,16 @@ extern unsigned int start_col, start_row, end_col, end_row;
 extern int select_on, selected, selecting;
 extern PaneStruct *select_pane;
 
-extern char *label_colors[9]; // PH: Colors for filter labels
+extern char *label_colors[9];		// PH: Colors for filter labels
 extern char *wave_files[11];
-extern char *pdw_version;
+extern char szWindowText[6][1000];
 
 extern char aNumeric[17];
 
 extern int g_sps;
 extern int g_sps2;
 
-extern bool bUpdateFilters;			// PH: Does FILTERS.INI need to be updated?
+extern bool bUpdateFilters;		// PH: Does FILTERS.INI need to be updated?
 
 // ************* Function Prototypes **************
 

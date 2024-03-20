@@ -259,7 +259,7 @@ void Start_Recording(LPTSTR lpstrFile)
 		MessageBox(NULL,"Error opening output file for recording.","PDW",MB_ICONWARNING);
 		bRecording = false;
         // HWi 
-		SetWindowText(ghWnd, (LPSTR) pdw_version);
+		SetWindowText(ghWnd, (LPSTR) szWindowText[0]);
     }
     else
     {
@@ -278,7 +278,7 @@ void Stop_Recording(void)
 		fclose(pRecording);
 		pRecording = NULL;
 	}
-	SetWindowText(ghWnd, (LPSTR) pdw_version);
+	SetWindowText(ghWnd, (LPSTR) szWindowText[0]);
 }
 
 // RAH: Select a file for recording

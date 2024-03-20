@@ -10,7 +10,8 @@
 #define APSTUDIO_HIDDEN_SYMBOLS
 #include "windows.h"
 #undef APSTUDIO_HIDDEN_SYMBOLS
-#include "headers\resource.h"
+#include "headers/resource.h"
+#include "headers/version.h"
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
@@ -28,21 +29,37 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 
 IDT_TOOLBAR_BTN0        BITMAP                  "GFX\\open.bmp"
+
 IDT_TOOLBAR_BTN1        BITMAP                  "GFX\\copy.bmp"
+
 IDT_TOOLBAR_BTN2        BITMAP                  "GFX\\cpyUP.bmp"
+
 IDT_TOOLBAR_BTN3        BITMAP                  "GFX\\cpyLO.bmp"
+
 IDT_TOOLBAR_BTN4        BITMAP                  "GFX\\save.bmp"
+
 IDT_TOOLBAR_BTN5        BITMAP                  "GFX\\prt.bmp"
+
 IDT_TOOLBAR_BTN6        BITMAP                  "GFX\\options.bmp"
+
 IDT_TOOLBAR_BTN7        BITMAP                  "GFX\\filter.bmp"
+
 IDT_TOOLBAR_BTN8        BITMAP                  "GFX\\stats.bmp"
+
 IDT_TOOLBAR_BTN9        BITMAP                  "GFX\\pause.bmp"
+
 IDT_TOOLBAR_BTN10       BITMAP                  "GFX\\help.bmp"
+
 IDT_TOOLBAR_BTN11       BITMAP                  "GFX\\clr.bmp"
+
 IDT_TOOLBAR_BTN12       BITMAP                  "GFX\\mode.bmp"
+
 IDS_SIGIND              BITMAP                  "GFX\\sigind.bmp"
+
 IDS_EXCLAM              BITMAP                  "GFX\\exclamation.bmp"
+
 IDS_ABOUTLOGO           BITMAP                  "GFX\\pdwlogo2.bmp"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -52,6 +69,7 @@ IDS_ABOUTLOGO           BITMAP                  "GFX\\pdwlogo2.bmp"
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 PDWICON                 ICON                    "GFX\\pdw.ico"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -869,8 +887,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,1,0,0
- PRODUCTVERSION 3,1,0,0
+ FILEVERSION APP_VER_MAJOR,APP_VER_MINOR,APP_VER_REV,APP_VER_PATCH
+ PRODUCTVERSION APP_VER_MAJOR,APP_VER_MINOR,APP_VER_REV,APP_VER_PATCH
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x21L
@@ -885,14 +903,14 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "Comments", "Supports Windows 95, 98, ME, 2K and XP"
-            VALUE "CompanyName", "WitWarez"
-            VALUE "FileDescription", "POCSAG, FLEX, ACARS, MOBITEX & ERMES Decoder"
-            VALUE "FileVersion", "3.1"
-            VALUE "InternalName", "PDW"
-            VALUE "OriginalFilename", "PDW3_1.exe"
-            VALUE "ProductName", "PDW"
-            VALUE "ProductVersion", "3.1"
+            VALUE "Comments", "Supports Windows 95,98,ME,2K,XP and up"
+            VALUE "CompanyName", APP_COMPANY
+            VALUE "FileDescription", APP_TITLE
+            VALUE "FileVersion", APP_VERSION
+            VALUE "InternalName", APP_NAME
+            VALUE "OriginalFilename", "PDW.exe"
+            VALUE "ProductName", APP_PRODUCT
+            VALUE "ProductVersion", APP_VERSION
         END
     END
     BLOCK "VarFileInfo"
@@ -1030,12 +1048,12 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_APPNAME             " PDW v3.2b01 - Windows POCSAG, FLEX, ACARS, MOBITEX & ERMES Decoder"
+    IDS_APPNAME             APP_NAME " " APP_VERSION  " " APP_TITLE
 END
 
 STRINGTABLE
 BEGIN
-    IDS_SHORT_APPNAME       "PDW"
+    IDS_SHORT_APPNAME       APP_NAME
     IDS_API_FAILED_MSG      "A Windows API Failed"
 END
 

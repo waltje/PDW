@@ -434,7 +434,7 @@ void ACARS::out_label(void)
 	
 		while (p_info)
 		{    
-			if (stricmp(label,p_info->label) == 0)
+			if (_stricmp(label,p_info->label) == 0)
 			{
 				display_color(&Pane1, COLOR_MESSAGE);
 				display_show_str(&Pane1, "...");
@@ -513,7 +513,7 @@ void ACARS::out_address(void)
 
 			while (p_info)
 			{
-				if (stricmp(s,p_info->label) == 0)
+				if (_stricmp(s,p_info->label) == 0)
 				{
 					display_color(&Pane1, COLOR_MISC);
 					display_show_str(&Pane1, "  Country: ");
@@ -548,7 +548,7 @@ void ACARS::out_address(void)
 		{
 			while (p_info)
 			{
-				if (stricmp(s,p_info->label) == 0) 
+				if (_stricmp(s,p_info->label) == 0) 
 				{
 					display_show_char(&Pane1, char(23));	// PH: Add ETB-char to mark end of line
 					line_pos = 0;
@@ -610,7 +610,7 @@ void ACARS::out_flight_nr(void)
 	
 		while (p_info)
 		{    
-			if (stricmp(flight_nr,p_info->label) == 0)
+			if (_stricmp(flight_nr,p_info->label) == 0)
 			{
 				display_color(&Pane1, COLOR_MESSAGE);
 				display_show_str(&Pane1, " [");
@@ -642,7 +642,7 @@ void ACARS::out_flight_nr(void)
 
 		while (p_info)
 		{
-			if (stricmp(flight_nr,p_info->label) == 0) 
+			if (_stricmp(flight_nr,p_info->label) == 0) 
 			{
 				display_color(&Pane1, COLOR_MISC);
 				display_show_str(&Pane1, "Airline       : ");
@@ -678,7 +678,7 @@ void ACARS::out_ground_station(void)
 
 		while (p_info)
 		{
-			if (stricmp(mode,p_info->label) == 0) 
+			if (_stricmp(mode,p_info->label) == 0) 
 			{
 				display_color(&Pane1, COLOR_MISC);
 				display_show_str(&Pane1, "Ground Station: ");
@@ -748,7 +748,7 @@ void ACARS::out_dir_ack_nak(void)
 	{
 		for (i=0; i<5; i++) // Check if could be up or down link msg.
 		{
-			if (stricmp(label,up_or_down[i]) == 0)
+			if (_stricmp(label,up_or_down[i]) == 0)
 			{
 				f=1;
 			}
@@ -758,7 +758,7 @@ void ACARS::out_dir_ack_nak(void)
 		{
 			for(i=0; i<6; i++) // is it a ground to ground link ?
 			{
-				if (stricmp(label,gnd_to_gnd[i]) == 0)
+				if (_stricmp(label,gnd_to_gnd[i]) == 0)
 				{
 					display_show_str(&Pane1, "GROUND TO GROUND ");
 					f=1;
@@ -769,7 +769,7 @@ void ACARS::out_dir_ack_nak(void)
 			{
 				for(i=0; i<17; i++) // is it an uplink ?
 				{
-					if (stricmp(label,uplink[i]) == 0)
+					if (_stricmp(label,uplink[i]) == 0)
 					{
 						display_show_str(&Pane1, "UPLINK ");
 						f=1;

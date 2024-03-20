@@ -17,10 +17,10 @@ set( PWD_SRCS )
 
 # Subdirectories to go to
 add_subdirectory( GFX )
-add_subdirectory( Headers )
+add_subdirectory( headers )
 add_subdirectory( utils )
-include_directories( openssl-0.9.8l/inc32 )
-link_directories( ${CMAKE_CURRENT_SOURCE_DIR}/openssl-0.9.8l/out32 )
+include_directories( openssl/include )
+link_directories( ${CMAKE_CURRENT_SOURCE_DIR}/openssl/lib )
 
 # Microsoft Visual Studio Specific definitions
 if( MSVC )
@@ -36,13 +36,13 @@ set( PDW_INCLUDES
 # Source Files
 set( PDW_SRCS
   ${PDW_SRCS}
-  Flex.cpp
-  Gfx.cpp
-  Initapp.cpp
-  Misc.cpp
-  Rsrc.rc
-  PDW.cpp
-  Pocsag.cpp
+  flex.cpp
+  gfx.cpp
+  initapp.cpp
+  misc.cpp
+  rsrc.rc
+  main.cpp
+  pocsag.cpp
   acars.cpp
   decode.cpp
   ermes.cpp

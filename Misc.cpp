@@ -1250,7 +1250,7 @@ void ShowMessage()
 
 					for (iSepfile=1; iSepfile<MAX_SEPFILES; iSepfile++)
 					{
-						if (stricmp(szSepfilenames[CURRENT], szSepfilenames[iSepfile]) == 0)
+						if (_stricmp(szSepfilenames[CURRENT], szSepfilenames[iSepfile]) == 0)
 						{
 							bNewLine = false;
 							bLogged[SEPARATE] = true;
@@ -1842,7 +1842,7 @@ int Check_4_Filtermatch()
 
 			if (Profile.filters[iFilter].match_exact_msg)
 			{
-				if (stricmp(Current_MSG[MSG_MESSAGE], Profile.filters[iFilter].text) == 0)
+				if (_stricmp(Current_MSG[MSG_MESSAGE], Profile.filters[iFilter].text) == 0)
 				{
 					iTextMatch = 0;
 					iTextLength = txt_len;
@@ -1853,7 +1853,7 @@ int Check_4_Filtermatch()
 				// now scan the temp_str for the temp_filter string...
 				if (Profile.filters[iFilter].text[0] == '^')
 				{
-					if (strnicmp(Current_MSG[MSG_MESSAGE], &Profile.filters[iFilter].text[1], txt_len-1) == 0)
+					if (_strnicmp(Current_MSG[MSG_MESSAGE], &Profile.filters[iFilter].text[1], txt_len-1) == 0)
 					{
 						iTextMatch = 0;
 						iTextLength = txt_len-1;
@@ -1905,7 +1905,7 @@ int Check_4_Filtermatch()
 				{
 					for (pos=0; pos <= (msg_len-txt_len); pos++)
 					{
-						if (strnicmp(&Current_MSG[MSG_MESSAGE][pos], Profile.filters[iFilter].text, txt_len) == 0)
+						if (_strnicmp(&Current_MSG[MSG_MESSAGE][pos], Profile.filters[iFilter].text, txt_len) == 0)
 						{
 							iTextLength = txt_len;
 							iTextMatch = pos;

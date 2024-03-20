@@ -11,8 +11,10 @@
 #include "smtp.h"
 #include "..\utils\debug.h"
 
-#include "openssl\ssl.h"
-#include "openssl\err.h"
+#ifdef USE_SSL
+# include "openssl\ssl.h"
+# include "openssl\err.h"
+#endif
 
 #define MY_BUFF_SIZE 1024
 
@@ -37,9 +39,11 @@ static byte dtable[256];
 extern int nSMTPerrors;
 extern int iSMTPlastError;
 
+#ifdef USE_SSL
 //SSL
 SSL_CTX*      m_ctx;
 SSL*          m_ssl;
+#endif
 
 
 char *szSmtpCharSets[] = {
@@ -73,6 +77,7 @@ char *szSmtpCharSets[] = {
 	"windows-1258 (Vietnamese Windows)"
 } ;
 
+#ifdef USE_SSL
 enum SSLError
 {
 	CSMTP_NO_ERROR = 0,
@@ -449,6 +454,7 @@ int sendData_SSL(SSL* ssl, char *buf)
 
 	return CSMTP_NO_ERROR;
 }
+#endif
 	
 char *EncodeBase64(char *szIn, char *szOut)
 {
@@ -704,8 +710,10 @@ int sockPuts(SOCKET sock,char *str)
 // 	OUTPUTDEBUGMSG((("sockPuts() : %s\n"), str));
 	AddResponse(str) ;
 
+#ifdef USE_SSL
 	if (m_ssl != NULL)
 		return sendData_SSL(m_ssl,str);
+#endif
 
 	return(sockWrite(sock,str,strlen(str)));
 }
@@ -743,7 +751,9 @@ int sockGets(SOCKET sockfd,char *str,size_t count)
 // disconnect to SMTP server and returns the socket fd
 static void smtpDisconnect(SOCKET sfd)
 {
+#ifdef USE_SSL
 	cleanupOpenSSL();
+#endif
 	closesocket(sfd) ;
 }
 
@@ -751,7 +761,9 @@ static void smtpDisconnect(SOCKET sfd)
 static SOCKET smtpConnect(char *smtp_server,int port)
 {
 	SOCKET sfd;
+#ifdef USE_SSL
 	int res;
+#endif
 	
 	sfd = clientSocket(smtp_server,port);
 	if(sfd == INVALID_SOCKET) {
@@ -765,11 +777,13 @@ static SOCKET smtpConnect(char *smtp_server,int port)
 	// save it. we'll need it to clean up
 	smtp_socket = sfd;
 
+#ifdef USE_SSL
 	if (Profile.ssl) {
 		if ((res = initOpenSSL()) == CSMTP_NO_ERROR)
 			res = openSSLConnect();
 		OUTPUTDEBUGMSG(("SSL Connect res = %d\n",res));
 	}
+#endif
 
 	return(sfd);
 }
@@ -782,9 +796,11 @@ static int smtpResponse(int sfd)
 
 	memset(buf,0,sizeof(buf));
 
+#ifdef USE_SSL
 	if (m_ssl != NULL)
 		err = receiveData_SSL(m_ssl,buf);
 	else
+#endif
 		n = sockGets(sfd, buf, sizeof(buf)-1);
 //	OUTPUTDEBUGMSG((("smtpResponse() : %s\n"),buf));
 	AddResponse(buf) ;
