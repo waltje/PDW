@@ -1,22 +1,17 @@
 //
 // pocsag.cpp
 //
-
-#ifndef STRICT
-#define STRICT 1
-#endif
-
 #include <windows.h>
 #include <mmsystem.h>
 #include <stdio.h>
 #include <commdlg.h>
 #include <string.h>
 #include <ctype.h>
+#include "pdw.h"
+#include "gfx.h"
+#include "misc.h"
+#include "helper_funcs.h"
 
-#include "headers/pdw.h"
-#include "headers/gfx.h"
-#include "headers/misc.h"
-#include "headers/helper_funcs.h"
 
 #define TYPE_TONE_ONLY	0x01
 #define TYPE_NUMERIC	0x02

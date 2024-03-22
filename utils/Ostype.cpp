@@ -15,12 +15,11 @@
 /*********************************************************************
  Log:   V:/dev3dev/wvutil/code/ostype.c_v
 *********************************************************************/
-
 #include <windows.h>
 #include <tchar.h>
-
 #include "debug.h"
 #include "ostype.h"
+
 
 OSVERSIONINFO	OSVersionInfo  = { sizeof(OSVERSIONINFO), 0 } ;
 TCHAR			szOSType[128] ;

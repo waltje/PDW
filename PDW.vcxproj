@@ -113,7 +113,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>openssl/include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
-    <LibraryPath>openssl/lib;$(VC_LibraryPath_ARM64);$(WindowsSDK_LibraryPath_ARM64);$(NETFXKitsDir)Lib\um\arm64</LibraryPath>
+    <LibraryPath>openssl/lib;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
@@ -203,7 +203,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>USE_SSL;WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -223,6 +223,16 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>Comctl32.lib;Winmm.lib;Ws2_32.lib;libeay32.lib;ssleay32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <Link>
+      <AdditionalDependencies>winmm.lib;Comctl32.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Link>
+      <AdditionalDependencies>winmm.lib;Comctl32.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -245,102 +255,35 @@
     <ClCompile Include="toolbar.cpp" />
     <ClCompile Include="utils/binary.cpp" />
     <ClCompile Include="utils/debug.cpp" />
+    <ClCompile Include="utils/messagequeue.cpp" />
     <ClCompile Include="utils/ipcnfg.cpp" />
     <ClCompile Include="utils/ostype.cpp" />
     <ClCompile Include="utils/rs232.cpp" />
     <ClCompile Include="utils/smtp.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="headers/acars.h" />
-    <ClInclude Include="headers/decode.h" />
-    <ClInclude Include="headers/ermes.h" />
-    <ClInclude Include="headers/gfx.h" />
-    <ClInclude Include="headers/helper_funcs.h" />
-    <ClInclude Include="headers/html.h" />
-    <ClInclude Include="headers/initapp.h" />
-    <ClInclude Include="headers/language.h" />
-    <ClInclude Include="headers/menu.h" />
-    <ClInclude Include="headers/misc.h" />
-    <ClInclude Include="headers/mobitex.h" />
-    <ClInclude Include="headers/pdw.h" />
-    <ClInclude Include="headers/printer.h" />
-    <ClInclude Include="headers/resource.h" />
-    <ClInclude Include="headers/sigind.h" />
-    <ClInclude Include="headers/slicer.h" />
-    <ClInclude Include="headers/sound_in.h" />
-    <ClInclude Include="headers/toolbar.h" />
-    <ClInclude Include="openssl/include/openssl/aes.h" />
-    <ClInclude Include="openssl/include/openssl/asn1.h" />
-    <ClInclude Include="openssl/include/openssl/asn1t.h" />
-    <ClInclude Include="openssl/include/openssl/asn1_mac.h" />
-    <ClInclude Include="openssl/include/openssl/bio.h" />
-    <ClInclude Include="openssl/include/openssl/blowfish.h" />
-    <ClInclude Include="openssl/include/openssl/bn.h" />
-    <ClInclude Include="openssl/include/openssl/buffer.h" />
-    <ClInclude Include="openssl/include/openssl/cast.h" />
-    <ClInclude Include="openssl/include/openssl/comp.h" />
-    <ClInclude Include="openssl/include/openssl/conf.h" />
-    <ClInclude Include="openssl/include/openssl/conf_api.h" />
-    <ClInclude Include="openssl/include/openssl/crypto.h" />
-    <ClInclude Include="openssl/include/openssl/des.h" />
-    <ClInclude Include="openssl/include/openssl/des_old.h" />
-    <ClInclude Include="openssl/include/openssl/dh.h" />
-    <ClInclude Include="openssl/include/openssl/dsa.h" />
-    <ClInclude Include="openssl/include/openssl/dso.h" />
-    <ClInclude Include="openssl/include/openssl/dtls1.h" />
-    <ClInclude Include="openssl/include/openssl/ebcdic.h" />
-    <ClInclude Include="openssl/include/openssl/ec.h" />
-    <ClInclude Include="openssl/include/openssl/ecdh.h" />
-    <ClInclude Include="openssl/include/openssl/ecdsa.h" />
-    <ClInclude Include="openssl/include/openssl/engine.h" />
-    <ClInclude Include="openssl/include/openssl/err.h" />
-    <ClInclude Include="openssl/include/openssl/evp.h" />
-    <ClInclude Include="openssl/include/openssl/e_os2.h" />
-    <ClInclude Include="openssl/include/openssl/hmac.h" />
-    <ClInclude Include="openssl/include/openssl/idea.h" />
-    <ClInclude Include="openssl/include/openssl/krb5_asn.h" />
-    <ClInclude Include="openssl/include/openssl/kssl.h" />
-    <ClInclude Include="openssl/include/openssl/lhash.h" />
-    <ClInclude Include="openssl/include/openssl/md2.h" />
-    <ClInclude Include="openssl/include/openssl/md4.h" />
-    <ClInclude Include="openssl/include/openssl/md5.h" />
-    <ClInclude Include="openssl/include/openssl/objects.h" />
-    <ClInclude Include="openssl/include/openssl/obj_mac.h" />
-    <ClInclude Include="openssl/include/openssl/ocsp.h" />
-    <ClInclude Include="openssl/include/openssl/opensslconf.h" />
-    <ClInclude Include="openssl/include/openssl/opensslv.h" />
-    <ClInclude Include="openssl/include/openssl/ossl_typ.h" />
-    <ClInclude Include="openssl/include/openssl/pem.h" />
-    <ClInclude Include="openssl/include/openssl/pem2.h" />
-    <ClInclude Include="openssl/include/openssl/pkcs12.h" />
-    <ClInclude Include="openssl/include/openssl/pkcs7.h" />
-    <ClInclude Include="openssl/include/openssl/pqueue.h" />
-    <ClInclude Include="openssl/include/openssl/pq_compat.h" />
-    <ClInclude Include="openssl/include/openssl/rand.h" />
-    <ClInclude Include="openssl/include/openssl/rc2.h" />
-    <ClInclude Include="openssl/include/openssl/rc4.h" />
-    <ClInclude Include="openssl/include/openssl/ripemd.h" />
-    <ClInclude Include="openssl/include/openssl/rsa.h" />
-    <ClInclude Include="openssl/include/openssl/safestack.h" />
-    <ClInclude Include="openssl/include/openssl/sha.h" />
-    <ClInclude Include="openssl/include/openssl/ssl.h" />
-    <ClInclude Include="openssl/include/openssl/ssl2.h" />
-    <ClInclude Include="openssl/include/openssl/ssl23.h" />
-    <ClInclude Include="openssl/include/openssl/ssl3.h" />
-    <ClInclude Include="openssl/include/openssl/stack.h" />
-    <ClInclude Include="openssl/include/openssl/store.h" />
-    <ClInclude Include="openssl/include/openssl/symhacks.h" />
-    <ClInclude Include="openssl/include/openssl/tls1.h" />
-    <ClInclude Include="openssl/include/openssl/tmdiff.h" />
-    <ClInclude Include="openssl/include/openssl/txt_db.h" />
-    <ClInclude Include="openssl/include/openssl/ui.h" />
-    <ClInclude Include="openssl/include/openssl/ui_compat.h" />
-    <ClInclude Include="openssl/include/openssl/x509.h" />
-    <ClInclude Include="openssl/include/openssl/x509v3.h" />
-    <ClInclude Include="openssl/include/openssl/x509_vfy.h" />
+    <ClInclude Include="acars.h" />
+    <ClInclude Include="decode.h" />
+    <ClInclude Include="ermes.h" />
+    <ClInclude Include="gfx.h" />
+    <ClInclude Include="helper_funcs.h" />
+    <ClInclude Include="html.h" />
+    <ClInclude Include="initapp.h" />
+    <ClInclude Include="language.h" />
+    <ClInclude Include="menu.h" />
+    <ClInclude Include="misc.h" />
+    <ClInclude Include="mobitex.h" />
+    <ClInclude Include="pdw.h" />
+    <ClInclude Include="printer.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="sigind.h" />
+    <ClInclude Include="slicer.h" />
+    <ClInclude Include="sound_in.h" />
+    <ClInclude Include="toolbar.h" />
     <ClInclude Include="resrc1.h" />
     <ClInclude Include="utils/binary.h" />
     <ClInclude Include="utils/debug.h" />
+    <ClInclude Include="utils/messagequeue.h" />
     <ClInclude Include="utils/globals.h" />
     <ClInclude Include="utils/ipcnfg.h" />
     <ClInclude Include="utils/ostype.h" />

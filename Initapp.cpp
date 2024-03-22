@@ -9,11 +9,6 @@
 //            InitializePane1()
 //            InitializePane2()
 //
-//
-#ifndef STRICT
-#define STRICT 1
-#endif
-
 #include <windows.h>
 #include <commctrl.h>
 #include <mmsystem.h>
@@ -21,14 +16,14 @@
 #include <commdlg.h>
 #include <string.h>
 #include <time.h>
+#include "resource.h"
+#include "pdw.h"
+#include "initapp.h"
+#include "helper_funcs.h"
+#include "slicer.h"
+#include "toolbar.h"
+#include "gfx.h"
 
-#include "headers/resource.h"
-#include "headers/pdw.h"
-#include "headers/slicer.h"
-#include "headers/toolbar.h"
-#include "headers/gfx.h"
-#include "headers/initapp.h"
-#include "headers/helper_funcs.h"
 
 PaneStruct Pane1;
 PaneStruct Pane2;

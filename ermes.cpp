@@ -1,11 +1,6 @@
 //
 // ermes.cpp
 //
-//
-#ifndef STRICT
-#define STRICT 1
-#endif
-
 #include <windows.h>
 #include <commctrl.h>
 #include <mmsystem.h>
@@ -14,16 +9,16 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
+#include "pdw.h"
+#include "initapp.h"
+#include "gfx.h"
+#include "decode.h"
+#include "misc.h"
+#include "acars.h"
+#include "mobitex.h"
+#include "ermes.h"
+#include "helper_funcs.h"
 
-#include "headers/pdw.h"
-#include "headers/initapp.h"
-#include "headers/gfx.h"
-#include "headers/decode.h"
-#include "headers/misc.h"
-#include "headers/acars.h"
-#include "headers/mobitex.h"
-#include "headers/ermes.h"
-#include "headers/helper_funcs.h"
 
 #define min(a,b) (((a) < (b)) ? (a) : (b))
 #define max(a,b) (((a) > (b)) ? (a) : (b))
@@ -120,7 +115,7 @@ int ERMES::lOnes(long int k)
 		if ((k & 0x0001l) != 0l) kt++;
 		k = k >> 1;
 	}
-	return(kt);
+	return(k);		//FVK: was kt
 }
 
 

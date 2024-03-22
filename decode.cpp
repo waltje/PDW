@@ -9,21 +9,16 @@
 //   - Decides when to log/messages statistics info.
 //   - Calls the signal indicator.
 //
-#ifndef STRICT
-#define STRICT 1
-#endif
-
 #include <windows.h>
-
-#include "headers/pdw.h"
-#include "headers/initapp.h"
-#include "headers/sigind.h"
-#include "headers/decode.h"
-#include "headers/acars.h"
-#include "headers/mobitex.h"
-#include "headers/ermes.h"
-#include "headers/helper_funcs.h"
 #include "utils/debug.h"
+#include "pdw.h"
+#include "initapp.h"
+#include "sigind.h"
+#include "decode.h"
+#include "acars.h"
+#include "mobitex.h"
+#include "ermes.h"
+#include "helper_funcs.h"
 
 FILE *pd_raw_fp = NULL;		// Debug - Raw data file for logging POCSAG/FLEX symbol data.
 

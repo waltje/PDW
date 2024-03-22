@@ -1,0 +1,261 @@
+PDW Change Log
+
+Separated from the main.cpp source file for clarity.
+
+PH : Peter Hunt
+RAH: Rutger A. Heunks
+AVE: Andreas Verhoeven
+DD : Danny D.
+AG : Andrey Grodzovsky
+DNL: discriminator.nl
+FVK: Fred N. van Kempen
+
+*** ALL DATES ARE NOW IN YYYY/MM/DD FORMAT !!!
+
+
+2003/04/06 PH:  Added Short Instructions
+2003/04/07 PH:  Short Instructions / Frames optional via menu
+2003/04/08 PH:  Added option to choose separate color for Short Instructions
+2003/04/09 PH:  Displaying of Tone-Only / Numeric now separately selectable
+2003/04/10 PH:  FLEX vector-type is now also displayed
+2003/04/11 PH:  Enlarged filterwindow (CTRL-F)
+2003/04/15 PH:  Switch '/labellog' writes the filterlabels also in monitorlogfile
+2003/05/19 RAH: Included playback 
+2003/05/23 AVE: Added "PDW Filters(#)" in filter window titlebar.
+2003/06/09 PH:  Added 2-level 3200sps sync-up
+2003/06/11 PH:  Added switch '/callmax' for optimized Callmax-pages
+2003/06/26 AVE: Added html.cpp & html.h for HTML-logfiles
+2003/06/28 PH:  Added  IRC-logfiles via switch '/irc'
+2003/09/01 PH:  Linefeed character will be replaced by '»'
+2003/09/02 PH:  Added extra column "type" for FLEX/POCSAG
+2003/09/03 PH:  Changed GetTimeFormat/Date, now always leading zeros are displayed
+2003/09/07 PH:  Removed Flush-Time. All logfiles will be flushed immediately
+2003/10/01 PH:  Labellog is now optional via Filter-dialog
+2003/10/03 PH:  Bug fixed in FLEX.CPP regarding displayed phases
+2003/10/05 PH:  Added code.wav (for FLEX-short only)
+2003/10/06 PH:  Separate directories for Wavfiles and Logfiles
+2003/10/07 PH:  Filters will now be written to "filters.ini" via WriteFilters()
+2003/10/08 PH:  Code.wav also usable for pocsag
+2003/10/11 AVE: Added FTP-support (FTP.DLL)
+2003/10/12 AVE: Filters will now be read from "filters.ini" via ReadFilters() (up to 32.000!)
+2003/10/30 PH:  When exiting PDW, a backup of FILTERS.INI will be made, named FILTERS.BAK
+2003/11/03 PH:  FTP-password is now encrypted (in PDW.INI)
+2003/11/11 PH:  changed WM_KEYDOWN and added VK_SHIFT for scrolling in Pane2
+2003/11/12 PH:  Added "Reload Filters", for use with PDW-Filter
+2003/11/13 PH:  Added ClearScreenDlgProc
+
+2003/11/14 PH:	 Version 1.2 released !!!
+//	  160/196	
+
+2003/11/17 PH:  Added: hitcounter, date&time of last hit
+2003/11/18 PH:  HTML: Added HTMLTitle & Refresh
+2003/11/26 PH:  HTML: Added URL-filter
+2003/11/28 PH:  FTP : Added FTP-File
+		Added Haaglanden.html
+
+2003/12/01 PH:  Version 1.21 released !!!
+//   72/250
+
+2003/12/01 PH:  Separate filter messages are now logged to normal filterfile
+		 AND separate filter file
+2003/12/02 PH:	Added Separate filter HTML-files
+2003/12/03 PH:  Added Statistics.html
+
+2004/04/12 PH/AVE: New FTP, FTP.DLL not needed anymore
+2004/04/21 PH:  Monitor-only labels made public
+2004/04/28 PH:  Added "Invisible for search engines" (in HTML)
+2004/04/28 PH:  Added FTP-passive mode
+2004/05/08 PH:  Added Label colors
+2004/05/15 PH:  Short Instructions gan now be converted to textmessage
+2004/05/18 PH:  Added cycle/frame information in statusbar
+2004/06/06 PH:  Changed update of HTML-files
+2004/06/11 PH:  Little bugix on SI-conversion (rejecting 20295xx)
+2004/06/17 PH:  Test: cycle/frame instead of MODE
+2004/06/23 PH:  Changed linefeeds for P2000-Amsterdam
+2004/06/24 PH:  Added separate color for biterrors in HTML (CLASS="B")
+2004/06/24 PH:  Changed colors for Convert-SI
+
+2004/07/02 PH:	 Version 1.22 released !!!
+//  497/3659
+
+2004/07/04 PH:  Wordwrap / Linefeed are now selectable options
+2004/07/05 PH:  Bugfix: separate files can now contain pathname
+2004/07/06 PH:  HTML-Statistics is now made an option
+2004/07/19 PH:  Changed command file arguments (%1 %2 %3 %4 %5 %6 %7 %8)
+2004/07/29 PH:  Changed ERMES-format, added 'type'-column
+2004/07/30 PH:  All modes can now log messages as columns
+2004/08/01 PH:  Some little changes in ACARS
+2004/08/12 PH:  Fixed bugs: rejecting FLEX-groupcodes, deleting FLEX tempfiles
+		     Added "converting to textmessage" for all FLEX-vectors
+
+2004/08/15 PH:  Version 1.23 released !!!
+//  395/1736
+
+2004/08/16 PH:  Fixed ERMES bug. Fixed parity-check bug in ACARS
+		Modified the columns
+
+2004/08/18 PH:  Version 1.24 released !!!
+//   52/176
+
+2004/08/19 PH:  Fixed some ACARS bugs
+2004/08/22 PH:  Several ACARS changes + added routes.df + ACARS-HTML
+2004/08/25 PH:  Added: ACARS-filter (Aircraft reg)
+2004/08/28 PH:  Fixed little bug when using HTML & soundcard
+2004/08/30 PH:  Added: Profile.MonthNumber for logfilenames
+2004/09/02 PH:  Added: Class="NOCSS" in case PDW.CSS is missing
+2004/09/08 PH:  Fixed little bug : filtering capcode+text
+2004/09/20 PH:  Added some extra label colors
+2004/10/06 PH:  Added Profile.LogfilePath
+2004/10/16 PH:  Added: user can enter capcode variable in description (%1234567)
+2004/10/17 PH:  Changed ScrollDlgProc (user can enter percentage)
+2004/11/01 PH:  Added: Monitor-Only.wav
+2004/11/05 PH:  Replaced collogfile editboxes by checkboxes
+2004/11/08 PH:  Statistics.HTML can also be uploaded
+2004/11/08 PH:  Added: Warning when resolution is < 800x600
+2004/11/09 PH:  Splitted FilterDlgProc into FilterDlgProc & FilterOptionsDlgProc
+
+2004/11/10 : Version 2.0 released !!!
+//   555/3221
+
+2004/11/14 PH:  Added: Profile.filter_default_type
+2004/11/16 PH:  Added: Profile.Linefeed in Filterwindow
+2004/11/17 PH:  Added: Profile.LabelNewline
+2004/11/18 PH:  Added: Profile.BlockDuplicate
+2004/11/19 PH:  Fixed FLEX SH/TONE bug
+2004/11/26 PH:  Added capcode.wav for wildcards (?->x)
+2004/11/29 PH:  Combined Add and Edit Filter Dialogs
+2004/11/30 PH:  New : UpdateFilterControls()
+2004/11/30 PH:  New : UpdateHTMLControls()
+2004/11/30 PH:  Rejecting texfilters is now possible
+2004/12/06 HWi: Added FlexTIME
+2004/12/18 PH:  Monitor_Only.wav can be turned on/off per filter
+2004/12/19 PH:  Bugfix displaying phases
+2004/12/21 HWi: Bugfix slicer.sys
+2004/12/22 PH:  Linefeeds also possible in logfiles
+2004/12/23 PH:  Short Instructions are now displayed in reversed order
+2004/12/28 HWi: Improved scrolling when dragging in FilterDlg
+2004/12/28 HWi: When the PC falls in standby mode, PDW doesn't stop anymore
+
+2004/12/30 : Version 2.1 released!!
+//	 344/1700
+
+2005/01 PH:  Fixed several bugs regarding pocsag and mobitex
+
+2005/01/20 : Version 2.11 released!!
+//   584/2913
+
+2005/01/21 PH:  Added 'filter.match_exact_text'
+
+2005/03/07 : Version 2.12 released!!
+//  1348/8217
+
+2005/07/10 PH:  Added 'Profile.Hide_Column'
+2005/07/21 HWi: Fixed disappearing emailaddresses
+		Check to see if PDW is already running (in the current directory)
+2005/08/01 PH:  Fixed StNum bug in FLEX
+2005/08/05 Hwi: The Filterwindow will now automatically resize depending on resolution
+2005/08/10 PH:  The button sizes in filterwindow are now also resolution dependant
+2005/08/15 PH:  Added: Find filter
+2005/08/25 PH:  Added: Search while typing
+
+2005/08/27 : Version 2.13 released!!
+//  1453/9482
+
+2005/09/22 PH:  Added:  Additional information in titlebar (FTP/reject/blocked)
+2005/09/22 PH:  Bugfix: When started up, sometimes the first message didn't appear
+                        correctly (if Hide Column)
+2005/10/04 PH:  Change: CODE.WAV will allways be played, also if no filtermatch
+2005/11/03 PH:  Added:  Empty lines / HTML separator after ALPHA/GROUP messages
+2005/11/27 PH:  Added:  User can select soundcard
+2005/11/02 PH:  Bugfix: Early wrapping when screen_x=1280 && Hide Column
+2005/12/05 PH:  Added:  Reset ALL hitcounters / backup filters.xxx
+2005/12/07 PH:  Added:  zDlgProc()
+2005/12/09 PH:  Change: In SelectFont() charactersize limited to 8-12 and a MessageBox
+                        will appear if the selected fontsize is too big to fit in the columns
+2005/12/11 PH:  Change: Font in IDC_FILTERS is now Lucida Console (fixed font)
+			Also changed BuildFilterString, now everyting lines up
+2005/12/12 PH:  Change: InitListControl() now makes a better measurement of the width
+			of the ListView to use the window more efficently
+2005/12/15 PH:  Added:  FilterEdit => Multiple Edit
+2005/12/17 PH:  Added:  Minimize to SystemTray => MoveToSystemTray()
+
+2006/01/13 PH:  FLEX Groupcalls are now converted via array (no more tempfiles)
+2006/01/29 PH:  Bugfix: ERMES bug (no more junk / ghost messages are being displayed)
+
+2006/02/22 : Version 2.14 released!!
+//  2251/14503
+
+2006/02/24 PH:  Bugfix: The filter window titlebar sometimes displayed wrong filter
+2006/02/25 PH:  Bugfix: Minor fixes on main titlebar
+2006/02/26 PH:  Bugfix: Break on EOT character
+2006/03/03 PH:  Change: HTML-labels same colors as in PDW itself
+2006/03/05 PH:  Optimized Empty lines / HTML separator
+2006/04/09 PH:  Added : Empty lines / HTML separator -> now also for filter window
+2006/04/13 HWi: Fixed : SMTP TCP/IP bug
+2006/04/17 PH:  Added : Empty lines / HTML separator -> option: also check time
+2006/04/19 PH:  Added : Log only FTP-errors to FTP.LOG
+2006/04/26 PH:  Optimized Empty lines (clear screen / new logfile)
+2006/04/27 PH:  Change: Block Duplicate Messages also blocks duplicate groupcalls
+2006/04/29 PH:  Added : Filtered messages can only be displayed in filterwindow
+2006/04/30 PH:  Change: display_show_crlf() now opens files via OpenGetFilename()
+2006/05/17 PH:  Change: CODE.WAV -> Prio wavfiles
+2006/05/18 PH:  FLEX Groupcalls are now converted via int GroupCapcodes[16][MAXIMUM_GROUPSIZE]
+2006/06/01 PH:  Started using more arrays and definitions (MISC.CPP : CURRENT/PREVIOUS)
+2006/06/02 PH:  Added : Empty lines -> now also for separate filterfiles
+2006/06/26 PH:  Added : iDateUSA
+2006/06/29 PH:  Added : Filtered messages can only be displayed in filterwindow
+2006/07/26 PH:  Fixed : StNum bug in FLEX
+2006/08/04 PH:  Added : Multiple separate filter files (only HTML)
+2006/08/05 PH:  Change: UpdateFilterControls() integrated in FilterEditDlgProc
+                        using WM_WININICHANGE
+2006/08/07 Hwi: Change: SMTP.CPP now uses 8-bit charset
+2006/08/07 PH:  Change: Replaced character remapping, so messages appear also remapped
+                        in logfile and SMTP.
+2006/08/13 Hwi: Added : Charset selection in SMTP Dialog
+2006/10/16 PH:  Added : Multiple separate filter files (also logfiles)
+2006/10/22 PH:  Added : Custom HTML folder
+
+2007/01/11 : Version 2.15 released!!
+//  559/1238
+
+2007/08/23 : Version 2.2 released!!
+//  1716/8104
+
+2007/12/19 : Version 2.3 released!!
+//  638/3497
+
+2008/03/16 : Version 2.4 released!!
+//  774/6400
+
+2008/07/19 : Version 2.5 released!!
+//  188/1529
+
+2008/08/16 : Version 2.51 released!!
+//  431/3252
+
+2008/10/12 : Version 2.52 released!!
+//  556/4571
+
+2009/01/11 : Version 2.53 released!!
+//  601/5057
+
+2010/03/24 : Version 2.60 released!!
+
+2010/08/10 : Version 3.0 released!!
+
+2013/07/13 DD: Updated About. web url. 
+2013/07/13 DD: Version 3.12 released!
+
+2016/06/12 AG : SSL support for SMTP mail client
+2016/08/20 DNL: Beta release 3.2b01
+
+2024/03/20 FVK: Cleanup for VS2019, Windows 10. Release 3.20
+                Got rid of many warnings. Fixed project files, and
+                 lowercased all filenames. Renamed pdw.cpp to main.cpp.
+                Added ARM and ARM64 platforms.
+                Added USE_SSL conditional (utils/smtp.cpp) to make the
+                 SSL library optional - for now needed for ARM target.
+                Updated to use headers/version.h to contain all program
+                 version information.
+                Renamed SSL library path to drop version, so we do not
+                 have to keep updating the project files all the time.

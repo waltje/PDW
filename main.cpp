@@ -1,267 +1,18 @@
 //  main.cpp
 //
-//  Main program loop.
+//  Main module of the PDW program.
 //
-//  This file uses the following functions:
-//
-//  ClearPanes()
-//  WinMain(), PDWWndProc(), Pane1WndProc(), Pane2WndProc()
-//  InvertSelection(), CopyToClipboard(), PanePaint(), PaneHScroll()
-//  PaneVScroll(), GoModalDialogBoxParam(), ErrDlgProc(), ExitDlgProc()
-//  OkCancelDlgProc(), LogFileDlgProc(), SetupDlgProc(), SelectFont()
-//  ColorsDlgProc(), ColorWndProc(), OptionsDlgProc(), ScrollDlgProc()
-//  Copy_Filter_Fields(), BuildFilterString(), FilterDlgProc()
-//  UpdateSigInd(), MonStatDlgProc(), MonKeepDlgProc()
-//  CenterOpenDlgBox(), CenterWindow(), ErrorMessageBox()
-//  SetTitle(), GetPrivateProfileSettings(), GetPrivateProfileDWord()
-//  WritePrivateProfileSettings(), WritePrivateProfileInt()
-//  WritePrivateProfileDWord(), GetEditSaveName()
-//
-//
-// PH : Peter Hunt
-// RAH: Rutger A. Heunks
-// AVE: Andreas Verhoeven
-// DD : Danny D.
-// AG : Andrey Grodzovsky
-// DNL: discriminator.nl
-// FVK: Fred N. van Kempen
-// 
-//
-// 06/04/2003 PH:  Added Short Instructions
-// 07/04/2003 PH:  Short Instructions / Frames optional via menu
-// 08/04/2003 PH:  Added option to choose separate color for Short Instructions
-// 09/04/2003 PH:  Displaying of Tone-Only / Numeric now separately selectable
-// 10/04/2003 PH:  FLEX vector-type is now also displayed
-// 11/04/2003 PH:  Enlarged filterwindow (CTRL-F)
-// 15/04/2003 PH:  Switch '/labellog' writes the filterlabels also in monitorlogfile
-// 19/05/2003 RAH: Included playback 
-// 23/05/2003 AVE: Added "PDW Filters(#)" in filter window titlebar.
-// 09/06/2003 PH:  Added 2-level 3200sps sync-up
-// 11/06/2003 PH:  Added switch '/callmax' for optimized Callmax-pages
-// 26/06/2003 AVE: Added html.cpp & html.h for HTML-logfiles
-// 28/06/2003 PH:  Added  IRC-logfiles via switch '/irc'
-// 01/09/2003 PH:  Linefeed character will be replaced by '»'
-// 02/09/2003 PH:  Added extra column "type" for FLEX/POCSAG
-// 03/09/2003 PH:  Changed GetTimeFormat/Date, now always leading zeros are displayed
-// 07/09/2033 PH:  Removed Flush-Time. All logfiles will be flushed immediately
-// 01/10/2003 PH:  Labellog is now optional via Filter-dialog
-// 03/10/2003 PH:  Bug fixed in FLEX.CPP regarding displayed phases
-// 05/10/2003 PH:  Added code.wav (for FLEX-short only)
-// 06/10/2003 PH:  Separate directories for Wavfiles and Logfiles
-// 07/10/2003 PH:  Filters will now be written to "filters.ini" via WriteFilters()
-// 08/10/2003 PH:  Code.wav also usable for pocsag
-// 11/10/2003 AVE: Added FTP-support (FTP.DLL)
-// 12/10/2003 AVE: Filters will now be read from "filters.ini" via ReadFilters() (up to 32.000!)
-// 30/10/2003 PH:  When exiting PDW, a backup of FILTERS.INI will be made, named FILTERS.BAK
-// 03/11/2003 PH:  FTP-password is now encrypted (in PDW.INI)
-// 11/11/2003 PH:  changed WM_KEYDOWN and added VK_SHIFT for scrolling in Pane2
-// 12/11/2003 PH:  Added "Reload Filters", for use with PDW-Filter
-// 13/11/2003 PH:  Added ClearScreenDlgProc
-//
-//	  160/196	
-//
-// 14/11/2003 PH:	 Version 1.2 released !!!
-//
-// 17/11/2003 PH:  Added: hitcounter, date&time of last hit
-// 18/11/2003 PH:  HTML: Added HTMLTitle & Refresh
-// 26/11/2003 PH:  HTML: Added URL-filter
-// 28/11/2003 PH:  FTP : Added FTP-File
-//						 Added Haaglanden.html
-//   72/250
-//
-// 01/12/2003 PH:	 Version 1.21 released !!!
-//
-// 01/12/2003 PH:  Separate filter messages are now logged to normal filterfile
-//						 AND separate filter file
-// 02/12/2003 PH:	 Added Separate filter HTML-files
-// 03/12/2003 PH:  Added Statistics.html
-//
-// 12/04/2004 PH/AVE: New FTP, FTP.DLL not needed anymore
-// 21/04/2004 PH:  Monitor-only labels made public
-// 28/04/2004 PH:  Added "Invisible for search engines" (in HTML)
-// 28/04/2004 PH:  Added FTP-passive mode
-// 08/05/2004 PH:  Added Label colors
-// 15/05/2004 PH:  Short Instructions gan now be converted to textmessage
-// 18/05/2004 PH:  Added cycle/frame information in statusbar
-// 06/06/2004 PH:  Changed update of HTML-files
-// 11/06/2004 PH:  Little bugix on SI-conversion (rejecting 20295xx)
-// 17/06/2004 PH:  Test: cycle/frame instead of MODE
-// 23/06/2004 PH:  Changed linefeeds for P2000-Amsterdam
-// 24/06/2004 PH:  Added separate color for biterrors in HTML (CLASS="B")
-// 24/06/2004 PH:  Changed colors for Convert-SI
-//
-//  497/3659
-//
-// 02/07/2004 PH:	 Version 1.22 released !!!
-//
-// 04/07/2004 PH:  Wordwrap / Linefeed are now selectable options
-// 05/07/2004 PH:  Bugfix: separate files can now contain pathname
-// 06/07/2004 PH:  HTML-Statistics is now made an option
-// 19/07/2004 PH:  Changed command file arguments (%1 %2 %3 %4 %5 %6 %7 %8)
-// 29/07/2004 PH:  Changed ERMES-format, added 'type'-column
-// 30/07/2004 PH:  All modes can now log messages as columns
-// 01/08/2004 PH:  Some little changes in ACARS
-// 12/08/2004 PH:  Fixed bugs: rejecting FLEX-groupcodes, deleting FLEX tempfiles
-//						 Added "converting to textmessage" for all FLEX-vectors
-//  395/1736
-//
-// 15/08/2004 PH:  Version 1.23 released !!!
-//
-// 16/08/2004 PH:  Fixed ERMES bug. Fixed parity-check bug in ACARS
-//						 Modified the columns
-//
-//   52/176
-//
-// 18/08/2004 PH:  Version 1.24 released !!!
-//
-// 19/08/2004 PH:  Fixed some ACARS bugs
-// 22/08/2004 PH:  Several ACARS changes + added routes.df + ACARS-HTML
-// 25/08/2004 PH:  Added: ACARS-filter (Aircraft reg)
-// 28/08/2004 PH:  Fixed little bug when using HTML & soundcard
-// 30/08/2004 PH:  Added: Profile.MonthNumber for logfilenames
-// 02/09/2004 PH:  Added: Class="NOCSS" in case PDW.CSS is missing
-// 08/09/2004 PH:  Fixed little bug : filtering capcode+text
-// 20/09/2004 PH:  Added some extra label colors
-// 06/10/2004 PH:  Added Profile.LogfilePath
-// 16/10/2004 PH:  Added: user can enter capcode variable in description (%1234567)
-// 17/10/2004 PH:  Changed ScrollDlgProc (user can enter percentage)
-// 01/11/2004 PH:  Added: Monitor-Only.wav
-// 05/11/2004 PH:  Replaced collogfile editboxes by checkboxes
-// 08/11/2004 PH:  Statistics.HTML can also be uploaded
-// 08/11/2004 PH:  Added: Warning when resolution is < 800x600
-// 09/11/2004 PH:  Splitted FilterDlgProc into FilterDlgProc & FilterOptionsDlgProc
-//
-// 10/11/2004 : Version 2.0 released !!!
-//   555/3221
-//
-// 14/11/2004 PH:  Added: Profile.filter_default_type
-// 16/11/2004 PH:  Added: Profile.Linefeed in Filterwindow
-// 17/11/2004 PH:  Added: Profile.LabelNewline
-// 18/11/2004 PH:  Added: Profile.BlockDuplicate
-// 19/11/2004 PH:  Fixed FLEX SH/TONE bug
-// 26/11/2004 PH:  Added capcode.wav for wildcards (?->x)
-// 29/11/2004 PH:  Combined Add and Edit Filter Dialogs
-// 30/11/2004 PH:  New : UpdateFilterControls()
-// 30/11/2004 PH:  New : UpdateHTMLControls()
-// 30/11/2004 PH:  Rejecting texfilters is now possible
-// 06/12/2004 HWi: Added FlexTIME
-// 18/12/2004 PH:  Monitor_Only.wav can be turned on/off per filter
-// 19/12/2004 PH:  Bugfix displaying phases
-// 21/12/2004 HWi: Bugfix slicer.sys
-// 22/12/2004 PH:  Linefeeds also possible in logfiles
-// 23/12/2004 PH:  Short Instructions are now displayed in reversed order
-// 28/12/2004 HWi: Improved scrolling when dragging in FilterDlg
-// 28/12/2004 HWi: When the PC falls in standby mode, PDW doesn't stop anymore
-//
-// 30/12/2004 : Version 2.1 released!!
-//	 344/1700
-//
-//    01/2005 PH:  Fixed several bugs regarding pocsag and mobitex
-//
-// 20/01/2005 : Version 2.11 released!!
-//   584/2913
-//
-// 21/01/2005 PH:  Added 'filter.match_exact_text'
-//
-// 07/03/2005 : Version 2.12 released!!
-//  1348/8217
-//
-// 10/07/2005 PH:  Added 'Profile.Hide_Column'
-// 21/07/2005 HWi: Fixed disappearing emailaddresses
-//				   Check to see if PDW is already running (in the current directory)
-// 01/08/2005 PH:  Fixed StNum bug in FLEX
-// 05/08/2005 Hwi: The Filterwindow will now automatically resize depending on resolution
-// 10/08/2005 PH:  The button sizes in filterwindow are now also resolution dependant
-// 15/08/2005 PH:  Added: Find filter
-// 25/08/2005 PH:  Added: Search while typing
-//
-// 27/08/2005 : Version 2.13 released!!
-//  1453/9482
-//
-// 22/09/2005 PH:  Added:  Additional information in titlebar (FTP/reject/blocked)
-// 22/09/2005 PH:  Bugfix: When started up, sometimes the first message didn't appear
-//                         correctly (if Hide Column)
-// 04/10/2005 PH:  Change: CODE.WAV will allways be played, also if no filtermatch
-// 03/11/2005 PH:  Added:  Empty lines / HTML separator after ALPHA/GROUP messages
-// 27/11/2005 PH:  Added:  User can select soundcard
-// 02/11/2005 PH:  Bugfix: Early wrapping when screen_x=1280 && Hide Column
-// 05/12/2005 PH:  Added:  Reset ALL hitcounters / backup filters.xxx
-// 07/12/2005 PH:  Added:  zDlgProc()
-// 09/12/2005 PH:  Change: In SelectFont() charactersize limited to 8-12 and a MessageBox
-//                         will appear if the selected fontsize is too big to fit in the columns
-// 11/12/2005 PH:  Change: Font in IDC_FILTERS is now Lucida Console (fixed font)
-//						   Also changed BuildFilterString, now everyting lines up
-// 12/12/2005 PH:  Change: InitListControl() now makes a better measurement of the width
-//						   of the ListView to use the window more efficently
-// 15/12/2005 PH:  Added:  FilterEdit => Multiple Edit
-// 17/12/2005 PH:  Added:  Minimize to SystemTray => MoveToSystemTray()
-// 13/01/2006 PH:  FLEX Groupcalls are now converted via array (no more tempfiles)
-// 29/01/2006 PH:  Bugfix: ERMES bug (no more junk / ghost messages are being displayed)
-//
-// 22/02/2006 : Version 2.14 released!!
-//  2251/14503
-//
-// 24/02/2006 PH:  Bugfix: The filter window titlebar sometimes displayed wrong filter
-// 25/02/2006 PH:  Bugfix: Minor fixes on main titlebar
-// 26/02/2006 PH:  Bugfix: Break on EOT character
-// 03/03/2006 PH:  Change: HTML-labels same colors as in PDW itself
-// 05/03/2006 PH:  Optimized Empty lines / HTML separator
-// 09/04/2005 PH:  Added : Empty lines / HTML separator -> now also for filter window
-// 13/04/2006 HWi: Fixed : SMTP TCP/IP bug
-// 17/04/2005 PH:  Added : Empty lines / HTML separator -> option: also check time
-// 19/04/2006 PH:  Added : Log only FTP-errors to FTP.LOG
-// 26/04/2006 PH:  Optimized Empty lines (clear screen / new logfile)
-// 27/04/2006 PH:  Change: Block Duplicate Messages also blocks duplicate groupcalls
-// 29/04/2006 PH:  Added : Filtered messages can only be displayed in filterwindow
-// 30/04/2006 PH:  Change: display_show_crlf() now opens files via OpenGetFilename()
-// 17/05/2006 PH:  Change: CODE.WAV -> Prio wavfiles
-// 18/05/2006 PH:  FLEX Groupcalls are now converted via int GroupCapcodes[16][MAXIMUM_GROUPSIZE]
-// 01/06/2006 PH:  Started using more arrays and definitions (MISC.CPP : CURRENT/PREVIOUS)
-// 02/06/2006 PH:  Added : Empty lines -> now also for separate filterfiles
-// 26/06/2006 PH:  Added : iDateUSA
-// 29/06/2006 PH:  Added : Filtered messages can only be displayed in filterwindow
-// 26/07/2006 PH:  Fixed : StNum bug in FLEX
-// 04/08/2006 PH:  Added : Multiple separate filter files (only HTML)
-// 05/08/2006 PH:  Change: UpdateFilterControls() integrated in FilterEditDlgProc
-//                         using WM_WININICHANGE
-// 07/08/2006 Hwi: Change: SMTP.CPP now uses 8-bit charset
-// 07/08/2006 PH:  Change: Replaced character remapping, so messages appear also remapped
-//                         in logfile and SMTP.
-// 13/08/2006 Hwi: Added : Charset selection in SMTP Dialog
-// 16/10/2006 PH:  Added : Multiple separate filter files (also logfiles)
-// 22/10/2006 PH:  Added : Custom HTML folder
-//
-//
-// 11/01/2007 : Version 2.15 released!!
-//  559/1238
-//
-// 23/08/2007 : Version 2.2 released!!
-//  1716/8104
-//
-// 19/12/2007 : Version 2.3 released!!
-//  638/3497
-//
-// 16/03/2008 : Version 2.4 released!!
-//  774/6400
-//
-// 19/07/2008 : Version 2.5 released!!
-//  188/1529
-//
-// 16/08/2008 : Version 2.51 released!!
-//  431/3252
-//
-// 12/10/2008 : Version 2.52 released!!
-//  556/4571
-//
-// 11/01/2009 : Version 2.53 released!!
-//  601/5057
-//
-// 24/03/2010 : Version 2.60 released!!
-//
-// 10/08/2010 : Version 3.0 released!!
+// Authors:
 
-// 13/7/2013 DD: Updated About. web url. 
-// 13/7/2013 DD: Version 3.12 released!
+// Peter Hunt (PH)
+// Rutger A. Heunks (RAH)
+// Andreas Verhoeven (AVE)
+// Danny D. (DD)
+// Andrey Grodzovsky (AG)
+// discriminator.nl (DNL)
+// Fred N. van Kempen (FVK)
+//
+// See the CHANGELOG file for a history of (most) changes.
 //
 // FILTERS.INI lines :
 //
@@ -274,28 +25,6 @@
 // 4: 1=Label-enabled += label-color
 // 5: 1=SEP-enabled , 2=SEP-HTML , 4=SEP-FTP , 8=SMTP , 16=Match exact text
 //
-// 12-JUN-2016 AG : SSL support for SMTP mail client
-// 20-AUG-2016 DNL: Beta release 3.2b01
-//
-// 20-MAR-2024 FVK: Cleanup for VS2019, Windows 10. Release 3.20
-//                  Got rid of many warnings. Fixed project files, and
-//                   lowercased all filenames. Renamed pdw.cpp to main.cpp.
-//                  Added ARM and ARM64 platforms.
-//                  Added USE_SSL conditional (utils/smtp.cpp) to make the
-//                   SSL library optional - for now needed for ARM target.
-//                  Updated to use headers/version.h to contain all program
-//                   version information.
-//                  Renamed SSL library path to drop version, so we do not
-//                   have to keep updating the project files all the time.
-//
-
-#ifndef STRICT
-#define STRICT 1
-#endif
-#ifndef STRICT
-#define STRICT 1
-#endif
-
 #include <windows.h>
 #include <commctrl.h>
 #include <mmsystem.h>
@@ -304,29 +33,29 @@
 #include <string.h>
 #include <time.h>
 #include <shlobj.h>
-
-#include "headers/resource.h"
-#include "headers/pdw.h"
-#include "headers/slicer.h"
-#include "headers/toolbar.h"
-#include "headers/gfx.h"
-#include "headers/initapp.h"
-#include "headers/sigind.h"
-#include "headers/decode.h"
-#include "headers/sound_in.h"
-#include "headers/printer.h"
-#include "headers/misc.h"
-#include "headers/menu.h"
-#include "headers/acars.h"
-#include "headers/language.h"
-#include "headers/mobitex.h"
-#include "headers/ermes.h"
-#include "headers/helper_funcs.h"
-#include "headers/version.h"
+#include "resource.h"
+#include "pdw.h"
+#include "slicer.h"
+#include "toolbar.h"
+#include "gfx.h"
+#include "initapp.h"
+#include "sigind.h"
+#include "decode.h"
+#include "sound_in.h"
+#include "printer.h"
+#include "misc.h"
+#include "menu.h"
+#include "acars.h"
+#include "language.h"
+#include "mobitex.h"
+#include "ermes.h"
+#include "helper_funcs.h"
+#include "version.h"
 #include "utils/rs232.h"
 #include "utils/debug.h"
 #include "utils/ostype.h"
 #include "utils/smtp.h"
+#include "utils/messagequeue.h"			// FIXME: NICO
 
 
 #define MIN_X_WIN_SIZE		444		// Smallest main win X size can be (was 444)
@@ -485,38 +214,32 @@ void AutoRecording();	// PH: temp/test
 
 int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int nCmdShow)
 {
-	// RAH: setup common file dialog data
-	ZeroMemory(&openplayback, sizeof(openplayback));
-	ZeroMemory(&openrecording,sizeof(openrecording));
-
-	openplayback.lStructSize  = sizeof(openplayback);
-	openrecording.lStructSize = sizeof(openrecording);
-
-	szPlayback[0] = '\0';
-
 	MSG msg;
 
+//FIXME: first of all, process commandline options. --FVK
+
+	// PH: Set version info in szWindowText buffer
+//FIXME: optionally use commandline arg here!  --FVK
+	sprintf(szWindowText[0], " %s %s", APP_NAME, APP_VERSION);
+
+	// Initialize global variables.
 	ghWnd = NULL;
 	ghInstance = hInstance;
+	ZeroMemory(&openplayback, sizeof(openplayback));
+	ZeroMemory(&openrecording,sizeof(openrecording));
+	openplayback.lStructSize  = sizeof(openplayback);
+	openrecording.lStructSize = sizeof(openrecording);
+	szPlayback[0] = '\0';
 
+	// Initialize the user profile.
+	ZeroMemory(&Profile, sizeof(Profile));
 	Profile.LabelLog		= 1;	// Flag for labels in monitored-logfile
 	Profile.LabelNewline		= 1;	// Flag for labels on new line
-	Profile.ColLogfile[0]		= '\0';	// Flag for columns in logfile
-	Profile.ColFilterfile[0]	= '\0';	// Flag for columns in filterfiles
 	Profile.Linefeed		= 1;	// Flag for converting » to linefeed
 	Profile.Separator		= 1;	// Flag for separating messages (empty line)
 	Profile.MonthNumber		= 1;	// Flag for using monthnumber in logfilenames
-	Profile.DateFormat		= 0;	// Flag for date format
-	Profile.BlockDuplicate		= 0;	// Flag for blocking duplicate messages
 	Profile.FilterWindowColors	= 1;	// Flag for showing label colors in filterwindow
 	Profile.FilterWindowExtra	= 1;	// Flag for showing CMD/DESC/SEP/etc in filterwindow
-
-	Profile.SystemTray	        = 0;	// Flag for enabeling the system tray
-	Profile.SystemTrayRestore	= 0;	// Flag for enabeling auto restore from tray
-	Profile.SMTP = 0;			// Flag for SMTP-email
-
-	Profile.FlexTIME		= 0;	// Flag for FlexTIME as systemtime
-	Profile.FlexGroupMode		= 0;
 
 	Profile.xPos 			= 0;
 	Profile.yPos			= 0;
@@ -526,8 +249,6 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	Profile.showtone		= 1;
 	Profile.shownumeric		= 1;
 	Profile.showmisc		= 1;
-	Profile.filterbeep		= 0;
-	Profile.filterwindowonly	= 0;	// Show filtered messages only in filterwindow
 
 	Profile.confirmExit     = 1;
 	Profile.decodepocsag    = 1;
@@ -574,19 +295,12 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	Profile.lang_tbl_index= 0;		// Decides language character map.
 
 	Profile.logfile_enabled	 = 1;
-	Profile.logfile[0]	 = '\0';
 	Profile.logfile_use_date = 1;
 
-	Profile.edit_save_file[0] = '\0';
 	Profile.maximize_flg	  = 1;
 
 	Profile.filterfile_enabled	= 1;
-	Profile.filterfile[0]		= '\0';
 	Profile.filterfile_use_date	= 1;
-	Profile.filter_cmd_file_enabled	= 0;
-	Profile.filter_cmd[0]		= '\0';
-	Profile.filter_cmd_args[0]	= '\0';
-	Profile.filter_default_type	= 0;
 
 	Profile.filters.clear();
 
@@ -686,9 +400,6 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 
 	SetWindowPaneSize(WINDOW_SIZE);	// PH: Set Max_X_Client / iMaxWidth / NewLinePoint
 
-	// PH: Set version info in szWindowText buffer
-	sprintf(szWindowText[0], " %s %s", APP_NAME, APP_VERSION);
-
 	Get_Date_Time();
 	sprintf(szDebugStarted, "%s %s", szCurrentDate, szCurrentTime);
 
@@ -711,6 +422,12 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 			SetTimer(ghWnd, PDW_TIMER, 100, (TIMERPROC) NULL); // start timer.
 		}
 	}
+
+#if 0	//FIXME: NICO
+	if (Profile.MESSAGE_QUEUE)
+		StartMQMonitor();
+#endif
+
 	SetTimer(ghWnd, MINUTE_TIMER, 1000*60, (TIMERPROC) NULL); // start minute timer
 	SetTimer(ghWnd, SECOND_TIMER, 1000,    (TIMERPROC) NULL); // start second timer
 
@@ -728,7 +445,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 		}
 	}
 	return ((int) msg.wParam);
-} // end of WinMain()
+}
 
 
 // Used if WM_CREATE fails or when program exits.
@@ -745,6 +462,7 @@ void Free_Common_Objects(void)
 	FreeSigInd();				// see sigind.cpp
 	FreeToolBarImages(ghInstance);		// Free toolbar button bitmaps
 }
+
 
 LRESULT FAR PASCAL PDWWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -1002,11 +720,8 @@ LRESULT FAR PASCAL PDWWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 		InitializePane(&Pane1);
 		InitializePane(&Pane2);
 
-#ifndef GWL_HINSTANCE
-# define GWL_HINSTANCE GWLP_HINSTANCE
-#endif
 		Pane1.hWnd = CreateWindow(gszPane1Class, NULL, WS_CHILD | WS_VISIBLE, 0,0,0,0, hWnd,
-								  NULL, (HINSTANCE) GetWindowLong(hWnd, GWL_HINSTANCE), 0);
+								  NULL, (HINSTANCE) GetWindowLongPtr(hWnd, GWLP_HINSTANCE), 0);
 		if (Pane1.hWnd == NULL)
 		{
 			Free_Common_Objects();  // Free any objects we got!
@@ -1014,7 +729,7 @@ LRESULT FAR PASCAL PDWWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 		}
 
 		Pane2.hWnd = CreateWindow(gszPane2Class, NULL, WS_CHILD | WS_VISIBLE, 0,0,0,0, hWnd,
-								  NULL, (HINSTANCE) GetWindowLong(hWnd, GWL_HINSTANCE), 0);
+								  NULL, (HINSTANCE) GetWindowLongPtr(hWnd, GWLP_HINSTANCE), 0);
 
 		if (Pane2.hWnd == NULL)
 		{
@@ -1487,14 +1202,14 @@ LRESULT FAR PASCAL PDWWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
 				if (FileExists(szFilterPathName))
 				{
-					sprintf(filters_temp, "Old  number  of filters :  %u\n",Profile.filters.size());
+					sprintf(filters_temp, "Old  number  of filters :  %u\n", (unsigned)Profile.filters.size());
 					strcpy (filters_reload, filters_temp);
 						
 					Profile.filters.clear();
 							
 					if (ReadFilters(szFilterPathName, &Profile, false))
 					{
-						sprintf(filters_temp, "New number of filters :  %u",Profile.filters.size());
+						sprintf(filters_temp, "New number of filters :  %u", (unsigned)Profile.filters.size());
 						strcat (filters_reload, filters_temp);
 
 						MessageBox(ghWnd, filters_reload, "PDW Reloaded filters", MB_ICONINFORMATION);
@@ -3805,7 +3520,7 @@ BOOL NEAR SelectFont(HWND hDlg)
 	cfFont.Flags			= CF_SCREENFONTS | CF_ENABLEHOOK |  CF_NOOEMFONTS | CF_LIMITSIZE |
 							  CF_INITTOLOGFONTSTRUCT | CF_FIXEDPITCHONLY | CF_FORCEFONTEXIST;
 	cfFont.lCustData		= 0;
-	cfFont.lpfnHook			= CenterOpenDlgBox;
+	cfFont.lpfnHook			= (LPCFHOOKPROC)CenterOpenDlgBox;
 	cfFont.lpTemplateName	= NULL;
 	cfFont.hInstance		= ghInstance;
 	cfFont.nSizeMin			= 8;	// PH: Added 9-12-2005
@@ -3911,13 +3626,13 @@ BOOL FAR PASCAL ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 		GetSystemMetrics(SM_CYDLGFRAME);
 
 		hColorWnd = CreateWindow(gszColorClass, NULL, WS_CHILD | WS_VISIBLE, xPos, yPos,
-			xSize, ySize,	hDlg, NULL,	(HINSTANCE) GetWindowLong(hDlg, GWL_HINSTANCE),	0);
+			xSize, ySize,	hDlg, NULL,	(HINSTANCE) GetWindowLongPtr(hDlg, GWLP_HINSTANCE),	0);
 
 		DeleteObject(hboxbr);
 
 		hboxbr = CreateSolidBrush(tmp_background);
 
-		SetClassLong(hColorWnd, GCL_HBRBACKGROUND, (LONG) hboxbr);
+		SetClassLongPtr(hColorWnd, GCLP_HBRBACKGROUND, (LONG_PTR)hboxbr);
 
 		InvalidateRect(hColorWnd, NULL, TRUE);
 
@@ -3927,9 +3642,9 @@ BOOL FAR PASCAL ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 		cc.hwndOwner		= hDlg;
 		cc.rgbResult		= 0;
 		cc.lpCustColors		= custom_colors;
-		cc.Flags			= CC_RGBINIT | CC_ENABLEHOOK;
+		cc.Flags		= CC_RGBINIT | CC_ENABLEHOOK;
 		cc.lCustData		= 0;
-		cc.lpfnHook			= CenterOpenDlgBox;
+		cc.lpfnHook		= (LPCFHOOKPROC)CenterOpenDlgBox;
 		cc.lpTemplateName	= NULL;
 
 		return (TRUE);
@@ -3950,7 +3665,7 @@ BOOL FAR PASCAL ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 				DeleteObject(hboxbr);
 				hboxbr = CreateSolidBrush(tmp_background);
 
-				SetClassLong(hColorWnd, GCL_HBRBACKGROUND, (LONG) hboxbr);
+				SetClassLongPtr(hColorWnd, GCLP_HBRBACKGROUND, (LONG_PTR)hboxbr);
 				InvalidateRect(hColorWnd, NULL, TRUE);
 			}
 			break;
@@ -4091,7 +3806,7 @@ BOOL FAR PASCAL ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 				DeleteObject(hboxbr);
 				hboxbr = CreateSolidBrush(tmp_background);
 
-				SetClassLong(hColorWnd, GCL_HBRBACKGROUND, (LONG) hboxbr);
+				SetClassLongPtr(hColorWnd, GCLP_HBRBACKGROUND, (LONG_PTR)hboxbr);
 				InvalidateRect(hColorWnd, NULL, TRUE);
 			}
 			break;
@@ -4114,8 +3829,8 @@ BOOL FAR PASCAL ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 				DeleteObject(hbr);
 				hbr = CreateSolidBrush(Profile.color_background);
 
-				SetClassLong(Pane1.hWnd, GCL_HBRBACKGROUND, (LONG) hbr);
-				SetClassLong(Pane2.hWnd, GCL_HBRBACKGROUND, (LONG) hbr);
+				SetClassLongPtr(Pane1.hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)hbr);
+				SetClassLongPtr(Pane2.hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)hbr);
 			}
 
 			InvalidateRect(Pane1.hWnd, NULL, TRUE);
@@ -4292,12 +4007,12 @@ BOOL FAR PASCAL ACARSColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
 			   GetSystemMetrics(SM_CYDLGFRAME);
 
 		hColorWnd = CreateWindow(gszACARSColorClass, NULL,	WS_CHILD | WS_VISIBLE, xPos, yPos,
-			xSize, ySize, hDlg, NULL, (HINSTANCE) GetWindowLong(hDlg, GWL_HINSTANCE), 0);
+			xSize, ySize, hDlg, NULL, (HINSTANCE) GetWindowLongPtr(hDlg, GWLP_HINSTANCE), 0);
 
 		DeleteObject(hboxbr);
 
 		hboxbr = CreateSolidBrush(tmp_background);
-		SetClassLong(hColorWnd, GCL_HBRBACKGROUND, (LONG) hboxbr);
+		SetClassLongPtr(hColorWnd, GCLP_HBRBACKGROUND, (LONG_PTR)hboxbr);
 		InvalidateRect(hColorWnd, NULL, TRUE);
 
 		memset(&cc, 0, sizeof(CHOOSECOLOR));
@@ -4306,9 +4021,9 @@ BOOL FAR PASCAL ACARSColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
 		cc.hwndOwner		= hDlg;
 		cc.rgbResult		= 0;
 		cc.lpCustColors		= custom_colors;
-		cc.Flags			= CC_RGBINIT | CC_ENABLEHOOK;
+		cc.Flags		= CC_RGBINIT | CC_ENABLEHOOK;
 		cc.lCustData		= 0;
-		cc.lpfnHook			= CenterOpenDlgBox;
+		cc.lpfnHook		= (LPCFHOOKPROC)CenterOpenDlgBox;
 		cc.lpTemplateName	= NULL;
 
 		return (TRUE);
@@ -4330,7 +4045,7 @@ BOOL FAR PASCAL ACARSColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
 
 				hboxbr = CreateSolidBrush(tmp_background);
 
-				SetClassLong(hColorWnd, GCL_HBRBACKGROUND, (LONG) hboxbr);
+				SetClassLongPtr(hColorWnd, GCLP_HBRBACKGROUND, (LONG_PTR)hboxbr);
 
 				InvalidateRect(hColorWnd, NULL, TRUE);
 			}
@@ -4489,7 +4204,7 @@ BOOL FAR PASCAL ACARSColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
 										rgbColor[LTBLUE][2]);
 				DeleteObject(hboxbr);
 				hboxbr = CreateSolidBrush(tmp_background);
-				SetClassLong(hColorWnd, GCL_HBRBACKGROUND, (LONG) hboxbr);
+				SetClassLongPtr(hColorWnd, GCLP_HBRBACKGROUND, (LONG_PTR)hboxbr);
 				InvalidateRect(hColorWnd, NULL, TRUE);
 			}
 			break;
@@ -4515,8 +4230,8 @@ BOOL FAR PASCAL ACARSColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
 
 				hbr = CreateSolidBrush(Profile.color_background);
 
-				SetClassLong(Pane1.hWnd, GCL_HBRBACKGROUND, (LONG) hbr);
-				SetClassLong(Pane2.hWnd, GCL_HBRBACKGROUND, (LONG) hbr);
+				SetClassLongPtr(Pane1.hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)hbr);
+				SetClassLongPtr(Pane2.hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)hbr);
 			}
 
 			InvalidateRect(Pane1.hWnd, NULL, TRUE);
@@ -4694,13 +4409,13 @@ BOOL FAR PASCAL MOBITEXColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 				 GetSystemMetrics(SM_CYDLGFRAME);
 
 		hColorWnd = CreateWindow(gszMOBITEXColorClass, NULL, WS_CHILD | WS_VISIBLE, xPos, yPos,
-			xSize, ySize, hDlg, NULL, (HINSTANCE) GetWindowLong(hDlg, GWL_HINSTANCE), 0);
+			xSize, ySize, hDlg, NULL, (HINSTANCE) GetWindowLongPtr(hDlg, GWLP_HINSTANCE), 0);
 
 		DeleteObject(hboxbr);
 
 		hboxbr = CreateSolidBrush(tmp_background);
 
-		SetClassLong(hColorWnd, GCL_HBRBACKGROUND, (LONG) hboxbr);
+		SetClassLongPtr(hColorWnd, GCLP_HBRBACKGROUND, (LONG_PTR)hboxbr);
 
 		InvalidateRect(hColorWnd, NULL, TRUE);
 
@@ -4710,9 +4425,9 @@ BOOL FAR PASCAL MOBITEXColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 		cc.hwndOwner		= hDlg;
 		cc.rgbResult		= 0;
 		cc.lpCustColors		= custom_colors;
-		cc.Flags			= CC_RGBINIT | CC_ENABLEHOOK;
+		cc.Flags		= CC_RGBINIT | CC_ENABLEHOOK;
 		cc.lCustData		= 0;
-		cc.lpfnHook			= CenterOpenDlgBox;
+		cc.lpfnHook		= (LPCFHOOKPROC)CenterOpenDlgBox;
 		cc.lpTemplateName	= NULL;
 
 		return (TRUE);
@@ -4734,7 +4449,7 @@ BOOL FAR PASCAL MOBITEXColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
 				hboxbr = CreateSolidBrush(tmp_background);
 
-				SetClassLong(hColorWnd, GCL_HBRBACKGROUND, (LONG) hboxbr);
+				SetClassLongPtr(hColorWnd, GCLP_HBRBACKGROUND, (LONG_PTR)hboxbr);
 
 				InvalidateRect(hColorWnd, NULL, TRUE);
 			}
@@ -4896,7 +4611,7 @@ BOOL FAR PASCAL MOBITEXColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
 				hboxbr = CreateSolidBrush(tmp_background);
 
-				SetClassLong(hColorWnd, GCL_HBRBACKGROUND, (LONG) hboxbr);
+				SetClassLongPtr(hColorWnd, GCLP_HBRBACKGROUND, (LONG_PTR)hboxbr);
 
 				InvalidateRect(hColorWnd, NULL, TRUE);
 			}
@@ -4922,8 +4637,8 @@ BOOL FAR PASCAL MOBITEXColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
 				hbr = CreateSolidBrush(Profile.color_background);
 
-				SetClassLong(Pane1.hWnd, GCL_HBRBACKGROUND, (LONG) hbr);
-				SetClassLong(Pane2.hWnd, GCL_HBRBACKGROUND, (LONG) hbr);
+				SetClassLongPtr(Pane1.hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)hbr);
+				SetClassLongPtr(Pane2.hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)hbr);
 			}
 			InvalidateRect(Pane1.hWnd, NULL, TRUE);
 			InvalidateRect(Pane2.hWnd, NULL, TRUE);
@@ -5108,12 +4823,12 @@ BOOL FAR PASCAL ERMESColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
 				 GetSystemMetrics(SM_CYDLGFRAME);
 
 		hColorWnd = CreateWindow(gszERMESColorClass, NULL, WS_CHILD | WS_VISIBLE, xPos, yPos,
-			xSize, ySize, hDlg, NULL, (HINSTANCE) GetWindowLong(hDlg, GWL_HINSTANCE), 0);
+			xSize, ySize, hDlg, NULL, (HINSTANCE) GetWindowLongPtr(hDlg, GWLP_HINSTANCE), 0);
 
 		DeleteObject(hboxbr);
 
 		hboxbr = CreateSolidBrush(tmp_background);
-		SetClassLong(hColorWnd, GCL_HBRBACKGROUND, (LONG) hboxbr);
+		SetClassLongPtr(hColorWnd, GCLP_HBRBACKGROUND, (LONG_PTR)hboxbr);
 
 		InvalidateRect(hColorWnd, NULL, TRUE);
 
@@ -5123,9 +4838,9 @@ BOOL FAR PASCAL ERMESColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
 		cc.hwndOwner		= hDlg;
 		cc.rgbResult		= 0;
 		cc.lpCustColors		= custom_colors;
-		cc.Flags			= CC_RGBINIT | CC_ENABLEHOOK;
+		cc.Flags		= CC_RGBINIT | CC_ENABLEHOOK;
 		cc.lCustData		= 0;
-		cc.lpfnHook			= CenterOpenDlgBox;
+		cc.lpfnHook		= (LPCFHOOKPROC)CenterOpenDlgBox;
 		cc.lpTemplateName	= NULL;
 
 		return (TRUE);
@@ -5147,7 +4862,7 @@ BOOL FAR PASCAL ERMESColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
 
 				hboxbr = CreateSolidBrush(tmp_background);
 
-				SetClassLong(hColorWnd, GCL_HBRBACKGROUND, (LONG) hboxbr);
+				SetClassLongPtr(hColorWnd, GCLP_HBRBACKGROUND, (LONG_PTR)hboxbr);
 
 				InvalidateRect(hColorWnd, NULL, TRUE);
 			}
@@ -5309,7 +5024,7 @@ BOOL FAR PASCAL ERMESColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
 
 				hboxbr = CreateSolidBrush(tmp_background);
 
-				SetClassLong(hColorWnd, GCL_HBRBACKGROUND, (LONG) hboxbr);
+				SetClassLongPtr(hColorWnd, GCLP_HBRBACKGROUND, (LONG_PTR)hboxbr);
 
 				InvalidateRect(hColorWnd, NULL, TRUE);
 			}
@@ -5335,8 +5050,8 @@ BOOL FAR PASCAL ERMESColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
 
 				hbr = CreateSolidBrush(Profile.color_background);
 
-				SetClassLong(Pane1.hWnd, GCL_HBRBACKGROUND, (LONG) hbr);
-				SetClassLong(Pane2.hWnd, GCL_HBRBACKGROUND, (LONG) hbr);
+				SetClassLongPtr(Pane1.hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)hbr);
+				SetClassLongPtr(Pane2.hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)hbr);
 			}
 
 			InvalidateRect(Pane1.hWnd, NULL, TRUE);
@@ -6499,7 +6214,7 @@ BOOL FAR PASCAL FilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 
 		if (!CenterWindow(hDlg)) return (FALSE);
 
-		sprintf(szTEMP, "PDW Filters (%u)", Profile.filters.size());
+		sprintf(szTEMP, "PDW Filters (%u)", (unsigned)Profile.filters.size());
 		SetWindowText(hDlg, (LPSTR) szTEMP);
 
 		hFilterDlg = hDlg;
@@ -6603,12 +6318,12 @@ BOOL FAR PASCAL FilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 			{
 				if (bEditFilter) break;
 
-				sprintf(szTEMP, "PDW Filters (%u) - %i filters selected", Profile.filters.size(), ListView_GetSelectedCount(hListView));
+				sprintf(szTEMP, "PDW Filters (%u) - %i filters selected", (unsigned)Profile.filters.size(), ListView_GetSelectedCount(hListView));
 				SetWindowText(hDlg, (LPSTR) szTEMP);
 			}
 			else if ((index = ListView_GetNextItem(hListView, -1, LVNI_SELECTED)) != CB_ERR)
 			{
-				sprintf(szTEMP, "PDW Filters (%u) - ", Profile.filters.size());
+				sprintf(szTEMP, "PDW Filters (%u) - ", (unsigned)Profile.filters.size());
 
 				if (filter.type == TEXT_FILTER)
 				{
@@ -6763,7 +6478,7 @@ BOOL FAR PASCAL FilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 				break;
 
 			case NM_CUSTOMDRAW :
-				SetWindowLong(hFilterDlg, DWL_MSGRESULT, OnCustomDraw((LPNMLVCUSTOMDRAW) lParam)) ;
+				SetWindowLongPtr(hFilterDlg, DWLP_MSGRESULT, OnCustomDraw((LPNMLVCUSTOMDRAW) lParam)) ;
 				return(TRUE) ;
 //			default :
 //				OUTPUTDEBUGMSG((("NM_%04X lParam = %08lX\n"), ((LPNMHDR)lParam)->code, lParam));
@@ -6797,7 +6512,7 @@ BOOL FAR PASCAL FilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 
 			case IDT_MENU_PASTE :
 				PasteFilter() ;
-				sprintf(szTEMP,"PDW Filters (%u)", Profile.filters.size());
+				sprintf(szTEMP,"PDW Filters (%u)", (unsigned)Profile.filters.size());
 				SetWindowText(hDlg, (LPSTR) szTEMP);
 			break;
 
@@ -6853,7 +6568,7 @@ BOOL FAR PASCAL FilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 				GoModalDialogBoxParam(ghInstance, MAKEINTRESOURCE(FILTEREDITDLGBOX),
 									 hDlg, (DLGPROC) FilterEditDlgProc, 0L);
 
-				sprintf(szTEMP, "PDW Filters (%u)",Profile.filters.size());
+				sprintf(szTEMP, "PDW Filters (%u)", (unsigned)Profile.filters.size());
 				SetWindowText(hDlg, (LPSTR) szTEMP);
 
 			break;
@@ -6927,7 +6642,7 @@ BOOL FAR PASCAL FilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 
 			bDeletingFilters = false;
 
-			sprintf(szTEMP, "PDW Filters (%u)",Profile.filters.size());
+			sprintf(szTEMP, "PDW Filters (%u)", (unsigned)Profile.filters.size());
 			SetWindowText(hDlg, (LPSTR) szTEMP);
             
 			break;
@@ -7707,7 +7422,7 @@ BOOL FAR PASCAL FilterEditDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
 		}
 		else	 // Edit Filter
 		{
-			SetWindowText(hDlg, (LPSTR) multiple_edit ? "PDW (multiple) Edit Filter" : "PDW Edit Filter");
+			SetWindowText(hDlg, (LPSTR) (multiple_edit ? "PDW (multiple) Edit Filter" : "PDW Edit Filter"));
 
 			if (multiple_edit)	// If more than one filter is selected
 			{
@@ -8266,7 +7981,7 @@ BOOL FAR PASCAL FilterEditDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
 					{
 						if (SendDlgItemMessage(hDlg, IDC_FILTERFNU, CB_GETCURSEL, 0, 0L))
 						{
-							sprintf(temp, "-%i", SendDlgItemMessage(hDlg, IDC_FILTERFNU, CB_GETCURSEL, 0, 0L));
+							sprintf(temp, "-%i", (int)SendDlgItemMessage(hDlg, IDC_FILTERFNU, CB_GETCURSEL, 0, 0L));
 							strcat(filter.capcode, temp);
 						}
 					}
@@ -8904,7 +8619,9 @@ void SetMailOptions(HWND hDlg, int nOptions)
 	CheckDlgButton(hDlg, IDC_SMTP_MESSAGE, ((nOptions & MAIL_OPTION_MESSAGE) != 0)) ;
 	CheckDlgButton(hDlg, IDC_SMTP_LABEL,   ((nOptions & MAIL_OPTION_LABEL)   != 0)) ;
 	CheckDlgButton(hDlg, IDC_SMTP_AUTH,    ((nOptions & MAIL_OPTION_AUTH)    != 0)) ;
+#ifdef USE_SSL
 	CheckDlgButton(hDlg, IDC_SMTP_SSL,    ((nOptions & MAIL_OPTION_SSL)    != 0)) ;
+#endif
 
 	SendDlgItemMessage(hDlg, IDC_SMTP_SETTING, CB_SETCURSEL, nOptions & MAIL_OPTION_MODES, 0L) ;
 	tmp = ((nOptions & 0x3000) >> 12) - 1 ;
@@ -8946,7 +8663,9 @@ int GetMailOptions(HWND hDlg)
 	EnableWindow(GetDlgItem(hDlg, IDC_SMTP_AUTH), ret) ;
 	EnableWindow(GetDlgItem(hDlg, IDC_SMTP_SENDIN), ret) ;
 	EnableWindow(GetDlgItem(hDlg, IDC_SMTP_CHARSET), ret) ;
+#ifdef USE_SSL
 	EnableWindow(GetDlgItem(hDlg, IDC_SMTP_SSL), ret) ;
+#endif
 
 	if(ret)
 	{
@@ -8965,7 +8684,9 @@ int GetMailOptions(HWND hDlg)
 	nOptions += IsDlgButtonChecked(hDlg, IDC_SMTP_MESSAGE) ? MAIL_OPTION_MESSAGE : 0 ;
 	nOptions += IsDlgButtonChecked(hDlg, IDC_SMTP_LABEL)   ? MAIL_OPTION_LABEL	 : 0 ;
 	nOptions += IsDlgButtonChecked(hDlg, IDC_SMTP_AUTH)    ? MAIL_OPTION_AUTH	 : 0 ;
+#ifdef USE_SSL
 	nOptions += IsDlgButtonChecked(hDlg, IDC_SMTP_SSL)    ? MAIL_OPTION_SSL		 : 0 ;
+#endif
 
 	ret = SendDlgItemMessage(hDlg, IDC_SMTP_SENDIN, CB_GETCURSEL, 0, 0L);
 	if(ret == CB_ERR) ret = 0 ;
@@ -9066,7 +8787,9 @@ BOOL FAR PASCAL MailDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				Profile.iMailPort = GetDlgItemInt(hDlg, IDC_SMTP_PORT, NULL, FALSE);
 				Profile.nMailOptions = GetMailOptions(hDlg) ;
 				Profile.SMTP = Profile.nMailOptions & MAIL_OPTION_ENABLE ? 1 : 0 ;
+#ifdef USE_SSL
 				Profile.ssl =  Profile.nMailOptions & MAIL_OPTION_SSL ? 1 : 0 ;
+#endif
 				MailInit(Profile.szMailHost, Profile.szMailHeloDomain, Profile.szMailFrom, Profile.szMailTo, Profile.szMailUser, Profile.szMailPassword, Profile.iMailPort, Profile.nMailOptions);
 				SendMail(0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL) ;
 
@@ -9087,7 +8810,9 @@ BOOL FAR PASCAL MailDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				SendDlgItemMessage(hDlg, IDC_SMTP_PASSWORD, WM_GETTEXT, MAIL_TEXT_LEN, (LPARAM)(LPCTSTR) Profile.szMailPassword) ;
 				Profile.iMailPort = GetDlgItemInt(hDlg, IDC_SMTP_PORT, NULL, FALSE);
 				Profile.nMailOptions = GetMailOptions(hDlg) ;
+#ifdef USE_SSL
 				Profile.ssl =  Profile.nMailOptions & MAIL_OPTION_SSL ? 1 : 0 ;
+#endif
 				if((Profile.nMailOptions & MAIL_OPTION_MODES) && (!(Profile.nMailOptions & ~MAIL_OPTION_MODES)))
 				{
 					break ;
@@ -9114,7 +8839,8 @@ BOOL FAR PASCAL MailDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			case IDC_SMTP_TYPE    :
 			case IDC_SMTP_MESSAGE :
 			case IDC_SMTP_BITRATE :
-			case IDC_SMTP_SSL	  :
+#ifdef USE_SSL
+			case IDC_SMTP_SSL     :
 				Profile.nMailOptions = GetMailOptions(hDlg) ;
 				if((Profile.nMailOptions & MAIL_OPTION_MODES) && (!(Profile.nMailOptions & ~MAIL_OPTION_MODES)))
 				{
@@ -9122,6 +8848,7 @@ BOOL FAR PASCAL MailDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					SetMailOptions(hDlg, nOldOptions) ;
 				}
 				nOldOptions = GetMailOptions(hDlg) ;
+#endif
 				break ;
 		}
 		break;
@@ -10163,7 +9890,7 @@ void WriteFilters(PPROFILE pProfile, int backup)
 	}
 	if ((pFiltersFile = fopen(szFilterPathName, "w+")) != NULL)
 	{
-		fprintf(pFiltersFile, "[Filter]\n\nFilterCount=%i\n\n", pProfile->filters.size());
+		fprintf(pFiltersFile, "[Filter]\n\nFilterCount=%i\n\n", (int)pProfile->filters.size());
 		
 		for (int index=0; index<pProfile->filters.size(); index++)
 		{
@@ -10298,9 +10025,7 @@ bool LoadDriver(void)	// HWi
 		slicer_in.irq = Profile.comPortIRQ;
 //		Use comport number instead of comport address
 		slicer_in.com_port = Profile.comPort;
-		hDriver = (HANDLE) rs232_connect(&slicer_in, &slicer_out);
-
-		if (hDriver != RS232_SUCCESS)
+		if (rs232_connect(&slicer_in, &slicer_out) != RS232_SUCCESS)
 		{
 			MessageBox(ghWnd,"Unable to open the selected Comport", "PDW Driver", MB_ICONWARNING);
 //			OUTPUTDEBUGMSG((("Error: rs232_connect() = %d\n"), hDriver));		
@@ -10308,6 +10033,7 @@ bool LoadDriver(void)	// HWi
 			return(false);
 		}
 		nDriverLoaded = DRIVER_COM_LOADED;	    // HWi must be only TRUE when all is OK
+		hDriver = (HANDLE)1;	//FIXME: just a non-NULL value
 	}
 
 	if (slicer_out.bufsize < 0L)  // error?
@@ -10881,7 +10607,7 @@ void SortFilter(HWND hDlg, bool bAddress)
 		} 
 		ListView_SetItemState(hListView, i, LVIS_FOCUSED, LVIS_FOCUSED);
 
-		if (sprintf(szTEMP, "PDW Filters (%u)", Profile.filters.size()) != EOF)
+		if (sprintf(szTEMP, "PDW Filters (%u)", (int)Profile.filters.size()) != EOF)
 		SetWindowText(hDlg, (LPSTR) szTEMP);
 	}
 	bSortingFilters = false;

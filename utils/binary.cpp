@@ -4,16 +4,18 @@
  * Started  : 30-12-2004                                     *
  *			: $Date: 2005/06/02 19:14:40 $	$Revision: 1.3 $ *
  ************************************************************/
-
 #include <windows.h>
-
 #include "binary.h"
+
 
 #define MAX_BINARY_STRING 1024
 
+
 extern char aNumeric[] ; // ={"0123456789*U -)("};	// contains numeric paging data format
 
+
 static char EightBits[MAX_BINARY_STRING] ;
+
 
 static char *Convert7BitsTo8Bits(unsigned char *SevenBits, int len, unsigned char crypt, int bin)
 {

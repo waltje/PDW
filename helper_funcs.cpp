@@ -12,10 +12,9 @@
 //	Do not modify, reproduce or use this file without my permission!
 //
 //
-
-#include "headers/helper_funcs.h"
 #include <windows.h>
 #include <stdio.h>
+#include "helper_funcs.h"
 #include "utils/debug.h"
 
 

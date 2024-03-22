@@ -5,14 +5,14 @@
 // char *GetIPAddress() ;
 //
 //
-
 #include <windows.h>
 #include <string.h>
-
 #include "ipcnfg.h"
 #include "debug.h"
 
+
 static char szIPAddress[32] ;
+
 
 char *GetIPAddress(void)
 {

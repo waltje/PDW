@@ -8,11 +8,6 @@
 //   3.Creating title bar gfx for pane1 and pane2.
 //   4.Creating font/brush objects for pane1/pane2.
 //   5.Functions for use with display_show_char() in misc.cpp.
-
-#ifndef STRICT
-#define STRICT 1
-#endif
-
 #include <windows.h>
 #include <commctrl.h>
 #include <mmsystem.h>
@@ -20,15 +15,15 @@
 #include <commdlg.h>
 #include <string.h>
 #include <time.h>
+#include "resource.h"
+#include "pdw.h"
+#include "slicer.h"
+#include "toolbar.h"
+#include "gfx.h"
+#include "initapp.h"
+#include "misc.h"
+#include "acars.h"
 
-#include "headers/resource.h"
-#include "headers/pdw.h"
-#include "headers/slicer.h"
-#include "headers/toolbar.h"
-#include "headers/gfx.h"
-#include "headers/initapp.h"
-#include "headers/misc.h"
-#include "headers/acars.h"
 
 int PL1_SCount=0;		// pane1 label scroll position
 int PL2_SCount=0;		// pane2 label scroll position

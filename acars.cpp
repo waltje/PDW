@@ -1,25 +1,18 @@
 //
 // acars.cpp
 //
-//
-
-#ifndef STRICT
-#define STRICT 1
-#endif
-
 #include <windows.h>
 #include <mmsystem.h>
 #include <stdio.h>
 #include <commdlg.h>
 #include <string.h>
 #include <ctype.h>
-
-#include "headers/pdw.h"
-#include "headers/initapp.h"
-#include "headers/gfx.h"
-#include "headers/misc.h"
-#include "headers/acars.h"
-#include "headers/helper_funcs.h"
+#include "pdw.h"
+#include "initapp.h"
+#include "gfx.h"
+#include "misc.h"
+#include "acars.h"
+#include "helper_funcs.h"
 
 
 //#define AC_OUT_DEBUG 1

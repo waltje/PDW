@@ -1,21 +1,21 @@
 /*
-**	SMTP routines for mailsend - a simple mail sender via SMTP
-**
-*/
-
+ *	SMTP routines for mailsend - a simple mail sender via SMTP
+ *
+ */
 #include <windows.h>
 #include <stdio.h>
-#include "../headers/pdw.h"
-#include "../utils/debug.h"
 #ifdef USE_SSL
-# include "openssl/ssl.h"
-# include "openssl/err.h"
+# include <openssl/ssl.h>
+# include <openssl/err.h>
 #endif
+#include "../pdw.h"
+#include "debug.h"
 #include "smtp_int.h"
 #include "smtp.h"
 
 
 #define MY_BUFF_SIZE 1024
+
 
 static SOCKET smtp_socket = INVALID_SOCKET;
 static char buf[MY_BUFF_SIZE];
@@ -824,7 +824,12 @@ static int smtpResponse(int sfd)
 static int smtpHelo(int sfd)
 {
 	// read off the greeting 
+#if 0
 	//smtpResponse(sfd);
+#else
+	// client should wait for greeting before sending HELO
+	smtpResponse(sfd);
+#endif
 	_snprintf(buf,sizeof(buf)-1,"HELO %s\r\n", mail.helo_domain);
 //	_snprintf(buf,sizeof(buf)-1,"EHLO %s\r\n", mail.helo_domain);
 	sockPuts(sfd,buf);

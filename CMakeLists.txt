@@ -17,7 +17,6 @@ set( PWD_SRCS )
 
 # Subdirectories to go to
 add_subdirectory( GFX )
-add_subdirectory( headers )
 add_subdirectory( utils )
 include_directories( openssl/include )
 link_directories( ${CMAKE_CURRENT_SOURCE_DIR}/openssl/lib )
@@ -30,6 +29,25 @@ endif( MSVC )
 # Include Files
 set( PDW_INCLUDES
   ${PDW_INCLUDES}
+  resource.h
+  slicer.H
+  acars.h
+  decode.h
+  ermes.h
+  gfx.h
+  helper_funcs.h
+# html.h
+  initapp.h
+  language.h
+  menu.h
+  misc.h
+  mobitex.h
+  pdw.h
+  printer.h
+  sigind.h
+  sound_in.h
+  toolbar.h
+  
   resrc1.h
 )
 

@@ -1,23 +1,18 @@
 //
 // misc.c
 //
-
-#ifndef STRICT
-#define STRICT 1
-#endif
-
 #include <windows.h>
-
-#include "headers/pdw.h"
-#include "headers/initapp.h"
-#include "headers/gfx.h"
-#include "headers/decode.h"
-#include "headers/misc.h"
-#include "headers/language.h"
-#include "headers/sound_in.h"
-#include "headers/helper_funcs.h"
+#include "pdw.h"
+#include "initapp.h"
+#include "gfx.h"
+#include "decode.h"
+#include "misc.h"
+#include "language.h"
+#include "sound_in.h"
+#include "helper_funcs.h"
 #include "utils/binary.h"
 #include "utils/smtp.h"
+
 
 #define FILTER_PARAM_LEN	500
 #define MAXIMUM_GROUPSIZE	1000

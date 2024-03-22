@@ -1,7 +1,6 @@
 //
 // printer.c
 //
-
 #include <windows.h>
 #include <commctrl.h>
 #include <mmsystem.h>
@@ -9,17 +8,17 @@
 #include <commdlg.h>
 #include <string.h>
 #include <time.h>
+#include "resource.h"
+#include "pdw.h"
+#include "slicer.h"
+#include "toolbar.h"
+#include "gfx.h"
+#include "initapp.h"
+#include "sigind.h"
+#include "decode.h"
+#include "sound_in.h"
+#include "printer.h"
 
-#include "headers/resource.h"
-#include "headers/pdw.h"
-#include "headers/slicer.h"
-#include "headers/toolbar.h"
-#include "headers/gfx.h"
-#include "headers/initapp.h"
-#include "headers/sigind.h"
-#include "headers/decode.h"
-#include "headers/sound_in.h"
-#include "headers/printer.h"
 
 PRINTDLG printdlg; 
 DOCINFO docinfo;

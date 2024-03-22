@@ -9,21 +9,17 @@
 //   5.Closes the audio device.
 //
 //
-#ifndef STRICT
-#define STRICT 1
-#endif
-
 #include <windows.h>
+#include "resource.h"
+#include "pdw.h"
+#include "initapp.h"
+#include "sigind.h"
+#include "decode.h"
+#include "sound_in.h"
+#include "acars.h"
+#include "mobitex.h"
+#include "ermes.h"		// PH: new
 
-#include "headers/resource.h"
-#include "headers/pdw.h"
-#include "headers/initapp.h"
-#include "headers/sigind.h"
-#include "headers/decode.h"
-#include "headers/sound_in.h"
-#include "headers/acars.h"
-#include "headers/mobitex.h"
-#include "headers/ermes.h"		// PH: new
 
 // #define AU_ACARS_BIT_TEST  1
 // #define AU_PF_BIT_TEST     1
@@ -129,10 +125,10 @@ BOOL Start_Capturing(void)
 
 	// Open audio device meeting our requirements
 	waveOutOpen(&hWaveOut, WAVE_MAPPER, &my_wave_format,
-			(DWORD)Callback_Function, 0, CALLBACK_FUNCTION);
+			(DWORD_PTR)Callback_Function, 0, CALLBACK_FUNCTION);
 
 	result = waveInOpen(&hWaveIn, Profile.audioDevice, &my_wave_format,
-			(DWORD)Callback_Function, 0, CALLBACK_FUNCTION);
+			(DWORD_PTR)Callback_Function, 0, CALLBACK_FUNCTION);
 
 	if (result) // error?
 	{
@@ -188,13 +184,13 @@ BOOL Start_Capturing(void)
 		h_audio_memory_block[ctr] = h_memory_block;
 		audio_buffer_cnt++;
 
-		WaveHeader[ctr].dwFlags			= 0;
-		WaveHeader[ctr].dwLoops			= 0;
-		WaveHeader[ctr].dwUser			= 0;
-		WaveHeader[ctr].lpNext			= 0;
+		WaveHeader[ctr].dwFlags		= 0;
+		WaveHeader[ctr].dwLoops		= 0;
+		WaveHeader[ctr].dwUser		= 0;
+		WaveHeader[ctr].lpNext		= 0;
 		WaveHeader[ctr].dwBufferLength	= SIZEOF_AUDIOBUFFER;
 		WaveHeader[ctr].dwBytesRecorded	= 0;
-		WaveHeader[ctr].lpData			= (LPSTR)lp_memory_block;
+		WaveHeader[ctr].lpData		= (LPSTR)lp_memory_block;
 
 		waveInPrepareHeader(hWaveIn, &WaveHeader[ctr], (UINT)sizeof(WaveHeader[ctr]));
 

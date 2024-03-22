@@ -1,9 +1,11 @@
 #ifndef PDW_H
-#define PDW_H
+# define PDW_H
+
 
 #define VER_MAJOR 1
 #define VER_MINOR 0
 #define VER_BUILD 0
+
 
 #define FILTER_CAPCODE_LEN  9	// longest is FLEX long (9 chars)
 #define FILTER_LABEL_LEN    70	// PH: was 40
@@ -147,6 +149,18 @@ typedef struct
 	int FlexGroupMode;		// flag for FlexGroupMode
 
 	int SMTP;			// SMTP-email
+
+
+#if 0	// FIXME: NICO
+	int MESSAGE_QUEUE = 1;
+	int mqPort = 5672;
+	char mqHostName[100] = "localhost";
+	char mqUsername[100] = "internal";
+	char mqPassword[100] = "iseeu5448!";
+	char mqVirtualHost[100] = "private";
+	char mqRoutingKey[100] = "pdw-pager";
+	char mqTopic[100] = "webnotify";
+#endif	// END NICO
 
 	bool Trayed;			// TRUE if trayed
 
@@ -442,4 +456,5 @@ void SetNewWindowText(char* text);
 void SystemTrayWindow(bool bHideWindow);
 void SystemTrayIcon(bool bRemoveIcon);
 
-#endif
+
+#endif	/*PDW_H*/

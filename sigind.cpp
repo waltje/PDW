@@ -4,10 +4,6 @@
 // This file contains functions for displaying/updating
 // the signal indicator.
 //
-#ifndef STRICT
-#define STRICT 1
-#endif
-
 #include <windows.h>
 #include <commctrl.h>
 #include <mmsystem.h>
@@ -15,15 +11,14 @@
 #include <commdlg.h>
 #include <string.h>
 #include <time.h>
+#include "resource.h"
+#include "pdw.h"
+#include "slicer.h"
+#include "toolbar.h"
+#include "gfx.h"
+#include "initapp.h"
+#include "sigind.h"
 
-
-#include "headers/resource.h"
-#include "headers/PDW.h"
-#include "headers/slicer.h"
-#include "headers/toolbar.h"
-#include "headers/gfx.h"
-#include "headers/initapp.h"
-#include "headers/sigind.h"
 
 #define MAX_SI_POS        20	// 0-12. Max positions available to signal indicator.
 #define AUDIO_POINT_VALUE 2	// Used for working out samples per signal

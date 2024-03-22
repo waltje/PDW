@@ -13,20 +13,14 @@
 //	  void FLEX::showword(int wordnum)
 //	  void FLEX::showwordhex(int wordnum)
 //	  void frame_flex(char gin)
-
-
-#ifndef STRICT
-#define STRICT 1
-#endif
-
 #include <windows.h>
-
-#include "headers/pdw.h"
-#include "headers/sound_in.h"
-#include "headers/misc.h"
-#include "headers/helper_funcs.h"
-#include "headers/initapp.h"
+#include "pdw.h"
+#include "initapp.h"
+#include "misc.h"
+#include "sound_in.h"
+#include "helper_funcs.h"
 #include "utils/debug.h"
+
 
 #define min(a,b) (((a) < (b)) ? (a) : (b))
 #define max(a,b) (((a) > (b)) ? (a) : (b))

@@ -1,14 +1,12 @@
 //
 // Debug.cpp
 //
-//
-
 #include <windows.h>
-
 #include "debug.h"
 
-int	nDebugOutput ;
-int	nDebugNum ;
+
+int	nDebugOutput;
+int	nDebugNum;
 
 
 #ifdef _DEBUG
@@ -30,5 +28,6 @@ int DebugPrintf(char *fmt,...)
     va_end( marker );
     return(len) ;
  }
-#endif
 
+
+#endif	/*_DEBUG*/

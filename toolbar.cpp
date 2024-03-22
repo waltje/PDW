@@ -4,7 +4,6 @@
 // Functions to allocate the toolbar/buttons and button bitmaps
 // Function to set toolbar tooltips
 //
-
 #include <windows.h>
 #include <commctrl.h>
 #include <mmsystem.h>
@@ -12,9 +11,8 @@
 #include <commdlg.h>
 #include <string.h>
 #include <time.h>
-
-#include "headers/resource.h"
-#include "headers/toolbar.h"
+#include "resource.h"
+#include "toolbar.h"
 
 
 #define NUM_TB_BUTTONS 18   // 14 buttons and 5 seperators
@@ -22,16 +20,15 @@
 // #define TOOLBAR_DEBUG  1
 
 TBBUTTON toolbar_btns[NUM_TB_BUTTONS];  // Toolbar buttons
-UINT tb_btn_image[NUM_TB_IMAGES];       // Bitmap Handles to Toolbar images
+HBITMAP tb_btn_image[NUM_TB_IMAGES];       // Bitmap Handles to Toolbar images
 
 
 // Allocate toolbar and return its window handle
 HWND ShowMakeToolBar(HWND parent_hwnd,HINSTANCE hThisInstance)
 {
 	HWND tbhwnd=NULL;
-
 #ifdef TOOLBAR_DEBUG
- HDC hdc;
+	HDC hdc;
 #endif
 
 	for(int i=0; i<NUM_TB_IMAGES; i++) tb_btn_image[i]=0; // Ensure only images allocated are freed.
@@ -88,7 +85,7 @@ BOOL GetToolBarImages(HINSTANCE hThisInstance)
 
 	for(int i=0; i<NUM_TB_IMAGES; i++)
 	{
-		if(!(tb_btn_image[i] =(UINT)LoadBitmap(hThisInstance,MAKEINTRESOURCE((WORD)btn_index))))
+		if(!(tb_btn_image[i] = LoadBitmap(hThisInstance,MAKEINTRESOURCE((WORD)btn_index))))
 		{
 			FreeToolBarImages(hThisInstance);
 			return(FALSE);
