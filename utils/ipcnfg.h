@@ -1,11 +1,16 @@
-#ifndef __IPCNFG_H__
-#define __IPCNFG_H__
+#ifndef PDW_IPCNFG_H
+# define PDW_IPCNFG_H
 
-#include <windows.h>
-#include <string.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 char *GetIPAddress(void) ;
 
+#ifdef __cplusplus
+}
+#endif
 
-#endif // __IPCNFG_H__
+
+#endif	/*PDW_IPCNFG_H*/

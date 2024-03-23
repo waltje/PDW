@@ -1,12 +1,18 @@
-#ifndef SIGIND_H
-#define SIGIND_H
+#ifndef PDW_SIGIND_H
+# define PDW_SIGIND_H
 
-void DrawSigInd(HWND hwnd);
-void FreeSigInd(void);
-BOOL LoadSigInd(HINSTANCE hThisInstance);
-void UpdateSigInd(int direction_flg);
-//void UpdateAudioSigInd(HWND hwnd, int sample_value);
-void show_sigind(int new_pos,int old_pos);
-
-
+#ifdef __cplusplus
+extern "C" {
 #endif
+
+void FreeSigInd(void);
+int LoadSigInd(HINSTANCE hThisInstance);
+void DrawSigInd(HWND hwnd);
+void UpdateSigInd(int direction_flg);
+
+#ifdef __cplusplus
+}
+#endif
+
+
+#endif	/*PDW_SIGIND_H*/

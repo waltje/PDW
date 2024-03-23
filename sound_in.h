@@ -10,7 +10,7 @@
 #define INDEX1600	3
 #define INDEX3200	4
 
-extern bool bCapturing;
+extern int bCapturing;
 extern char high_audio;
 extern char low_audio;
 extern long BaudRate;
@@ -19,8 +19,8 @@ extern int  cross_over;
 void CALLBACK Callback_Function(HWAVEIN hwi, UINT uMsg, DWORD dwInstance, DWORD dwParam1, DWORD dwParam2);
 void Process_ReadyBuffers(HWND hwnd);
 void free_audio_buffers(void);
-BOOL Stop_Capturing(void);
-BOOL Start_Capturing(void);
+int Stop_Capturing(void);
+int Start_Capturing(void);
 
 void Audio_To_Bits  (char *lpAudioBuffer, long LenAudioBuffer);
 void MOBITEX_To_Bits(char *lpAudioBuffer, long LenAudioBuffer);

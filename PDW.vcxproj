@@ -236,51 +236,46 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="acars.cpp" />
-    <ClCompile Include="decode.cpp" />
-    <ClCompile Include="ermes.cpp" />
-    <ClCompile Include="flex.cpp" />
-    <ClCompile Include="gfx.cpp" />
-    <ClCompile Include="helper_funcs.cpp" />
-    <ClCompile Include="initapp.cpp" />
-    <ClCompile Include="language.cpp" />
-    <ClCompile Include="menu.cpp" />
-    <ClCompile Include="misc.cpp" />
-    <ClCompile Include="mobitex.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="pocsag.cpp" />
-    <ClCompile Include="printer.cpp" />
-    <ClCompile Include="sigind.cpp" />
+    <ClCompile Include="initapp.c" />
+    <ClCompile Include="language.c" />
+    <ClCompile Include="gfx.c" />
+    <ClCompile Include="menu.c" />
+    <ClCompile Include="misc.cpp" />
+    <ClCompile Include="printer.c" />
+    <ClCompile Include="sigind.c" />
+    <ClCompile Include="smtp.c" />
     <ClCompile Include="sound_in.cpp" />
-    <ClCompile Include="toolbar.cpp" />
-    <ClCompile Include="utils/binary.cpp" />
-    <ClCompile Include="utils/debug.cpp" />
-    <ClCompile Include="utils/messagequeue.cpp" />
-    <ClCompile Include="utils/ipcnfg.cpp" />
-    <ClCompile Include="utils/ostype.cpp" />
-    <ClCompile Include="utils/rs232.cpp" />
-    <ClCompile Include="utils/smtp.cpp" />
+    <ClCompile Include="toolbar.c" />
+    <ClCompile Include="utils/binary.c" />
+    <ClCompile Include="utils/debug.c" />
+    <ClCompile Include="utils/messagequeue.c" />
+    <ClCompile Include="utils/ipcnfg.c" />
+    <ClCompile Include="utils/ostype.c" />
+    <ClCompile Include="utils/rs232.c" />
+    <ClCompile Include="utils/utils.c" />
+    <ClCompile Include="decode/decode.cpp" />
+    <ClCompile Include="decode/acars.cpp" />
+    <ClCompile Include="decode/ermes.cpp" />
+    <ClCompile Include="decode/flex.cpp" />
+    <ClCompile Include="decode/mobitex.cpp" />
+    <ClCompile Include="decode/pocsag.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="acars.h" />
-    <ClInclude Include="decode.h" />
-    <ClInclude Include="ermes.h" />
-    <ClInclude Include="gfx.h" />
-    <ClInclude Include="helper_funcs.h" />
-    <ClInclude Include="html.h" />
-    <ClInclude Include="initapp.h" />
+    <ClInclude Include="pdw.h" />
     <ClInclude Include="language.h" />
+    <ClInclude Include="gfx.h" />
     <ClInclude Include="menu.h" />
     <ClInclude Include="misc.h" />
-    <ClInclude Include="mobitex.h" />
-    <ClInclude Include="pdw.h" />
     <ClInclude Include="printer.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="resrc1.h" />
     <ClInclude Include="sigind.h" />
     <ClInclude Include="slicer.h" />
+    <ClInclude Include="smtp.h" />
+    <ClInclude Include="smtp_int.h" />
     <ClInclude Include="sound_in.h" />
     <ClInclude Include="toolbar.h" />
-    <ClInclude Include="resrc1.h" />
     <ClInclude Include="utils/binary.h" />
     <ClInclude Include="utils/debug.h" />
     <ClInclude Include="utils/messagequeue.h" />
@@ -288,8 +283,13 @@
     <ClInclude Include="utils/ipcnfg.h" />
     <ClInclude Include="utils/ostype.h" />
     <ClInclude Include="utils/rs232.h" />
-    <ClInclude Include="utils/smtp.h" />
-    <ClInclude Include="utils/smtp_int.h" />
+    <ClInclude Include="utils/utils.h" />
+    <ClInclude Include="decode/decode.h" />
+    <ClInclude Include="decode/acars.h" />
+    <ClInclude Include="decode/ermes.h" />
+    <ClInclude Include="decode/flex.h" />
+    <ClInclude Include="decode/mobitex.h" />
+    <ClInclude Include="decode/pocsag.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="rsrc.rc" />

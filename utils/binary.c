@@ -1,8 +1,8 @@
  /************************************************************
- * Filename : binary.cpp                                     *
- *			  All rights reserved                            *
+ * Filename : binary.c                                       *
+ *			  All rights reserved                *
  * Started  : 30-12-2004                                     *
- *			: $Date: 2005/06/02 19:14:40 $	$Revision: 1.3 $ *
+ *	    : $Date: 2005/06/02 19:14:40 $	$Revision: 1.3 $ *
  ************************************************************/
 #include <windows.h>
 #include "binary.h"
@@ -14,7 +14,7 @@
 extern char aNumeric[] ; // ={"0123456789*U -)("};	// contains numeric paging data format
 
 
-static char EightBits[MAX_BINARY_STRING] ;
+static char EightBits[MAX_BINARY_STRING];
 
 
 static char *Convert7BitsTo8Bits(unsigned char *SevenBits, int len, unsigned char crypt, int bin)

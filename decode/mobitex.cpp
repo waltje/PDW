@@ -2,13 +2,12 @@
 //  mobitex.cpp
 //
 #include <windows.h>
-#include "pdw.h"
-#include "initapp.h"
-#include "sound_in.h"
+#include "../pdw.h"
+#include "../misc.h"
+#include "../sound_in.h"
+#include "../utils/utils.h"
 #include "decode.h"
-#include "misc.h"
 #include "mobitex.h"
-#include "helper_funcs.h"
 
 
 #define MB_MSG_SIZE			5000  // Max length of mobitex message
@@ -276,7 +275,7 @@ int MOBITEX::mb_bs(int st)
 
 unsigned int MOBITEX::mb_crc(signed int bit)
 {
-	short unsigned int sr = 0x00, cr;
+	short unsigned int sr = 0x00, cr = 0xCCCC;	//FIXME: was unset?
 
 	if (bit >= 0)
 	{
@@ -292,7 +291,7 @@ unsigned int MOBITEX::mb_crc(signed int bit)
 	}
 	CountBiterrors((cr == 0xCCCC) ? 0 : 1);
 
-	return(cr);
+	return(cr);   //FiXME: should be 'sr' ?
 }
 
 /*

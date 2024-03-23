@@ -1,4 +1,5 @@
 // gfx.c
+//
 // All graphics related stuff
 //
 // This file contains functions for the following:
@@ -9,21 +10,15 @@
 //   4.Creating font/brush objects for pane1/pane2.
 //   5.Functions for use with display_show_char() in misc.cpp.
 #include <windows.h>
-#include <commctrl.h>
-#include <mmsystem.h>
 #include <stdio.h>
-#include <commdlg.h>
 #include <string.h>
-#include <time.h>
 #include "resource.h"
 #include "pdw.h"
-#include "slicer.h"
-#include "toolbar.h"
 #include "gfx.h"
-#include "initapp.h"
-#include "misc.h"
-#include "acars.h"
 
+
+double dRX_Quality;
+int bDoubleDisplay;
 
 int PL1_SCount=0;		// pane1 label scroll position
 int PL2_SCount=0;		// pane2 label scroll position
@@ -413,9 +408,9 @@ void DrawPaneLabels(HWND hwnd, int pane)
 
 
 // Get general purpose logfonts
-bool GetLogFONTS(void)
+int GetLogFONTS(void)
 {
-	bool bOK=true;
+	int bOK=TRUE;
 	LOGFONT logfont;
 /*	
 	memset(&logfont, 0, sizeof(LOGFONT));
@@ -472,7 +467,7 @@ bool GetLogFONTS(void)
 			break;
 */
 		}
-		if (!(pdw_font[i] = CreateFontIndirect(&logfont))) bOK=false;
+		if (!(pdw_font[i] = CreateFontIndirect(&logfont))) bOK=FALSE;
 	}
 	return(bOK);
 }
@@ -485,7 +480,7 @@ void FreeLogFONTS(void)
 
 
 // Setup a box font
-bool SetBoxFONT(void)
+int SetBoxFONT(void)
 {
 	boxfontInfo.lfHeight		= -11;
 	boxfontInfo.lfWidth			= 0;
@@ -502,18 +497,18 @@ bool SetBoxFONT(void)
 	boxfontInfo.lfPitchAndFamily= FIXED_PITCH | FF_MODERN;
 	lstrcpy(boxfontInfo.lfFaceName, "Courier New");
 
-	if (!(hboxfont = CreateFontIndirect(&boxfontInfo))) return(false);
+	if (!(hboxfont = CreateFontIndirect(&boxfontInfo))) return(FALSE);
 
-	return(true);
+	return(TRUE);
 }
 
 
 // General purpse drawing and painting objects
 // These use standard system colours
-bool GetSysObjects(HWND hwnd)
+int GetSysObjects(HWND hwnd)
 {
 	HDC hdc;
-	bool bOK=true;
+	int bOK=TRUE;
 	LOGBRUSH log_brush;
  
 	// General purpose system pens
@@ -525,13 +520,13 @@ bool GetSysObjects(HWND hwnd)
 			  GetNearestColor(hdc, RGB(rgbColor[i][0],
 			  rgbColor[i][1],rgbColor[i][2])))))
 		{
-			bOK=false;
+			bOK=FALSE;
 		}
 	}
 
 	ReleaseDC(hwnd, hdc);
 
-	if(!bOK) return(false); // Got all pens?
+	if(!bOK) return(FALSE); // Got all pens?
 
 	// Get system brush for drawing 3D surfaces.
 	sys_3d_face_cr = (COLORREF)GetSysColor(COLOR_3DFACE);
@@ -539,17 +534,17 @@ bool GetSysObjects(HWND hwnd)
 	log_brush.lbColor = (COLORREF)sys_3d_face_cr;
 	log_brush.lbHatch = 0;    
     
-	if (!(lgray_brush = (HBRUSH) CreateBrushIndirect(&log_brush))) return(false);
+	if (!(lgray_brush = (HBRUSH) CreateBrushIndirect(&log_brush))) return(FALSE);
 
 	// Windows stockobjects
-	if (!(gray_brush = (HBRUSH) GetStockObject(GRAY_BRUSH))) return(false);
-	if (!(black_brush = (HBRUSH) GetStockObject(BLACK_BRUSH))) return(false);
-	if (!(null_pen = (HPEN) GetStockObject(NULL_PEN))) return(false);
+	if (!(gray_brush = (HBRUSH) GetStockObject(GRAY_BRUSH))) return(FALSE);
+	if (!(black_brush = (HBRUSH) GetStockObject(BLACK_BRUSH))) return(FALSE);
+	if (!(null_pen = (HPEN) GetStockObject(NULL_PEN))) return(FALSE);
 
 	hbm_exclam = LoadBitmap(ghInstance,MAKEINTRESOURCE((WORD)IDS_EXCLAM));
 	GetObject(hbm_exclam, sizeof(bme), &bme);
 
-	return(true);
+	return(TRUE);
 }
 
 
@@ -565,14 +560,14 @@ void FreeSysObjects(void)	// Free objects allocated by GetSysObjects.
 	if (black_brush)DeleteObject(black_brush);
 }
 
-bool Get_Drawing_Objects(void)	// Get pain1/pain2/font drawing objects.
+int Get_Drawing_Objects(void)	// Get pain1/pain2/font drawing objects.
 {
 	// These 3 are used by main program for background color etc.
-	if(!(hbr = CreateSolidBrush(Profile.color_background)))		return(false);
-	if(!(hboxbr = CreateSolidBrush(Profile.color_background)))  return(false);
-	if(!(SetBoxFONT())) return(false);
+	if(!(hbr = CreateSolidBrush(Profile.color_background)))		return(FALSE);
+	if(!(hboxbr = CreateSolidBrush(Profile.color_background)))  return(FALSE);
+	if(!(SetBoxFONT())) return(FALSE);
 
-	return(true);
+	return(TRUE);
 }
 
 void Free_Drawing_Objects(void)	// Free drawing objects allocated by Get_Drawing_Objects()
@@ -653,7 +648,7 @@ void Draw3D_Box_INV(HDC hdc,int x, int y, int w, int h)
 }
 
 
-void SetMessageItemPositionsWidth()
+void SetMessageItemPositionsWidth(void)
 {
 	int i, item, iTempPosition = 1;
 

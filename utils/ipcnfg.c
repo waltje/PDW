@@ -1,4 +1,4 @@
-// ipcnfg.cpp
+// ipcnfg.c
 //
 // ip related routines
 //
@@ -11,7 +11,7 @@
 #include "debug.h"
 
 
-static char szIPAddress[32] ;
+static char szIPAddress[32];
 
 
 char *GetIPAddress(void)

@@ -10,15 +10,16 @@
 //   - Calls the signal indicator.
 //
 #include <windows.h>
-#include "utils/debug.h"
-#include "pdw.h"
-#include "initapp.h"
-#include "sigind.h"
-#include "decode.h"
+#include "../pdw.h"
+#include "../sigind.h"
+#include "../utils/debug.h"
+#include "../utils/utils.h"
 #include "acars.h"
-#include "mobitex.h"
 #include "ermes.h"
-#include "helper_funcs.h"
+#include "flex.h"
+#include "mobitex.h"
+#include "pocsag.h"
+#include "decode.h"
 
 FILE *pd_raw_fp = NULL;		// Debug - Raw data file for logging POCSAG/FLEX symbol data.
 
@@ -44,7 +45,7 @@ char ob[32];
 
 int    ircver=0;
 double ct1600, ct3200, ct_bit;
-double rcver[64];                // rcv clock error ring buf
+double rcver[65];                // rcv clock error ring buf
 double exc=0.0;
 
 // receive symbol clock tightness - lower numbers mean slower loop response
@@ -58,8 +59,8 @@ double rcv_clkt_em = 0.030;      // sync ups & data - Ermes
 // Flex globals
 FLEX phase_A, phase_B, phase_C, phase_D;	// FLEX phases
 int  flex_timer = 0;				// FLEX active timer
-bool bReflex = false;				// Reflex mode flag
-bool bFlexActive = false;			// FLEX mode flag
+bool bReflex = FALSE;				// Reflex mode flag
+bool bFlexActive = FALSE;			// FLEX mode flag
 
 // Pocsag globals
 POCSAG pocsag;
@@ -136,12 +137,11 @@ void pd_reset_all(void)
 
 FILE *pRecording = NULL;		// Pointer to recording file
 
-bool bPlayback  = false;		// Playback in progress
-bool bRecording = false;		// Recording in progress
-bool bAutoRecording = false;	// AutoRecording in progress
+int bPlayback  = FALSE;		// Playback in progress
+int bRecording = FALSE;		// Recording in progress
+int bAutoRecording = FALSE;	// AutoRecording in progress
 
-struct
-{
+struct {
 	unsigned short int freqdata;
 	unsigned char linedata;
 } recdata;
@@ -160,7 +160,7 @@ unsigned char rlinedata[RECBUFSIZE];
 char rbuffer[FILEBUFSIZE];
 
 // RAH: Start playback of recording
-bool Start_Playback(LPTSTR lpstrFile)
+int Start_Playback(LPTSTR lpstrFile)
 {
 	pd_reset_all();
 
@@ -179,12 +179,12 @@ bool Start_Playback(LPTSTR lpstrFile)
 	if ((pRecording = fopen(lpstrFile,"rb")) == NULL)	// read
 	{
 		MessageBox(NULL,"Error opening playback file.","PDW",MB_ICONWARNING);
-		bPlayback = false;
+		bPlayback = FALSE;
 	}
 	else
 	{
 		setbuf(pRecording,rbuffer);
-		bPlayback = true;
+		bPlayback = TRUE;
 			}
 	return(bPlayback);
 }
@@ -192,7 +192,7 @@ bool Start_Playback(LPTSTR lpstrFile)
 // RAH: Stop playback of recording
 void Stop_Playback(void)
 {
-	bPlayback = false;
+	bPlayback = FALSE;
 
 	if (pRecording)
 	{
@@ -211,8 +211,8 @@ void Stop_Playback(void)
 // RAH: Handle playback of recording
 void pdw_playback(void)
 {
-	BOOL bMore = TRUE;
-	BOOL bAnything = FALSE;
+	int bMore = TRUE;
+	int bAnything = FALSE;
 
 	while (bMore)
 	{
@@ -247,12 +247,12 @@ void Start_Recording(LPTSTR lpstrFile)
 	char szBuffer[80];
 	sprintf(szBuffer, "Recording %s", lpstrFile);
 	SetWindowText(ghWnd, (LPSTR) szBuffer);
-	bRecording = true;
+	bRecording = TRUE;
 
 	if ((pRecording = fopen(lpstrFile,"ab")) == NULL)	// append
     {
 		MessageBox(NULL,"Error opening output file for recording.","PDW",MB_ICONWARNING);
-		bRecording = false;
+		bRecording = FALSE;
         // HWi 
 		SetWindowText(ghWnd, (LPSTR) szWindowText[0]);
     }
@@ -266,7 +266,7 @@ void Start_Recording(LPTSTR lpstrFile)
 // RAH: Stop recording
 void Stop_Recording(void)
 {
-	bRecording = false;
+	bRecording = FALSE;
 
 	if (pRecording)
 	{
@@ -277,7 +277,7 @@ void Stop_Recording(void)
 }
 
 // RAH: Select a file for recording
-BOOL Open_Recording(OPENFILENAME *pofn, LPTSTR lpstrFile, bool bOpennotsave)
+int Open_Recording(OPENFILENAME *pofn, LPTSTR lpstrFile, int bOpennotsave)
 {
 	static char szRec[] = {"Recordings (*.rec)\0*.rec\0All Files (*.*)\0*.*\0\0"};
 	char szTitle[256];
@@ -683,7 +683,7 @@ void check_save_data(void)
 	unsigned int index;
 	char filename[1024];
 	extern char szFilenameDate[16];		// Global buffer for date as filename
-	bool bDaily=false;
+	bool bDaily=FALSE;
 
 	/*** Statistics output and statfile updates ***/
 
@@ -694,7 +694,7 @@ void check_save_data(void)
 		GetLocalTime(&statTime);
 		Get_Date_Time();
 
-		if (statTime.wDay  != prev_statTime.wDay) bDaily=true;
+		if (statTime.wDay  != prev_statTime.wDay) bDaily=TRUE;
 		if (statTime.wHour != prev_statTime.wHour)
 		{
 			if (Profile.stat_file_enabled)

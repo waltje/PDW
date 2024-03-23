@@ -1,5 +1,17 @@
 #ifndef PDW_DECODE_H
-#define PDW_DECODE_H
+# define PDW_DECODE_H
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern double ct1600, ct3200, ct_bit;
+
+#ifdef __cplusplus
+}
+#endif
+
 
 extern FILE *pd_raw_fp;
 extern FILTER filter;
@@ -13,8 +25,7 @@ extern int stat_timer;
 
 extern char ob[32];
 //extern unsigned int bch[1025], ecs[25];     // error correction sequence
-extern double ct1600, ct3200, ct_bit;
-extern double rcver[64];         // rcv clock error ring buf
+extern double rcver[65];         // rcv clock error ring buf
 extern double exc;
 extern int ircver;
 extern int g_vt;
@@ -27,12 +38,16 @@ extern double rcv_clkt_po;      // fine rcv clock (data) - POCSAG
 extern double rcv_clkt_mb;      // fine rcv clock (data) - Mobitex
 
 // Flex globals
+#ifdef PDW_FLEX_H
 extern int flex_timer;
 extern FLEX phase_A, phase_B, phase_C, phase_D;
+#endif
 
 // Pocsag/golay globals
+#ifdef PDW_POCSAG_H
 extern POCSAG pocsag;
 extern int pocsag_baud_rate, pocbit;
+#endif
 
 // this table translates received modem status line combinations into
 // the received symbol; it gives the number of modem status lines that
@@ -51,7 +66,7 @@ extern int    out_len, prev_timeout;
 extern time_t curr_time;
 
 // RAH; record and playback globals
-extern bool bPlayback, bRecording, bAutoRecording;
+extern int bPlayback, bRecording, bAutoRecording;
 extern FILE *pd_rec;
 
 //********* Prototypes. ****************************
@@ -63,12 +78,13 @@ void pdw_decode(void);
 void check_save_data(void);
 
 // RAH: record and playback
-BOOL Open_Recording(OPENFILENAME *pofn, LPTSTR lpstrFile, bool bOpennotsave);
-bool Start_Playback(LPTSTR lpstrFile);
+int Open_Recording(OPENFILENAME *pofn, LPTSTR lpstrFile, int bOpennotsave);
+int Start_Playback(LPTSTR lpstrFile);
 void Stop_Playback(void);
 void Start_Recording(LPTSTR lpstrFile);
 void Stop_Recording(void);
 void pdw_playback(void);
 void pdw_record(void);
 
-#endif
+
+#endif	/*PDW_DECODE_H*/

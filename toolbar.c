@@ -6,11 +6,8 @@
 //
 #include <windows.h>
 #include <commctrl.h>
-#include <mmsystem.h>
 #include <stdio.h>
-#include <commdlg.h>
 #include <string.h>
-#include <time.h>
 #include "resource.h"
 #include "toolbar.h"
 
@@ -19,8 +16,8 @@
 #define NUM_TB_IMAGES  13   // 14 button images
 // #define TOOLBAR_DEBUG  1
 
-TBBUTTON toolbar_btns[NUM_TB_BUTTONS];  // Toolbar buttons
-HBITMAP tb_btn_image[NUM_TB_IMAGES];       // Bitmap Handles to Toolbar images
+static TBBUTTON toolbar_btns[NUM_TB_BUTTONS];  // Toolbar buttons
+static HBITMAP tb_btn_image[NUM_TB_IMAGES];       // Bitmap Handles to Toolbar images
 
 
 // Allocate toolbar and return its window handle

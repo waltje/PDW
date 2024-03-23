@@ -1,11 +1,15 @@
 #ifndef PDW_PRINTER_H
-#define PDW_PRINTER_H
+# define PDW_PRINTER_H
 
-// printer.h
-
-void PrintInit(PRINTDLG *printdlg, HWND hwnd);
-void PrintBuffer(LPSTR lpBuffer);
-BOOL CALLBACK AbortFunc(HDC hdc, int err);
-LRESULT CALLBACK KillPrint(HWND, UINT, WPARAM, LPARAM);
-
+#ifdef __cplusplus
+extern "C" {
 #endif
+
+void PrintBuffer(LPSTR lpBuffer);
+
+#ifdef __cplusplus
+}
+#endif
+
+
+#endif	/*PDW_PRINTER_H*/

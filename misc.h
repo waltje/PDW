@@ -42,8 +42,8 @@ void Remove_MissedGroupcall(int groupbit);
 
 char LogFileHandling(int file, char *szFileName, int action);
 
-bool PlayWaveFile(bool bMONITOR_ONLY, bool bFILTERED, bool bPlay);
-void CollectLogfileLine(char *string, bool bFilterfile);
+int PlayWaveFile(int bMONITOR_ONLY, int bFILTERED, int bPlay);
+void CollectLogfileLine(char *string, int bFilterfile);
 void ActivateCommandFile();
 int  Check_4_Filtermatch();
 int  CompareMessage(int item, int mon_or_filt);

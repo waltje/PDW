@@ -1,5 +1,5 @@
 //
-// Debug.cpp
+// debug.c
 //
 #include <windows.h>
 #include "debug.h"

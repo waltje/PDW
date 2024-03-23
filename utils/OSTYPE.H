@@ -1,5 +1,5 @@
 /***************************************************
- * Filename : ostype.c
+ * Filename : ostype.h
  *			  All rights reserved.
  * Started  : 07-Dec-1998 by Herman Withaar
  *			: $Date: 2004/07/13 21:50:01 $	$Revision: 1.1.1.1 $
@@ -15,9 +15,8 @@
 /*********************************************************************
  Log:   V:/dev3dev/wvutil/code/ostype.h_v
 *********************************************************************/
-
-#ifndef __OSTYPE_H__
-#define __OSTYPE_H__
+#ifndef PDW_OSTYPE_H
+# define PDW_OSTYPE_H
 
 
 #define OS_UNKNOWN  0x0000
@@ -30,29 +29,31 @@
 //#define OS_WINME    0x0040	
 
 
-#define IS_OSWIN9X(x)			(x & (OS_WIN95 | OS_WIN98))		
-#define IS_OSWINNT(x)			(x & (OS_WINNT | OS_WIN2000 | OS_WINCE | OS_WINXP))		
+#define IS_OSWIN9X(x)	(x & (OS_WIN95 | OS_WIN98))		
+#define IS_OSWINNT(x)	(x & (OS_WINNT | OS_WIN2000 | OS_WINCE | OS_WINXP))		
 
 
 #ifndef NDIS_MINIPORT_DRIVER
 
-#define IS_OSWINME				((OSVersionInfo.dwMajorVersion == 4) && (OSVersionInfo.dwMinorVersion >= 90))
+#define IS_OSWINME	((OSVersionInfo.dwMajorVersion == 4) && (OSVersionInfo.dwMinorVersion >= 90))
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+extern OSVERSIONINFO	OSVersionInfo;
+extern TCHAR		szOSType[128];
+extern int		nOSType;
 
-extern OSVERSIONINFO OSVersionInfo ;
-extern TCHAR		 szOSType[128] ;
-extern int			 nOSType ;
-
-int GetOSType(TCHAR *szOS) ;
+int GetOSType(TCHAR *szOS);
 
 #ifdef __cplusplus
 }
 #endif
 
+
 #endif // !NDIS_MINIPORT_DRIVER
 
-#endif // _OSTYPE_H__
+
+#endif	/*PDW_OSTYPE_H*/

@@ -3,7 +3,7 @@
 //  Main module of the PDW program.
 //
 // Authors:
-
+//
 // Peter Hunt (PH)
 // Rutger A. Heunks (RAH)
 // Andreas Verhoeven (AVE)
@@ -27,35 +27,34 @@
 //
 #include <windows.h>
 #include <commctrl.h>
-#include <mmsystem.h>
+#include <shlobj.h>
 #include <stdio.h>
-#include <commdlg.h>
 #include <string.h>
 #include <time.h>
-#include <shlobj.h>
-#include "resource.h"
 #include "pdw.h"
-#include "slicer.h"
-#include "toolbar.h"
+#include "resource.h"
+#include "language.h"
 #include "gfx.h"
-#include "initapp.h"
-#include "sigind.h"
-#include "decode.h"
-#include "sound_in.h"
-#include "printer.h"
 #include "misc.h"
 #include "menu.h"
-#include "acars.h"
-#include "language.h"
-#include "mobitex.h"
-#include "ermes.h"
-#include "helper_funcs.h"
+#include "printer.h"
+#include "sigind.h"
+#include "slicer.h"
+#include "smtp.h"
+#include "sound_in.h"
+#include "toolbar.h"
 #include "version.h"
 #include "utils/rs232.h"
 #include "utils/debug.h"
 #include "utils/ostype.h"
-#include "utils/smtp.h"
 #include "utils/messagequeue.h"			// FIXME: NICO
+#include "utils/utils.h"
+#include "decode/acars.h"
+#include "decode/ermes.h"
+#include "decode/flex.h"
+#include "decode/mobitex.h"
+#include "decode/pocsag.h"
+#include "decode/decode.h"
 
 
 #define MIN_X_WIN_SIZE		444		// Smallest main win X size can be (was 444)
@@ -88,14 +87,12 @@ PROFILE Profile;			// User profile information
 HANDLE  hDriver = 0;			// Handle of Virtual Device
 int *pComPorts;				// Array with available comports
 
-bool bWin9x;
+int bWin9x;
 
 int  nDriverLoaded	= DRIVER_NOT_LOADED;	// VxD/comport loaded?
-bool bEditFilter	= false;	// Set before/after calling edit dialog
-bool bPauseFlag		= false;	// Decides if message output is paused.
-bool bUpdateFilters	= false;	// PH: Needs FILTERS.INI to be updated?
-
-double dRX_Quality;
+int bEditFilter	= FALSE;	// Set before/after calling edit dialog
+int bPauseFlag		= FALSE;	// Decides if message output is paused.
+int bUpdateFilters	= FALSE;	// PH: Needs FILTERS.INI to be updated?
 
 int nCount_Messages = 0;		// PH: Counts # Messages
 int nCount_Groupcalls = 0;		// PH: Counts # Groupcalls
@@ -105,18 +102,14 @@ int nCount_Blocked = 0;			// PH: Counts # Blocked Messages
 int nCount_Missed[2] = { 0,0 };		// PH: Counts # Missed Groupcalls
 int nCount_BlockBuffer[2] = { 0,0 };	// PH: Counts # Block Buffer
 //int iDebug_Test = 0;
-int nSMTPsessions = 0;
-int nSMTPemails = 0;
-int nSMTPerrors = 0;
-int iSMTPlastError = 0;
 
 int iMouseClick = 0;			// PH: Used for detecting double click
 
 //int Notification=0;			// PH: Used for notification windows
 
-bool bTrayed=false;			// PH: Is true if trayed
-bool bLBUTTONDBLCLK=false;		// PH: Is true after 2 WM_LBUTTONDOWN messages
-bool bFilterFindCASE=false;		// PH: Filter Find Case Sensitive?
+int bTrayed=FALSE;			// PH: Is TRUE if trayed
+int bLBUTTONDBLCLK=FALSE;		// PH: Is TRUE after 2 WM_LBUTTONDOWN messages
+int bFilterFindCASE=FALSE;		// PH: Filter Find Case Sensitive?
 
 int   iTEMP = 0;			// Global temporary int
 char szTEMP[MAX_STR_LEN];		// Global temporary buffer
@@ -158,7 +151,7 @@ LOGFONT tmp_logfont;
 time_t tStarted;	// Contains the time when PDW was started
 
 // If copy upper/lower pane or just copy is successful then this flag is set to TRUE.
-bool bOK_to_save=false;
+int bOK_to_save=FALSE;
 
 // RAH: record and playback stuff
 OPENFILENAME openplayback;
@@ -167,18 +160,17 @@ char szPlayback[MAX_PATH];
 char szRecording[MAX_PATH];
 
 //HWi
-typedef enum sroll
-{
-	scrollNull,
-	scrollUp,
-	scrollDown
+typedef enum sroll {
+    scrollNull,
+    scrollUp,
+    scrollDown
 } EScrollDirection;
 
 
 HIMAGELIST		hDragImageList;
 LPNMHDR			pnmhdr;
-bool			bDragging, bDragLine;
-bool			bSortingFilters, bDeletingFilters;
+int			bDragging, bDragLine;
+int			bSortingFilters, bDeletingFilters;
 LVHITTESTINFO		lvhti;
 HWND			hListView, hDebugDlg, hSystemTrayDlg, hFilterDlg, hCurrentHWND;
 int			m_uScrollTimer, m_ScrollDirection, m_nScrollOffset, m_nDropIndex=-1;
@@ -186,7 +178,7 @@ int			nCopyStart=-1, nCopyEnd=-1;
 
 void OnBeginDrag(NMHDR* pnmhdr);
 void InitListControl(HWND hDlg);
-bool WINAPI InsertListViewItem(char *szLine, int nItem);
+int WINAPI InsertListViewItem(char *szLine, int nItem);
 void OnMouseMove(UINT nFlags, int x, int y);
 void OnMouseWheel(WPARAM wParam, int x, int y, RECT g_rect);
 void OnLButtonUp(UINT nFlags, int x, int y);
@@ -195,16 +187,16 @@ void OnTimer(UINT nIDEvent);
 void KillScrollTimer(void);
 void SetScrollTimer(EScrollDirection ScrollDirection);
 LONG OnCustomDraw(LPNMLVCUSTOMDRAW lpDraw);
-void SortFilter(HWND hDlg, bool bAddress);
-bool CheckSelection(bool bMore);
+void SortFilter(HWND hDlg, int bAddress);
+int CheckSelection(int bMore);
 int  CompareCapcodes(char *szCapcode1, char *szCapcode2);
 void CopyFilter(void);
 void PasteFilter(void);
-void ResetHitcounters(bool bAll);
+void ResetHitcounters(int bAll);
 void ShowContextMenu(int menu, HWND hWindow);
 void GoogleMaps(int iPosition);
 void SelectByDoubleClick(HWND hWnd, PaneStruct *pane, int iPosition, int StartRow);
-int  FindFilter(int index, char *szSearchString, bool bShowHits, bool bBackwards);
+int  FindFilter(int index, char *szSearchString, int bShowHits, int bBackwards);
 void pumpMessages(void);
 
 DWORD GetColorRGB(BYTE color);
@@ -212,437 +204,440 @@ DWORD GetColorRGB(BYTE color);
 void AutoRecording();	// PH: temp/test
 
 
-int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int nCmdShow)
+int
+WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpszCmdLine, int nCmdShow)
 {
-	MSG msg;
+    MSG msg;
 
 //FIXME: first of all, process commandline options. --FVK
 
-	// PH: Set version info in szWindowText buffer
+    // PH: Set version info in szWindowText buffer
 //FIXME: optionally use commandline arg here!  --FVK
-	sprintf(szWindowText[0], " %s %s", APP_NAME, APP_VERSION);
+    sprintf(szWindowText[0], " %s %s", APP_NAME, APP_VERSION);
 
-	// Initialize global variables.
-	ghWnd = NULL;
-	ghInstance = hInstance;
-	ZeroMemory(&openplayback, sizeof(openplayback));
-	ZeroMemory(&openrecording,sizeof(openrecording));
-	openplayback.lStructSize  = sizeof(openplayback);
-	openrecording.lStructSize = sizeof(openrecording);
-	szPlayback[0] = '\0';
+    // Initialize global variables.
+    ghWnd = NULL;
+    ghInstance = hInst;
+    ZeroMemory(&openplayback, sizeof(openplayback));
+    ZeroMemory(&openrecording,sizeof(openrecording));
+    openplayback.lStructSize  = sizeof(openplayback);
+    openrecording.lStructSize = sizeof(openrecording);
+    szPlayback[0] = '\0';
 
-	// Initialize the user profile.
-	ZeroMemory(&Profile, sizeof(Profile));
-	Profile.LabelLog		= 1;	// Flag for labels in monitored-logfile
-	Profile.LabelNewline		= 1;	// Flag for labels on new line
-	Profile.Linefeed		= 1;	// Flag for converting » to linefeed
-	Profile.Separator		= 1;	// Flag for separating messages (empty line)
-	Profile.MonthNumber		= 1;	// Flag for using monthnumber in logfilenames
-	Profile.FilterWindowColors	= 1;	// Flag for showing label colors in filterwindow
-	Profile.FilterWindowExtra	= 1;	// Flag for showing CMD/DESC/SEP/etc in filterwindow
+    // Initialize the user profile.
+    ZeroMemory(&Profile, sizeof(Profile));
+    Profile.LabelLog = 1;		// flag for labels in monitored-logfile
+    Profile.LabelNewline = 1;		// flag for labels on new line
+    Profile.Linefeed = 1;		// flag for converting » to linefeed
+    Profile.Separator = 1;		// flag for separating messages (empty line)
+    Profile.MonthNumber = 1;		// flag for using monthnumber in logfilenames
+    Profile.FilterWindowColors = 1;	// flag for showing label colors in filterwindow
+    Profile.FilterWindowExtra = 1;	// flag for showing CMD/DESC/SEP/etc in filterwindow
 
-	Profile.xPos 			= 0;
-	Profile.yPos			= 0;
-	Profile.xSize			= 593;
-	Profile.ySize			= 442;
+    Profile.xPos = 0;
+    Profile.yPos = 0;
+    Profile.xSize = 593;
+    Profile.ySize = 442;
 
-	Profile.showtone		= 1;
-	Profile.shownumeric		= 1;
-	Profile.showmisc		= 1;
+    Profile.showtone = 1;
+    Profile.shownumeric = 1;
+    Profile.showmisc = 1;
 
-	Profile.confirmExit     = 1;
-	Profile.decodepocsag    = 1;
-	Profile.decodeflex      = 1;
-	Profile.showinstr       = 1;	// PH: Show Short Instructions
-	Profile.convert_si      = 1;	// PH: Convert Short Instructions to textmessage
-	Profile.pocsag_512      = 1;
-	Profile.pocsag_1200     = 1;
-	Profile.pocsag_2400     = 1;
-	Profile.pocsag_fnu      = 0;
-	Profile.pocsag_showboth = 0;
-	Profile.flex_1600       = 1;
-	Profile.flex_3200       = 1;
-	Profile.flex_6400       = 1;
-	Profile.acars_parity_check = 0;
+    Profile.confirmExit = 1;
+    Profile.decodepocsag = 1;
+    Profile.decodeflex = 1;
+    Profile.showinstr = 1;		// PH: Show Short Instructions
+    Profile.convert_si = 1;		// PH: Convert Short Instructions to textmessage
+    Profile.pocsag_512 = 1;
+    Profile.pocsag_1200 = 1;
+    Profile.pocsag_2400 = 1;
+    Profile.pocsag_fnu = 0;
+    Profile.pocsag_showboth = 0;
+    Profile.flex_1600 = 1;
+    Profile.flex_3200 = 1;
+    Profile.flex_6400 = 1;
+    Profile.acars_parity_check = 0;
 
-	Profile.comPortEnabled	= 0;
-	Profile.comPort		= 2;
-	Profile.comPortRS232	= 0;
-	Profile.comPortAddr	= 0x2F8;
-	Profile.comPortIRQ	= 3;
-	Profile.invert		= 0;	// Current invert status. 0=No,1=Yes
-	Profile.fourlevel	= 0;
-	Profile.percent		= 65;	// Set pane1 to 65% of client area
+    Profile.comPortEnabled = 0;
+    Profile.comPort = 2;
+    Profile.comPortRS232 = 0;
+    Profile.comPortAddr	= 0x2F8;
+    Profile.comPortIRQ = 3;
+    Profile.invert = 0;			// Current invert status. 0=No,1=Yes
+    Profile.fourlevel = 0;
+    Profile.percent = 65;		// Set pane1 to 65% of client area
 
-	// setup default font information
-	Profile.fontInfo.lfHeight		= -11;
-	Profile.fontInfo.lfWidth		= 0;
-	Profile.fontInfo.lfEscapement		= 0;
-	Profile.fontInfo.lfOrientation		= 0;
-	Profile.fontInfo.lfWeight		= FW_NORMAL;
-	Profile.fontInfo.lfItalic		= 0;
-	Profile.fontInfo.lfUnderline		= 0;
-	Profile.fontInfo.lfStrikeOut		= 0;
-	Profile.fontInfo.lfCharSet		= OEM_CHARSET;
-	Profile.fontInfo.lfOutPrecision		= OUT_STROKE_PRECIS;
-	Profile.fontInfo.lfClipPrecision	= CLIP_DEFAULT_PRECIS;
-	Profile.fontInfo.lfQuality		= DEFAULT_QUALITY;
-	Profile.fontInfo.lfPitchAndFamily	= FIXED_PITCH | FF_MODERN;
-	lstrcpy(Profile.fontInfo.lfFaceName, "Courier New");
+    // setup default font information
+    Profile.fontInfo.lfHeight = -11;
+    Profile.fontInfo.lfWidth = 0;
+    Profile.fontInfo.lfEscapement = 0;
+    Profile.fontInfo.lfOrientation = 0;
+    Profile.fontInfo.lfWeight = FW_NORMAL;
+    Profile.fontInfo.lfItalic = 0;
+    Profile.fontInfo.lfUnderline = 0;
+    Profile.fontInfo.lfStrikeOut = 0;
+    Profile.fontInfo.lfCharSet = OEM_CHARSET;
+    Profile.fontInfo.lfOutPrecision = OUT_STROKE_PRECIS;
+    Profile.fontInfo.lfClipPrecision = CLIP_DEFAULT_PRECIS;
+    Profile.fontInfo.lfQuality = DEFAULT_QUALITY;
+    Profile.fontInfo.lfPitchAndFamily = FIXED_PITCH | FF_MODERN;
+    lstrcpy(Profile.fontInfo.lfFaceName, "Courier New");
 
-	Profile.reverse_msg = FALSE;	// Flag to reverse message output.
-	Profile.lang_mi_index = 0;		// Set default language menu item.
-	Profile.lang_tbl_index= 0;		// Decides language character map.
+    Profile.reverse_msg = FALSE;	// flag to reverse message output.
+    Profile.lang_mi_index = 0;		// set default language menu item.
+    Profile.lang_tbl_index= 0;		// decides language character map.
 
-	Profile.logfile_enabled	 = 1;
-	Profile.logfile_use_date = 1;
+    Profile.logfile_enabled = 1;
+    Profile.logfile_use_date = 1;
 
-	Profile.maximize_flg	  = 1;
+    Profile.maximize_flg = 1;
 
-	Profile.filterfile_enabled	= 1;
-	Profile.filterfile_use_date	= 1;
+    Profile.filterfile_enabled = 1;
+    Profile.filterfile_use_date	= 1;
 
-	Profile.filters.clear();
+    Profile.filters.clear();
 
-	// COLORS.
-	Profile.color_background	= RGB(rgbColor[BLACK][0],  rgbColor[BLACK][1],  rgbColor[BLACK][2]);
-	Profile.color_address		= RGB(rgbColor[WHITE][0],  rgbColor[WHITE][1],  rgbColor[WHITE][2]);
-	Profile.color_modetypebit	= RGB(rgbColor[RED][0],    rgbColor[RED][1],    rgbColor[RED][2]);
-	Profile.color_timestamp		= RGB(rgbColor[LTBLUE][0], rgbColor[LTBLUE][1], rgbColor[LTBLUE][2]);
-	Profile.color_numeric		= RGB(rgbColor[RED][0],    rgbColor[RED][1],    rgbColor[RED][2]);
-	Profile.color_message		= RGB(rgbColor[LTCYAN][0], rgbColor[LTCYAN][1], rgbColor[LTCYAN][2]);
-	Profile.color_misc		= RGB(rgbColor[BROWN][0],  rgbColor[BROWN][1],  rgbColor[BROWN][2]);
-	Profile.color_biterrors		= RGB(rgbColor[LTGRAY][0], rgbColor[LTGRAY][1], rgbColor[LTGRAY][2]);
-	Profile.color_filtermatch	= RGB(rgbColor[LTGREEN][0],rgbColor[LTGREEN][1],rgbColor[LTGREEN][2]);
-	Profile.color_instructions	= RGB(rgbColor[LTCYAN][0], rgbColor[LTCYAN][1], rgbColor[LTCYAN][2]);
-	Profile.color_ac_message_nr	= RGB(rgbColor[WHITE][0],  rgbColor[WHITE][1],  rgbColor[WHITE][2]);
-	Profile.color_ac_dbi		= RGB(rgbColor[RED][0],    rgbColor[RED][1],    rgbColor[RED][2]);
-	Profile.color_mb_sender		= RGB(rgbColor[RED][0],    rgbColor[RED][1],    rgbColor[RED][2]);
+    // COLORS.
+    Profile.color_background = RGB(rgbColor[BLACK][0], rgbColor[BLACK][1], rgbColor[BLACK][2]);
+    Profile.color_address = RGB(rgbColor[WHITE][0], rgbColor[WHITE][1], rgbColor[WHITE][2]);
+    Profile.color_modetypebit = RGB(rgbColor[RED][0], rgbColor[RED][1], rgbColor[RED][2]);
+    Profile.color_timestamp = RGB(rgbColor[LTBLUE][0], rgbColor[LTBLUE][1], rgbColor[LTBLUE][2]);
+    Profile.color_numeric = RGB(rgbColor[RED][0], rgbColor[RED][1], rgbColor[RED][2]);
+    Profile.color_message = RGB(rgbColor[LTCYAN][0], rgbColor[LTCYAN][1], rgbColor[LTCYAN][2]);
+    Profile.color_misc = RGB(rgbColor[BROWN][0], rgbColor[BROWN][1], rgbColor[BROWN][2]);
+    Profile.color_biterrors = RGB(rgbColor[LTGRAY][0], rgbColor[LTGRAY][1], rgbColor[LTGRAY][2]);
+    Profile.color_filtermatch = RGB(rgbColor[LTGREEN][0], rgbColor[LTGREEN][1],rgbColor[LTGREEN][2]);
+    Profile.color_instructions = RGB(rgbColor[LTCYAN][0], rgbColor[LTCYAN][1], rgbColor[LTCYAN][2]);
+    Profile.color_ac_message_nr	= RGB(rgbColor[WHITE][0], rgbColor[WHITE][1], rgbColor[WHITE][2]);
+    Profile.color_ac_dbi = RGB(rgbColor[RED][0], rgbColor[RED][1], rgbColor[RED][2]);
+    Profile.color_mb_sender = RGB(rgbColor[RED][0], rgbColor[RED][1], rgbColor[RED][2]);
 
-	// Filter label colors
-	Profile.color_filterlabel[0]	= RGB(rgbColor[LTBLUE][0], rgbColor[LTBLUE][1], rgbColor[LTBLUE][2]);
-	Profile.color_filterlabel[1]	= RGB(rgbColor[YELLOW][0], rgbColor[YELLOW][1], rgbColor[YELLOW][2]);
-	Profile.color_filterlabel[2]	= RGB(rgbColor[RED][0],    rgbColor[RED][1],    rgbColor[RED][2]);
-	Profile.color_filterlabel[3]	= RGB(0xFF, 0xAA, 0x00);      /* orange */
-	Profile.color_filterlabel[4]	= RGB(rgbColor[LTBLUE][0], rgbColor[LTBLUE][1], rgbColor[LTBLUE][2]);
-	Profile.color_filterlabel[5]	= RGB(rgbColor[CYAN][0],   rgbColor[CYAN][1],   rgbColor[CYAN][2]);
-	Profile.color_filterlabel[6]	= RGB(rgbColor[WHITE][0],  rgbColor[WHITE][1],  rgbColor[WHITE][2]);
-	Profile.color_filterlabel[7]	= RGB(rgbColor[LTGREEN][0],rgbColor[LTGREEN][1],rgbColor[LTGREEN][2]);
-	Profile.color_filterlabel[8]	= RGB(rgbColor[LTGRAY][0], rgbColor[LTGRAY][1], rgbColor[LTGRAY][2]);
+    // Filter label colors
+    Profile.color_filterlabel[0] = RGB(rgbColor[LTBLUE][0], rgbColor[LTBLUE][1], rgbColor[LTBLUE][2]);
+    Profile.color_filterlabel[1] = RGB(rgbColor[YELLOW][0], rgbColor[YELLOW][1], rgbColor[YELLOW][2]);
+    Profile.color_filterlabel[2] = RGB(rgbColor[RED][0], rgbColor[RED][1], rgbColor[RED][2]);
+    Profile.color_filterlabel[3] = RGB(0xFF, 0xAA, 0x00); /* orange */
+    Profile.color_filterlabel[4] = RGB(rgbColor[LTBLUE][0], rgbColor[LTBLUE][1], rgbColor[LTBLUE][2]);
+    Profile.color_filterlabel[5] = RGB(rgbColor[CYAN][0], rgbColor[CYAN][1], rgbColor[CYAN][2]);
+    Profile.color_filterlabel[6] = RGB(rgbColor[WHITE][0], rgbColor[WHITE][1],  rgbColor[WHITE][2]);
+    Profile.color_filterlabel[7] = RGB(rgbColor[LTGREEN][0], rgbColor[LTGREEN][1], rgbColor[LTGREEN][2]);
+    Profile.color_filterlabel[8] = RGB(rgbColor[LTGRAY][0], rgbColor[LTGRAY][1], rgbColor[LTGRAY][2]);
 
-	Profile.color_filterlabel[9]	= RGB(rgbColor[BROWN][0],  rgbColor[BROWN][1],  rgbColor[BROWN][2]);
-	Profile.color_filterlabel[10]	= RGB(rgbColor[LTCYAN][0], rgbColor[LTCYAN][1], rgbColor[LTCYAN][2]);
-	Profile.color_filterlabel[11]	= RGB(0x00, 0x33, 0x99);      /* navy blue */
-	Profile.color_filterlabel[12]	= RGB(0xFF, 0x00, 0xFF);      /* magenta */
-	Profile.color_filterlabel[13]	= RGB(0x33, 0xCC, 0x99);      /* sea green */
-	Profile.color_filterlabel[14]	= RGB(0xFF, 0x99, 0xCC);	  /* pink */
-	Profile.color_filterlabel[15]	= RGB(0x99, 0xFF, 0xFF);      /* ice blue */
-	Profile.color_filterlabel[16]	= RGB(0x99, 0xFF, 0xCC);      /* turquoise */
+    Profile.color_filterlabel[9] = RGB(rgbColor[BROWN][0], rgbColor[BROWN][1], rgbColor[BROWN][2]);
+    Profile.color_filterlabel[10] = RGB(rgbColor[LTCYAN][0], rgbColor[LTCYAN][1], rgbColor[LTCYAN][2]);
+    Profile.color_filterlabel[11] = RGB(0x00, 0x33, 0x99);	/* navy blue */
+    Profile.color_filterlabel[12] = RGB(0xFF, 0x00, 0xFF);	/* magenta */
+    Profile.color_filterlabel[13] = RGB(0x33, 0xCC, 0x99);	/* sea green */
+    Profile.color_filterlabel[14] = RGB(0xFF, 0x99, 0xCC);	/* pink */
+    Profile.color_filterlabel[15] = RGB(0x99, 0xFF, 0xFF);	/* ice blue */
+    Profile.color_filterlabel[16] = RGB(0x99, 0xFF, 0xCC);	/* turquoise */
 
-	Profile.pane1_size		= PANE1_SIZE;
-	Profile.pane2_size		= PANE2_SIZE;
-	Profile.ScrollSpeed		= 1;
+    Profile.pane1_size = PANE1_SIZE;
+    Profile.pane2_size = PANE2_SIZE;
+    Profile.ScrollSpeed = 1;
 
-	Profile.stat_file_enabled	= 0;
-	Profile.stat_file[0]		= '\0';
-	Profile.stat_file_use_date	= 0;
+    Profile.stat_file_enabled = 0;
+    Profile.stat_file[0] = '\0';
+    Profile.stat_file_use_date = 0;
 
-	// These control Audio input.
-	Profile.audioEnabled		= 1;
-	Profile.audioDevice		= 0;
-	Profile.audioSampleRate		= 44100;
-	Profile.audioConfig		= 5;	// Audio input configuration.
-	Profile.audioThreshold[4]	= 0;
-	Profile.audioResync[4]		= 0;
-	Profile.audioCentering[4]	= 0;
-	SetAudioConfig(Profile.audioConfig);	// Set default audio config
+    // These control Audio input.
+    Profile.audioEnabled = 1;
+    Profile.audioDevice = 0;
+    Profile.audioSampleRate = 44100;
+    Profile.audioConfig = 5;			// audio input configuration
+    Profile.audioThreshold[4] = 0;
+    Profile.audioResync[4] = 0;
+    Profile.audioCentering[4] = 0;
+    SetAudioConfig(Profile.audioConfig);	// set default audio config
 
-	Profile.minimize_flg		= 0;	// Keep track of minimized state (user could exit while minimized)
+    // Keep track of minimized state (user could exit while minimized)
+    Profile.minimize_flg = 0;
 
-	Profile.monitor_paging	= true; // Default is to decode POCSAG/FLEX signals.
-	Profile.monitor_acars	= false;
-	Profile.monitor_mobitex	= false;
-	Profile.monitor_ermes	= false;
+    // Default is to decode POCSAG/FLEX signals.
+    Profile.monitor_paging = TRUE;
+    Profile.monitor_acars = FALSE;
+    Profile.monitor_mobitex = FALSE;
+    Profile.monitor_ermes = FALSE;
 
-	nOSType = GetOSType(NULL);	// HWi
-	
-	bWin9x = (nOSType < OS_WIN2000) ? true : false;
+    nOSType = GetOSType(NULL);	// HWi
+    bWin9x = (nOSType < OS_WIN2000) ? TRUE : FALSE;
 
-	if (!hPrevInstance && !InitApplication(hInstance))
-	{
-		ErrorMessageBox(TEXT("InitApplication() Failed"),
-				szApiFailedMsg, lpszSourceFileName, __LINE__);
-		return (FALSE);
+    if (!hPrevInst && !InitApplication(hInst)) {
+	ErrorMessageBox(TEXT("InitApplication() Failed"),
+			szApiFailedMsg, lpszSourceFileName, __LINE__);
+	return FALSE;
+    }
+
+    // Check if PDW is already running
+    CreateMutex(NULL, FALSE, szPath);
+
+    // Shut down, as an instance of PDW is already running in this folder
+    if (GetLastError() == ERROR_ALREADY_EXISTS) {
+	MessageBox(ghWnd, "PDW is already running", "Warning", MB_ICONINFORMATION);
+	return FALSE;
+    }
+
+    if ((ghWnd = InitInstance(hInst, nCmdShow)) == NULL) {
+	ErrorMessageBox(TEXT("InitInstance() Failed"),
+			szApiFailedMsg, lpszSourceFileName, __LINE__);
+	return FALSE;
+    }
+
+    // keep toolbar correct size!
+    if (hToolbar)
+	TB_AutoSize(hToolbar);
+
+    // Load Acars data base files.
+    acars.read_data();
+
+    // Load language tables and add languge menu items.
+    read_language_tables();
+    set_lang_menu();
+
+    // Check/Uncheck required menu items.
+    set_menu_items();
+
+    // PH: Set Max_X_Client / iMaxWidth / NewLinePoint
+    SetWindowPaneSize(WINDOW_SIZE);
+
+    Get_Date_Time();
+    sprintf(szDebugStarted, "%s %s", szCurrentDate, szCurrentTime);
+
+    pComPorts = FindComPorts();	// Put all available comports in array pComports
+
+    tStarted = time(NULL);		// Time when PDW was started
+
+    // Load VxD if using serial port else see if using sound card
+    if (Profile.comPortEnabled && !nDriverLoaded) {
+	if (LoadDriver()) {
+		// start timer.
+		SetTimer(ghWnd, PDW_TIMER, 100, (TIMERPROC)NULL);
 	}
-
-	CreateMutex(NULL, FALSE, szPath);	// Check if PDW is already running
-
-	if (GetLastError() == ERROR_ALREADY_EXISTS)	// Shut down, as an instance of PDW is
-	{											// already running in this folder
-		MessageBox(ghWnd, "PDW is already running", "Warning", MB_ICONINFORMATION);
-		return (FALSE);
+    } else if (Profile.audioEnabled && !bCapturing) {
+	if (Start_Capturing()) {
+		// start timer.
+		SetTimer(ghWnd, PDW_TIMER, 100, (TIMERPROC)NULL);
 	}
-
-	if ((ghWnd = InitInstance(hInstance, nCmdShow)) == NULL)
-	{
-		ErrorMessageBox(TEXT("InitInstance() Failed"),
-				szApiFailedMsg, lpszSourceFileName, __LINE__);
-		return (FALSE);
-	}
-
-	if (hToolbar) TB_AutoSize(hToolbar);	// keep toolbar correct size!
-
-	acars.read_data();		// Load Acars data base files.
-	read_language_tables();		// Load language tables.
-
-	set_lang_menu();		// Add languge menu items.
-	set_menu_items();		// Check/Uncheck required menu items.
-
-	SetWindowPaneSize(WINDOW_SIZE);	// PH: Set Max_X_Client / iMaxWidth / NewLinePoint
-
-	Get_Date_Time();
-	sprintf(szDebugStarted, "%s %s", szCurrentDate, szCurrentTime);
-
-	pComPorts = FindComPorts();	// Put all available comports in array pComports
-
-	tStarted = time(NULL);		// Time when PDW was started
-
-	// Load VxD if using serial port else see if using sound card
-	if (Profile.comPortEnabled && !nDriverLoaded)
-	{
-		if (LoadDriver())
-		{
-			SetTimer(ghWnd, PDW_TIMER, 100, (TIMERPROC) NULL); // start timer.
-		}
-	}
-	else if (Profile.audioEnabled && !bCapturing)
-	{
-		if (Start_Capturing())
-		{
-			SetTimer(ghWnd, PDW_TIMER, 100, (TIMERPROC) NULL); // start timer.
-		}
-	}
+    }
 
 #if 0	//FIXME: NICO
-	if (Profile.MESSAGE_QUEUE)
-		StartMQMonitor();
+    if (Profile.MESSAGE_QUEUE)
+	StartMQMonitor();
 #endif
 
-	SetTimer(ghWnd, MINUTE_TIMER, 1000*60, (TIMERPROC) NULL); // start minute timer
-	SetTimer(ghWnd, SECOND_TIMER, 1000,    (TIMERPROC) NULL); // start second timer
+    // start minute and second timers
+    SetTimer(ghWnd, MINUTE_TIMER, 1000*60, (TIMERPROC)NULL);
+    SetTimer(ghWnd, SECOND_TIMER, 1000, (TIMERPROC)NULL);
 
-	if (Max_X_Client < 800)	// PH: Check if the screen width is less than 800
-	{
-		MessageBox(ghWnd, "WARNING! PDW is optimized for 800x600 resolution (and higher)\nYour computer seems to be using a lower resolution...", "PDW Resolution", MB_ICONWARNING);
-	}
+    if (Max_X_Client < 800) {
+	// PH: Check if the screen width is less than 800
+	MessageBox(ghWnd, "WARNING! PDW is optimized for 800x600 resolution (and higher)\nYour computer seems to be using a lower resolution...", "PDW Resolution", MB_ICONWARNING);
+    }
 
-	while (GetMessage(&msg, NULL, 0, 0))
-	{
-		if (!TranslateAccelerator(ghWnd, ghAccel, &msg))
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
+    while (GetMessage(&msg, NULL, 0, 0)) {
+	if (! TranslateAccelerator(ghWnd, ghAccel, &msg)) {
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
 	}
-	return ((int) msg.wParam);
+   }
+
+    return (int)msg.wParam;
 }
 
 
 // Used if WM_CREATE fails or when program exits.
-void Free_Common_Objects(void)
+void
+Free_Common_Objects(void)
 {
-	if (Pane1.buff_char  != NULL) free(Pane1.buff_char);
-	if (Pane1.buff_color != NULL) free(Pane1.buff_color);
-	if (Pane2.buff_char  != NULL) free(Pane2.buff_char);
-	if (Pane2.buff_color != NULL) free(Pane2.buff_color);
+    if (Pane1.buff_char != NULL)
+	free(Pane1.buff_char);
+    if (Pane1.buff_color != NULL)
+	free(Pane1.buff_color);
+    if (Pane2.buff_char != NULL)
+	free(Pane2.buff_char);
+    if (Pane2.buff_color != NULL)
+	free(Pane2.buff_color);
 
-	Free_Drawing_Objects();			// see gfx.cpp
-	FreeSysObjects();			// see gfx.cpp
-	FreeLogFONTS();				// see gfx.cpp
-	FreeSigInd();				// see sigind.cpp
-	FreeToolBarImages(ghInstance);		// Free toolbar button bitmaps
+    Free_Drawing_Objects();		// see gfx.cpp
+    FreeSysObjects();			// see gfx.cpp
+    FreeLogFONTS();			// see gfx.cpp
+    FreeSigInd();			// see sigind.cpp
+    FreeToolBarImages(ghInstance);	// free toolbar button bitmaps
 }
 
 
-LRESULT FAR PASCAL PDWWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK
+PDWWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	HDC ghDC;
-	TEXTMETRIC g_tm;
-	static RECT g_rect={0};
-	RECT g_sys_rect;
-	size_t g_mem_size;
-	LPMINMAXINFO lpMMI;
-	time_t lTime;
-	struct tm *recTm; 
-
-	int g_xNew, g_yNew, g_scrollSize;
-	unsigned int g_min_col, g_max_col, g_min_row, g_max_row, g_index;
+    HDC ghDC;
+    TEXTMETRIC g_tm;
+    static RECT g_rect = {0};
+    RECT g_sys_rect;
+    size_t g_mem_size;
+    LPMINMAXINFO lpMMI;
+    time_t lTime;
+    struct tm *recTm; 
+    int g_xNew, g_yNew, g_scrollSize;
+    unsigned int g_min_col, g_max_col, g_min_row, g_max_row, g_index;
+    char szFile[MAX_PATH];
+    char filters_reload[64];		// PH: Buffer for reloading filters
+    char filters_temp[64];		// PH: Buffer for reloading filters
+    int pane1 = FALSE;
 	
-	extern bool bMode_IDLE;			// Set if no signal
-	extern bool bEmpty_Frame;		// Set if FLEX-Frame=EMTPY / ERMES-Batch=0
+    extern int bMode_IDLE;		// Set if no signal
+    extern int bEmpty_Frame;		// Set if FLEX-Frame=EMTPY / ERMES-Batch=0
+    extern unsigned long int aMessages[1000][3];	// PH: Array used for blocking messages
 
-	char szFile[MAX_PATH];
-	char filters_reload[64];		// PH: Buffer for reloading filters
-	char filters_temp[64];			// PH: Buffer for reloading filters
+    int BlockTimer = (Profile.BlockDuplicate >> 4) * 60;
 
-	bool pane1=false;
-
-	extern unsigned long int aMessages[1000][3];		// PH: Array used for blocking messages
-	int BlockTimer = (Profile.BlockDuplicate >> 4) * 60;
-
-	switch (uMsg)
-	{
-		case WM_TIMER: // Decode POCSAG/FLEX with comport or sound card.
-
-		if (!bPauseFlag)
-		{
-			if		(bPlayback) pdw_playback();				// RAH: Playing recording?
-			else if (nDriverLoaded) pdw_decode();			// Log messages/statistics & Update signal indicator.
-			else if (bCapturing) Process_ReadyBuffers(hWnd);// Using sound card?
-
-			switch (wParam) 
-			{ 
-				case SECOND_TIMER:
-				
-				DrawPaneLabels(ghWnd, PANERXQUAL);
-
-				lTime = time(NULL);		// Get current systemtime
-				iSecondsElapsed = (unsigned long)difftime(lTime, tStarted);
-
-				if (BlockTimer)
-				{
-					while (aMessages[0][0] && (iSecondsElapsed > (aMessages[0][1] + BlockTimer)))	// First entry Overdue?
-					{
-						memmove(aMessages[0], aMessages[1], sizeof(aMessages));	// Move entries
-						nCount_BlockBuffer[0]--;
-					}
+    switch (uMsg) {
+	case WM_TIMER: // Decode POCSAG/FLEX with comport or sound card.
+		if (! bPauseFlag) {
+			// RAH: Playing recording?
+			if (bPlayback)
+				pdw_playback();
+			else {
+				// Log messages/statistics & Update signal indicator.
+				if (nDriverLoaded)
+					pdw_decode();
+				else if (bCapturing) {
+					// Using sound card?
+					Process_ReadyBuffers(hWnd);
 				}
-				if (hDebugDlg) SendMessage(hDebugDlg, WM_WININICHANGE, 0, 0L);
+			}
 
-				break;
+			switch (wParam) { 
+				case SECOND_TIMER:
+					DrawPaneLabels(ghWnd, PANERXQUAL);
+	
+					// Get current systemtime
+					lTime = time(NULL);
+					iSecondsElapsed = (unsigned long)difftime(lTime, tStarted);
+
+					if (BlockTimer) {
+						while (aMessages[0][0] && (iSecondsElapsed > (aMessages[0][1] + BlockTimer))) {
+							// First entry Overdue?
+							memmove(aMessages[0], aMessages[1], sizeof(aMessages));	// Move entries
+							nCount_BlockBuffer[0]--;
+						}
+					}
+					if (hDebugDlg)
+						SendMessage(hDebugDlg, WM_WININICHANGE, 0, 0L);
+					break;
 
 				case MINUTE_TIMER:	// Handle minute timer
-
-				if (bMode_IDLE || bEmpty_Frame || Profile.monitor_acars || Profile.monitor_mobitex)
-				{
-					if (bUpdateFilters)
-					{
-						WriteFilters(&Profile, 0);	// PH: Save FILTERS.INI
-						bUpdateFilters = false;		// PH: Reset for new messages
+					if (bMode_IDLE || bEmpty_Frame || Profile.monitor_acars || Profile.monitor_mobitex) {
+						if (bUpdateFilters) {
+							WriteFilters(&Profile, 0);	// PH: Save FILTERS.INI
+							bUpdateFilters = FALSE;		// PH: Reset for new messages
+						}
 					}
-				}
-				lTime = time(NULL);
-				recTm = localtime(&lTime);
+					lTime = time(NULL);
+					recTm = localtime(&lTime);
 
-				if ((recTm->tm_mon == 4) && (recTm->tm_mday == 4)) strcpy(szWindowText[1], "Today is Peter Hunt's birthday :-)");
-				else if ((recTm->tm_mon == 11) && ((recTm->tm_mday == 25) || (recTm->tm_mday == 26))) strcpy(szWindowText[1], "Merry Christmas!");
-				else if ((recTm->tm_mon == 0) && (recTm->tm_mday == 1)) strcpy(szWindowText[1], "Happy New Year!");
-				else strcpy(szWindowText[1], "");
+					if ((recTm->tm_mon == 4) && (recTm->tm_mday == 4)) strcpy(szWindowText[1], "Today is Peter Hunt's birthday :-)");
+					else if ((recTm->tm_mon == 11) && ((recTm->tm_mday == 25) || (recTm->tm_mday == 26))) strcpy(szWindowText[1], "Merry Christmas!");
+						else if ((recTm->tm_mon == 0) && (recTm->tm_mday == 1)) strcpy(szWindowText[1], "Happy New Year!");
+					else strcpy(szWindowText[1], "");
 
-				if (FindWindow(NULL, "PDW Resolution"))	// Check if there is a "PDW Resolution" dialog
-				{
-					PostMessage(FindWindow(NULL, "PDW Resolution"), WM_CLOSE, 0, 0L);	// Close it
-				}
+					// Check if there is a "PDW Resolution" dialog
+					if (FindWindow(NULL, "PDW Resolution")) {
+						// Close it
+						PostMessage(FindWindow(NULL, "PDW Resolution"), WM_CLOSE, 0, 0L);
+					}
 
-				if (bAutoRecording)
-				{
-					AutoRecording(); // PH: temp/test
-				}
-				break;
+					if (bAutoRecording) {
+						AutoRecording(); // PH: temp/test
+					}
+					break;
 
 				case CLICK_TIMER:	// Handle click timer
+					KillTimer(ghWnd, CLICK_TIMER); // Stop Click Timer
+					iMouseClick = 0;
 
-				KillTimer(ghWnd, CLICK_TIMER); // Stop Click Timer
-				iMouseClick=0;
-
-				break;
+					break;
 			}
 		}
 		break;
 
-		case WM_POWERBROADCAST :
-
+	case WM_POWERBROADCAST:
 		OUTPUTDEBUGMSG((("WM_POWERBROADCAST PowerMode = 0x%08lX Data 0x%08lX\n"), (DWORD) wParam, (DWORD) lParam));
 
-		if (bWin9x)
-		{
-			switch(wParam)
-			{
-				case PBT_APMRESUMECRITICAL :
-				case PBT_APMRESUMESUSPEND :
-				case PBT_APMRESUMESTANDBY :
-				case PBT_APMRESUMEAUTOMATIC :
+		if (bWin9x) {
+			switch (wParam) {
+				case PBT_APMRESUMECRITICAL:
+				case PBT_APMRESUMESUSPEND:
+				case PBT_APMRESUMESTANDBY:
+				case PBT_APMRESUMEAUTOMATIC:
+					OUTPUTDEBUGMSG((("Out of Suspend: Reload VxD!\n")));
+					UnloadDriver();
+					pd_reset_all();
 
-				OUTPUTDEBUGMSG((("Out of Suspend: Reload VxD!\n")));
-				UnloadDriver();
-				pd_reset_all();
-
-				if (LoadDriver())
-				{
-					SetTimer(ghWnd, PDW_TIMER, 100, (TIMERPROC) NULL);
-				}
-				break ;
+					if (LoadDriver()) {
+						SetTimer(ghWnd, PDW_TIMER, 100, (TIMERPROC) NULL);
+					}
+					break;
 
 				default:
-				break ;
+					break;
 			}
 		}
-		break ;
-
-		case WM_PAINT: // Keep main gfx data valid
-
-		PAINTSTRUCT pdw_ps;
-		BeginPaint(hWnd,&pdw_ps);
-		DrawSigInd(hWnd);			// Draw the signal indicator
-		DrawTitleBarGfx(hWnd);		// Draw pane1/pane2 title bars
-		EndPaint(hWnd,&pdw_ps);
-
 		break;
 
-		case WM_NOTIFY:	// If we receive this message, need to get toolbar tooltip text
+	case WM_PAINT: // Keep main gfx data valid
+		PAINTSTRUCT pdw_ps;
+		BeginPaint(hWnd, &pdw_ps);
+		DrawSigInd(hWnd);		// draw the signal indicator
+		DrawTitleBarGfx(hWnd);		// draw pane1/pane2 title bars
+		EndPaint(hWnd, &pdw_ps);
+		break;
 
-		switch (((LPNMHDR)lParam)->code)
-		{
+	case WM_NOTIFY:	// If we receive this message, need to get toolbar tooltip text
+		switch (((LPNMHDR)lParam)->code) {
 			case TTN_NEEDTEXT:
-			SetToolTXT(ghInstance, lParam);
-			break;
+				SetToolTXT(ghInstance, lParam);
+				break;
 
 			default:
-			DrawSigInd(hWnd); // Draw the signal indicator
-			break;
+				DrawSigInd(hWnd); // draw the signal indicator
+				break;
 		}
-		DrawTitleBarGfx(hWnd);		// Draw pane1/pane2 title bars
+
+		// Draw pane1/pane2 title bars
+		DrawTitleBarGfx(hWnd);
 		break;
 		
-		case WM_CREATE:
-
-		Pane1.buff_char  = NULL;
+	case WM_CREATE:
+		Pane1.buff_char = NULL;
 		Pane1.buff_color = NULL;
-		Pane2.buff_char  = NULL;
+		Pane2.buff_char = NULL;
 		Pane2.buff_color = NULL;
 
-		if (!(LoadSigInd(ghInstance))) return(-1);
+		if (! LoadSigInd(ghInstance))
+			return -1;
 
-		if (!(GetSysObjects(hWnd)))// Get general purpose drawing objects.
-		{
-			Free_Common_Objects();	// Free any objects we got!
-			return(-1);					// These use standard system colors.
+		// Get general purpose drawing objects.
+		if (! GetSysObjects(hWnd)) {
+			// Free any objects we got!
+			Free_Common_Objects();
+			return -1;	// these use standard system colors
 		}
 
-		if (!(GetLogFONTS()))		// Get general purpose font objects.
-		{
-			Free_Common_Objects();	// Free any objects we got!
-			return(-1);
+		// Get general purpose font objects.
+		if (! GetLogFONTS()) {
+			// Free any objects we got!
+			Free_Common_Objects();
+			return -1;
 		}
 
-		if (!(hToolbar = (HWND)ShowMakeToolBar(hWnd,ghInstance)))	// Display tool bar
-		{
-			Free_Common_Objects();	// Free any objects we got!
-			return(-1);
+		// Display tool bar
+		if (! (hToolbar = (HWND)ShowMakeToolBar(hWnd, ghInstance))) {
+			// Free any objects we got!
+			Free_Common_Objects();
+			return -1;
 		}
 
 		hfont = CreateFontIndirect(&Profile.fontInfo);
-
 		ghDC = GetDC(hWnd);
 		SelectObject(ghDC, hfont);
 		GetTextMetrics(ghDC, &g_tm);
@@ -657,67 +652,58 @@ LRESULT FAR PASCAL PDWWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 		Pane1.buff_char  = (char *)malloc(g_mem_size);
 		Pane1.buff_color = (BYTE *)malloc(g_mem_size);
 
-		if ((Pane1.buff_char == NULL) || (Pane1.buff_color == NULL))
-		{
-			if (Pane1.buff_char  != NULL) free (Pane1.buff_char);
-			if (Pane1.buff_color != NULL) free (Pane1.buff_color);
-
+		if ((Pane1.buff_char == NULL) || (Pane1.buff_color == NULL)) {
+			if (Pane1.buff_char != NULL)
+				free(Pane1.buff_char);
 			Pane1.buff_char  = NULL;
+			if (Pane1.buff_color != NULL)
+				free(Pane1.buff_color);
 			Pane1.buff_color = NULL;
 
 			Profile.pane1_size = PANE1_SIZE;
 			g_mem_size = (Profile.pane1_size+1) * (LINE_SIZE+1);
 			Pane1.buff_char = (char *)malloc(g_mem_size);
-
-			if (Pane1.buff_char == NULL)
-			{
-				Free_Common_Objects();	// Free any objects we got!
-				return(-1);
+			if (Pane1.buff_char == NULL) {
+				// Free any objects we got!
+				Free_Common_Objects();
+				return -1;
 			}
 			Pane1.buff_color = (BYTE *)malloc(g_mem_size);
-
-			if (Pane1.buff_color == NULL)
-			{
-				Free_Common_Objects();	// Free any objects we got!
-				return(-1);
+			if (Pane1.buff_color == NULL) {
+				// Free any objects we got!
+				Free_Common_Objects();
+				return -1;
 			}
 		}
-
 		Pane1.buff_lines = Profile.pane1_size;
+		InitializePane(&Pane1);
 
 		g_mem_size = (Profile.pane2_size+1) * (LINE_SIZE+1);
-		Pane2.buff_char  = (char *)malloc(g_mem_size);
+		Pane2.buff_char = (char *)malloc(g_mem_size);
 		Pane2.buff_color = (BYTE *)malloc(g_mem_size);
-
-		if ((Pane2.buff_char == NULL) || (Pane2.buff_color == NULL))
-		{
-			if (Pane2.buff_char  != NULL) free (Pane2.buff_char);
-			if (Pane2.buff_color != NULL) free (Pane2.buff_color);
-
+		if ((Pane2.buff_char == NULL) || (Pane2.buff_color == NULL)) {
+			if (Pane2.buff_char != NULL)
+				free(Pane2.buff_char);
 			Pane2.buff_char  = NULL;
+			if (Pane2.buff_color != NULL)
+				free(Pane2.buff_color);
 			Pane2.buff_color = NULL;
-
 			Profile.pane2_size = PANE2_SIZE;
 			g_mem_size = (Profile.pane2_size+1) * (LINE_SIZE+1);
 			Pane2.buff_char = (char *)malloc(g_mem_size);
-
-			if (Pane2.buff_char == NULL)
-			{
-				Free_Common_Objects();	// Free any objects we got!
-				return(-1);
+			if (Pane2.buff_char == NULL) {
+				// Free any objects we got!
+				Free_Common_Objects();
+				return -1;
 			}
 			Pane2.buff_color = (BYTE *)malloc(g_mem_size);
-
-			if (Pane2.buff_color == NULL)
-			{
-				Free_Common_Objects();	// Free any objects we got!
-				return(-1);
+			if (Pane2.buff_color == NULL) {
+				// Free any objects we got!
+				Free_Common_Objects();
+				return -1;
 			}
 		}
-
 		Pane2.buff_lines = Profile.pane2_size;
-
-		InitializePane(&Pane1);
 		InitializePane(&Pane2);
 
 		Pane1.hWnd = CreateWindow(gszPane1Class, NULL, WS_CHILD | WS_VISIBLE, 0,0,0,0, hWnd,
@@ -736,7 +722,7 @@ LRESULT FAR PASCAL PDWWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 			Free_Common_Objects();  // Free any objects we got!
 			return(-1);
 		}
-		ClearPanes(true, true);
+		ClearPanes(TRUE, TRUE);
 
 		setupecc();
 
@@ -894,7 +880,7 @@ LRESULT FAR PASCAL PDWWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 				{
 					Stop_Recording();
 				}
-				if (Open_Recording(&openplayback,szPlayback,true))
+				if (Open_Recording(&openplayback,szPlayback,TRUE))
 				{
 					if (Start_Playback(openplayback.lpstrFile))
 					{
@@ -915,7 +901,7 @@ LRESULT FAR PASCAL PDWWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 				if (bPlayback)	Stop_Playback();
 				if (bRecording)	Stop_Recording();
 
-				else if (Open_Recording(&openrecording,szRecording,false))
+				else if (Open_Recording(&openrecording,szRecording,FALSE))
 				{
 					Start_Recording(openrecording.lpstrFile);
 				}
@@ -933,7 +919,7 @@ LRESULT FAR PASCAL PDWWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 				else if (bAutoRecording)
 				{
 					Stop_Recording();
-					bAutoRecording=false;
+					bAutoRecording=FALSE;
 					MessageBox(ghWnd, "Recording Stopped!", "PDW Recording", MB_ICONINFORMATION);
 				}
 				break;
@@ -973,7 +959,7 @@ LRESULT FAR PASCAL PDWWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 				if (g_max_row > 0)
 				{
 					CopyToClipboard(&Pane1, 0,NewLinePoint, 0, g_max_row - 1);
-					bOK_to_save=true;
+					bOK_to_save=TRUE;
 				}
 				else MessageBox(ghWnd,"Nothing to copy!", "Copy data",MB_ICONWARNING);
 
@@ -986,7 +972,7 @@ LRESULT FAR PASCAL PDWWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 				if (g_max_row > 0)
 				{
 					CopyToClipboard(&Pane2, 0,NewLinePoint, 0, g_max_row - 1);
-					bOK_to_save=true;
+					bOK_to_save=TRUE;
 				}
 				else MessageBox(ghWnd, "Nothing to copy!", "Copy data",MB_ICONWARNING);
 
@@ -1008,7 +994,7 @@ LRESULT FAR PASCAL PDWWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 					g_max_row = max(iSelectionStartRow, iSelectionEndRow);
 
 					CopyToClipboard(select_pane, g_min_col, g_max_col, g_min_row, g_max_row);
-					bOK_to_save=true;
+					bOK_to_save=TRUE;
 				}
 				else MessageBox(ghWnd, "Nothing selected to copy!", "Copy data", MB_ICONWARNING);
 
@@ -1178,12 +1164,12 @@ LRESULT FAR PASCAL PDWWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 				if (bPauseFlag)
 				{
 					SetNewWindowText("");
-					bPauseFlag=false;
+					bPauseFlag=FALSE;
 				}
 				else
 				{
 					SetNewWindowText(" - PAUSED...");
-					bPauseFlag=true;
+					bPauseFlag=TRUE;
 				}
 				break;
 
@@ -1207,7 +1193,7 @@ LRESULT FAR PASCAL PDWWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 						
 					Profile.filters.clear();
 							
-					if (ReadFilters(szFilterPathName, &Profile, false))
+					if (ReadFilters(szFilterPathName, &Profile, FALSE))
 					{
 						sprintf(filters_temp, "New number of filters :  %u", (unsigned)Profile.filters.size());
 						strcat (filters_reload, filters_temp);
@@ -1218,7 +1204,7 @@ LRESULT FAR PASCAL PDWWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 					{
 						if (MessageBox(ghWnd, "An error occured while loading filters.ini.\nTry to load a backup instead?", "PDW Filters", MB_ICONQUESTION | MB_OKCANCEL) == IDOK)
 						{
-							if (ReadFilters(szFilterBackup, &Profile, false) == false)
+							if (ReadFilters(szFilterBackup, &Profile, FALSE) == FALSE)
 							{
 								MessageBox(ghWnd, "Also failed...", "PDW Filters", MB_ICONINFORMATION);
 							}
@@ -1229,7 +1215,7 @@ LRESULT FAR PASCAL PDWWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 				break;
 
 				case IDM_RESET_HITCOUNTERS :
-					ResetHitcounters(true) ;	// PH: Reset ALL hitcounters
+					ResetHitcounters(TRUE) ;	// PH: Reset ALL hitcounters
 				break;
 
 				case IDT_TOOLBAR_BTN10:
@@ -1277,7 +1263,7 @@ LRESULT FAR PASCAL PDWWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
 				case IDT_MENU_RESTORE :
 
-				if (bTrayed) SystemTrayWindow(false); // PH: Restore PDW from systemtray
+				if (bTrayed) SystemTrayWindow(FALSE); // PH: Restore PDW from systemtray
 
 				break;
 			}
@@ -1338,11 +1324,11 @@ LRESULT FAR PASCAL PDWWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
 		if (GetKeyState(VK_F4) & 0x80)
 		{
-			if (Profile.SystemTray) SystemTrayWindow(false);
+			if (Profile.SystemTray) SystemTrayWindow(FALSE);
 			break;
 		}
 
-		pane1 = (GetKeyState(VK_SHIFT) & 0x80) ? false : true;
+		pane1 = (GetKeyState(VK_SHIFT) & 0x80) ? FALSE : TRUE;
 		pane1 = (Profile.percent < 50) ? !pane1 : pane1;
 
 		if (GetKeyState(VK_HOME)  & 0x80) SendMessage(pane1 ? Pane1.hWnd : Pane2.hWnd, WM_VSCROLL, SB_TOP, 0L);
@@ -1371,7 +1357,7 @@ LRESULT FAR PASCAL PDWWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         {
 			case WM_LBUTTONDBLCLK:
 
-			if (bTrayed) SystemTrayWindow(false); // PH: Restore PDW from systemtray
+			if (bTrayed) SystemTrayWindow(FALSE); // PH: Restore PDW from systemtray
 
 			break;
 
@@ -1401,7 +1387,7 @@ LRESULT FAR PASCAL PDWWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 		{
 			if (Profile.SystemTray && !bTrayed)
 			{
-				SystemTrayWindow(false); // PH: Move PDW to systemtray
+				SystemTrayWindow(FALSE); // PH: Move PDW to systemtray
 				break;
 			}
 		}
@@ -1527,7 +1513,7 @@ LRESULT FAR PASCAL PDWWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 		}
 		WriteSettings();
 
-		if (Profile.SystemTray) SystemTrayIcon(true);	// Remove PDW-icon from systemtray
+		if (Profile.SystemTray) SystemTrayIcon(TRUE);	// Remove PDW-icon from systemtray
 		if (bUpdateFilters) WriteFilters(&Profile, 0);	// Save FILTERS.INI
 
 		// Free all drawing objects(gfx.cpp)
@@ -1573,131 +1559,145 @@ LRESULT FAR PASCAL PDWWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 } // end of PDWWndProc()
 
 
-void ChangeDataMode(HWND hWnd, int mode)
+void
+ChangeDataMode(HWND hWnd, int mode)
 {
-	Profile.monitor_paging  = false;
-	Profile.monitor_acars   = false;
-	Profile.monitor_mobitex = false;
-	Profile.monitor_ermes   = false;
+    Profile.monitor_paging = FALSE;
+    Profile.monitor_acars = FALSE;
+    Profile.monitor_mobitex = FALSE;
+    Profile.monitor_ermes = FALSE;
 
-	switch (mode)
-	{
-		default:
-		case MODE_PAGING:
-			Profile.monitor_paging = true;
-			strcpy(szWindowText[2], "POCSAG/FLEX...");
+    switch (mode) {
+	default:
+	case MODE_PAGING:
+		Profile.monitor_paging = TRUE;
+		strcpy(szWindowText[2], "POCSAG/FLEX...");
 		break;
-		
-		case MODE_ACARS:
-			Profile.monitor_acars = true;
-			strcpy(szWindowText[2], "ACARS...");
+
+	case MODE_ACARS:
+		Profile.monitor_acars = TRUE;
+		strcpy(szWindowText[2], "ACARS...");
 		break;
-		
-		case MODE_MOBITEX:
-			Profile.monitor_mobitex = true;
-			strcpy(szWindowText[2], "MOBITEX...");
+
+	case MODE_MOBITEX:
+		Profile.monitor_mobitex = TRUE;
+		strcpy(szWindowText[2], "MOBITEX...");
 		break;
-		
-		case MODE_ERMES:
-			Profile.monitor_ermes = true;
-			strcpy(szWindowText[2], "ERMES...");
+
+	case MODE_ERMES:
+		Profile.monitor_ermes = TRUE;
+		strcpy(szWindowText[2], "ERMES...");
 		break;
-	}
-	set_menu_items();
-	Reset_ATB();            // Reset audio input variables.
-	pd_reset_all();         // Reset serial port variables.
-	SetNewWindowText("");
+    }
+
+    set_menu_items();
+
+    Reset_ATB();            // Reset audio input variables.
+    pd_reset_all();         // Reset serial port variables.
+    SetNewWindowText("");
 }
 
 
 // Clear both pane 1 and pane2.
 // Used with 'Clear Display' menu item + 'Font' menu item.
-void ClearPanes(bool bPane1, bool bPane2)
+void
+ClearPanes(int bPane1, int bPane2)
 {
-	if (!bPane1 && !bPane2) return;
+    if (!bPane1 && !bPane2)
+	return;
 
-	if (bPane1)
-	{
-		InitializePane(&Pane1);
-		InvalidateRect(Pane1.hWnd, NULL, TRUE);
-	}
-	if (bPane2)
-	{
-		InitializePane(&Pane2);
-		InvalidateRect(Pane2.hWnd, NULL, TRUE);
-	}
-	SetNewWindowText("");
+    if (bPane1) {
+	InitializePane(&Pane1);
+	InvalidateRect(Pane1.hWnd, NULL, TRUE);
+    }
+
+    if (bPane2) {
+	InitializePane(&Pane2);
+	InvalidateRect(Pane2.hWnd, NULL, TRUE);
+    }
+
+    SetNewWindowText("");
 }
 
 
-BOOL FAR PASCAL ClearScreenDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR
+ClearScreenDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	int panes=0;
+    static int pane1 = TRUE, pane2 = TRUE;
+    int panes = 0;
 
-	static bool pane1=true,pane2=true;
-	
-	switch (uMsg)
-	{
-		case WM_INITDIALOG:
-
-		if (!CenterWindow(hDlg)) return (FALSE);
+    switch (uMsg) {
+	case WM_INITDIALOG:
+		if (!CenterWindow(hDlg))
+			return FALSE;
 
 		CheckDlgButton(hDlg, IDC_CLEAR_PANE1, pane1);
 		CheckDlgButton(hDlg, IDC_CLEAR_PANE2, pane2);
 
-		return (TRUE);
+		return TRUE;
 
-		case WM_COMMAND:
-		switch (LOWORD(wParam))
-		{
+	case WM_COMMAND:
+		switch (LOWORD(wParam)) {
 			case IDC_CLEAR_PANE1:
-
-			pane1 = !pane1;
-
-			break;
+				pane1 = !pane1;
+				break;
 
 			case IDC_CLEAR_PANE2:
-
-			pane2 = !pane2;
-
-			break;
+				pane2 = !pane2;
+				break;
 
 			case IDOK:
-
-			ClearPanes(pane1, pane2);
-
-			EndDialog(hDlg, TRUE);
-	
-			return (TRUE);
+				ClearPanes(pane1, pane2);
+				EndDialog(hDlg, TRUE);
+				return TRUE;
 
 			case IDCANCEL:
-			EndDialog(hDlg, TRUE);
-			return (TRUE);
+				EndDialog(hDlg, TRUE);
+				return TRUE;
 		}
 		break;
-	}
-	return (FALSE);
-} // end of ClearScreenDlgProc
+    }
+
+    return FALSE;
+}
 
 
-LRESULT FAR PASCAL Pane1WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+void
+InvertSelection(void)
 {
-	RECT  rect;
-	RECT  parent_rect;
-	RECT  client_rect;
-	int   scrollSize, scroll_amt, scroll_chars;
-	int   iVscrollInc, iPosition;
-	static int iLastPosition=0;
+    HDC hDC = GetDC(select_pane->hWnd);
+    RECT rect;
+    unsigned int min_col, max_col, min_row, max_row;
 
-	switch (uMsg)
-	{
-		case WM_CREATE:
+    min_col = min(iSelectionStartCol, iSelectionEndCol);
+    max_col = max(iSelectionStartCol, iSelectionEndCol);
+    min_row = min(iSelectionStartRow, iSelectionEndRow);
+    max_row = max(iSelectionStartRow, iSelectionEndRow);
+
+    rect.left = min_col * cxChar;
+    rect.top = min_row * cyChar;
+    rect.right = (max_col + 1) * cxChar - 1;
+    rect.bottom = (max_row + 1) * cyChar - 1;
+
+    InvertRect(hDC, &rect);
+    ReleaseDC(select_pane->hWnd, hDC);
+}
+
+
+LRESULT CALLBACK
+Pane1WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    static int iLastPosition = 0;
+    RECT rect, parent_rect, client_rect;
+    int scrollSize, scroll_amt, scroll_chars;
+    int iVscrollInc, iPosition;
+
+    switch (uMsg) {
+	case WM_CREATE:
 		break;
 
-		case WM_SIZE:
-
-		if (wParam != SIZE_MINIMIZED)
-		{
+	case WM_SIZE:
+		if (wParam != SIZE_MINIMIZED) {
 			Pane1.cxClient = LOWORD(lParam);
 			Pane1.cyClient = HIWORD(lParam);
 
@@ -1705,11 +1705,12 @@ LRESULT FAR PASCAL Pane1WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 			GetWindowRect(hWnd, &rect);
 
 			// Keep client area at a minimum of one line!.
-			if (Pane1.iHscrollMax) scrollSize = GetSystemMetrics(SM_CYHSCROLL);
-			else                   scrollSize = 0;
+			if (Pane1.iHscrollMax)
+				scrollSize = GetSystemMetrics(SM_CYHSCROLL);
+			else
+				scrollSize = 0;
 
-			if (Pane1.cyClient < (cyChar + scrollSize))
-			{
+			if (Pane1.cyClient < (cyChar + scrollSize)) {
 				pane1Height = 2 * GetSystemMetrics(SM_CYFRAME) + cyChar + scrollSize + 1;
 				pane1Pos = TOOLBAR_SIZE;
 
@@ -1727,8 +1728,7 @@ LRESULT FAR PASCAL Pane1WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 			iVscrollInc = max (-(Pane2.iVscrollPos),
 			min(iVscrollInc, Pane2.iVscrollMax - Pane2.iVscrollPos));
 
-			if (iVscrollInc)
-			{
+			if (iVscrollInc) {
 				Pane2.iVscrollPos += iVscrollInc;
 				scroll_amt = cyChar * iVscrollInc;
 			
@@ -1742,8 +1742,7 @@ LRESULT FAR PASCAL Pane1WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 			Pane1.cyLines = Pane1.cyClient / cyChar;
 			Pane1.iVscrollMax = max(0, Pane1.Bottom - Pane1.cyLines);
 
-			if (select_on && selected && (&Pane1 == select_pane))
-			{
+			if (select_on && selected && (&Pane1 == select_pane)) {
 				iSelectionStartRow -= (Pane1.iVscrollMax-Pane1.iVscrollPos);	// also scroll selection
 				iSelectionEndRow   -= (Pane1.iVscrollMax-Pane1.iVscrollPos);
 
@@ -1755,8 +1754,7 @@ LRESULT FAR PASCAL Pane1WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 			iVscrollInc = max (-(Pane1.iVscrollPos),
 			min(iVscrollInc, Pane1.iVscrollMax - Pane1.iVscrollPos));
 
-			if (iVscrollInc)
-			{
+			if (iVscrollInc) {
 				Pane1.iVscrollPos += iVscrollInc;
 				scroll_amt = cyChar * iVscrollInc;
 
@@ -1774,23 +1772,21 @@ LRESULT FAR PASCAL Pane1WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 
 			// is User adjusting win x size beyond endof max text line and scroll
 			// position not 0, then adjust pane1 label fields to new text position.
-			if (PL1_SCount)
-			{
-				PL1_SCount=0;
-				PL1_SCount =- (Pane1.iHscrollPos * cxChar);
+			if (PL1_SCount) {
+				PL1_SCount = 0;
+				PL1_SCount = -(Pane1.iHscrollPos * cxChar);
 				DrawPaneLabels(ghWnd, PANE1);
 			}
 
-			if (Pane1.Bottom)
-			{
+			if (Pane1.Bottom) {
 				SetScrollRange(hWnd, SB_HORZ, 0, Pane1.iHscrollMax, FALSE);
-				SetScrollPos  (hWnd, SB_HORZ, Pane1.iHscrollPos, TRUE);
+				SetScrollPos(hWnd, SB_HORZ, Pane1.iHscrollPos, TRUE);
 			}
 
-			rect.top    = 0;
+			rect.top = 0;
 			rect.bottom = Pane1.cyClient;
-			rect.left   = 0;
-			rect.right  = Pane1.cxClient;
+			rect.left = 0;
+			rect.right = Pane1.cxClient;
 
 			InvalidateRect(hWnd, &rect, TRUE);
 
@@ -1798,32 +1794,29 @@ LRESULT FAR PASCAL Pane1WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		}
 		break;
 
-		case WM_LBUTTONDOWN:
-
-		if (select_on && selected) InvertSelection();
+	case WM_LBUTTONDOWN:
+		if (select_on && selected)
+			InvertSelection();
 
 		// get the new start position
 		iSelectionStartCol = LOWORD(lParam) / cxChar;
-		iSelectionEndCol   = iSelectionStartCol;
+		iSelectionEndCol = iSelectionStartCol;
 		iSelectionStartRow = HIWORD(lParam) / cyChar;
-		iSelectionEndRow   = iSelectionStartRow;
+		iSelectionEndRow = iSelectionStartRow;
 
 		SetCapture(hWnd);
-		select_on   = 1;
-		selecting   = 1;
-		selected    = 0;
+		select_on = 1;
+		selecting = 1;
+		selected = 0;
 		select_pane = &Pane1;
-
 		break;
 
-		case WM_MOUSEMOVE:
-
-		if (select_on && selecting)
-		{
+	case WM_MOUSEMOVE:
+		if (select_on && selecting) {
 			if ((iSelectionEndCol != (LOWORD(lParam) / cxChar)) ||
-				(iSelectionEndRow != (HIWORD(lParam) / cyChar)))
-			{
-				if (selected) InvertSelection();
+			    (iSelectionEndRow != (HIWORD(lParam) / cyChar))) {
+				if (selected)
+					InvertSelection();
 
 				iSelectionEndCol = LOWORD(lParam) / cxChar;
 				iSelectionEndRow = HIWORD(lParam) / cyChar;
@@ -1832,246 +1825,198 @@ LRESULT FAR PASCAL Pane1WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 				selected = 1;
 			}
 		}
-
 		// fall through:
 
-		case WM_NCMOUSEMOVE:
-
+	case WM_NCMOUSEMOVE:
 		hCurrentHWND = hWnd;
-
 		break;
 
-		case WM_LBUTTONUP:
-
-		if (iMouseClick && (iLastPosition == (LOWORD(lParam)*HIWORD(lParam))))
-		{
-			bLBUTTONDBLCLK=true;
-		}
-		else
-		{
-			iMouseClick=SetTimer(ghWnd, CLICK_TIMER, GetDoubleClickTime(), (TIMERPROC) NULL); // start click timer
-			iLastPosition=LOWORD(lParam)*HIWORD(lParam);
+	case WM_LBUTTONUP:
+		if (iMouseClick && (iLastPosition == (LOWORD(lParam)*HIWORD(lParam)))) {
+			bLBUTTONDBLCLK = TRUE;
+		} else {
+			// start click timer
+			iMouseClick = SetTimer(ghWnd, CLICK_TIMER, GetDoubleClickTime(), (TIMERPROC) NULL);
+			iLastPosition = LOWORD(lParam) * HIWORD(lParam);
 		}
 
-		if (bLBUTTONDBLCLK)
-		{
+		if (bLBUTTONDBLCLK) {
 			iPosition = LOWORD(lParam) / cxChar;
-			iLastPosition=0;
+			iLastPosition = 0;
 
 			SelectByDoubleClick(hWnd, &Pane1, iPosition, HIWORD(lParam) / cyChar);
 			GoogleMaps(iPosition);
 
-			bLBUTTONDBLCLK=false;
+			bLBUTTONDBLCLK = FALSE;
 		}
 		ReleaseCapture();
 		selecting = 0;
-
 		break;
 
-		case WM_PAINT:
+	case WM_PAINT:
 		PanePaint(&Pane1);
 //		DrawPaneLabels(ghWnd, PANE1);
 		break;
 
-		case WM_HSCROLL:
+	case WM_HSCROLL:
 		PaneHScroll(&Pane1, wParam);
 		break;
 
-		case WM_VSCROLL:
+	case WM_VSCROLL:
 		PaneVScroll(&Pane1, wParam, lParam);
 		break;
 
-		case WM_CLOSE: // fall through
+	case WM_CLOSE:
+		// fall through
 
-		default:
-		return (DefWindowProc(hWnd, uMsg, wParam, lParam));
-	}
-	return 0L;
-} // end of Pane1WndProc
+	default:
+		return DefWindowProc(hWnd, uMsg, wParam, lParam);
+    }
+
+    return 0;
+}
 
 
-LRESULT FAR PASCAL Pane2WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK
+Pane2WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	RECT rect;
-	int  scroll_chars, iPosition;
-	static int iLastPosition=0;
+    static int iLastPosition = 0;
+    int scroll_chars, iPosition;
+    RECT rect;
 
-	switch (uMsg)
-	{
-		case WM_CREATE:
+    switch (uMsg) {
+	case WM_CREATE:
 		break;
 
-		case WM_SIZE:
-
-		if (wParam != SIZE_MINIMIZED)
-		{
+	case WM_SIZE:
+		if (wParam != SIZE_MINIMIZED) {
 			Pane2.cxClient = LOWORD(lParam);
 			Pane2.cyClient = HIWORD(lParam);
-
 			Pane2.cyLines = Pane2.cyClient / cyChar;
 
-				Pane2.iVscrollMax = max(0, Pane2.Bottom  - Pane2.cyLines);
-				if (select_on && selected && (&Pane2 == select_pane))
-				{
-					iSelectionStartRow -= (Pane2.iVscrollMax-Pane2.iVscrollPos);	// also scroll selection
-					iSelectionEndRow   -= (Pane2.iVscrollMax-Pane2.iVscrollPos);
+			Pane2.iVscrollMax = max(0, Pane2.Bottom  - Pane2.cyLines);
+			if (select_on && selected && (&Pane2 == select_pane)) {
+				// also scroll selection
+				iSelectionStartRow -= (Pane2.iVscrollMax-Pane2.iVscrollPos);
+				iSelectionEndRow   -= (Pane2.iVscrollMax-Pane2.iVscrollPos);
 
-					InvertSelection();
-				}
-				Pane2.iVscrollPos = min(Pane2.iVscrollPos, Pane2.iVscrollMax);
+				InvertSelection();
+			}
+			Pane2.iVscrollPos = min(Pane2.iVscrollPos, Pane2.iVscrollMax);
 
 			SetScrollRange(hWnd, SB_VERT, 0, Pane2.iVscrollMax, FALSE);
-			SetScrollPos  (hWnd, SB_VERT, Pane2.iVscrollPos, TRUE);
+			SetScrollPos(hWnd, SB_VERT, Pane2.iVscrollPos, TRUE);
 
 			scroll_chars = (iMaxWidth - Pane2.cxClient);
-			scroll_chars = scroll_chars / (signed int)(cxChar);
-			Pane2.iHscrollMax = max (0, scroll_chars + 2);
-			Pane2.iHscrollPos = min (Pane2.iHscrollPos, Pane2.iHscrollMax);
+			scroll_chars = scroll_chars / (int)(cxChar);
+			Pane2.iHscrollMax = max(0, scroll_chars + 2);
+			Pane2.iHscrollPos = min(Pane2.iHscrollPos, Pane2.iHscrollMax);
 
 			// is User adjusting win x size beyond endof max text line and scroll position not 0,
 			// then adjust pane2 label fields to new text position.
-
-			if (PL2_SCount)
-			{
-				PL2_SCount=0;
+			if (PL2_SCount) {
+				PL2_SCount = 0;
 				PL2_SCount = -(Pane2.iHscrollPos * cxChar);
 				DrawPaneLabels(ghWnd, PANE2);
 			}
 
-			if (Pane2.Bottom)
-			{
+			if (Pane2.Bottom) {
 				SetScrollRange(hWnd, SB_HORZ, 0, Pane2.iHscrollMax, FALSE);
 				SetScrollPos  (hWnd, SB_HORZ, Pane2.iHscrollPos, TRUE);
 			}
 
-			rect.top    = 0;
+			rect.top = 0;
 			rect.bottom = Pane2.cyClient;
-			rect.left   = 0;
-			rect.right  = Pane2.cxClient;
-
+			rect.left = 0;
+			rect.right = Pane2.cxClient;
 			InvalidateRect(hWnd, &rect, TRUE);
 
 			UpdateWindow(hWnd);
 		}
 		break;
 
-		case WM_LBUTTONDOWN:
-
-		if (select_on && selected) InvertSelection();
+	case WM_LBUTTONDOWN:
+		if (select_on && selected)
+			InvertSelection();
 
 		// get the new start position
 		iSelectionStartCol = LOWORD(lParam) / cxChar;
-		iSelectionEndCol   = iSelectionStartCol;
+		iSelectionEndCol = iSelectionStartCol;
 		iSelectionStartRow = HIWORD(lParam) / cyChar;
-		iSelectionEndRow   = iSelectionStartRow;
-
+		iSelectionEndRow = iSelectionStartRow;
 		SetCapture(hWnd);
 		select_on = 1;
 		selecting = 1;
 		selected  = 0;
 		select_pane = &Pane2;
-
 		break;
 
-		case WM_MOUSEMOVE:
-
-		if (select_on && selecting)
-		{
+	case WM_MOUSEMOVE:
+		if (select_on && selecting) {
 			if ((iSelectionEndCol != (LOWORD(lParam) / cxChar)) ||
-				(iSelectionEndRow != (HIWORD(lParam) / cyChar)))
-			{
-				if (selected) InvertSelection();
+			    (iSelectionEndRow != (HIWORD(lParam) / cyChar))) {
+				if (selected)
+					InvertSelection();
 
 				iSelectionEndCol = LOWORD(lParam) / cxChar;
 				iSelectionEndRow = HIWORD(lParam) / cyChar;
-
 				InvertSelection();
 				selected = 1;
 			}
 		}
-
 		// fall through:
 
-		case WM_NCMOUSEMOVE:
-
+	case WM_NCMOUSEMOVE:
 		hCurrentHWND = hWnd;
-
 		break;
 
-		case WM_LBUTTONUP:
-
-		if (iMouseClick && (iLastPosition == (LOWORD(lParam)*HIWORD(lParam))))
-		{
-			bLBUTTONDBLCLK=true;
-		}
-		else
-		{
-			iMouseClick=SetTimer(ghWnd, CLICK_TIMER, GetDoubleClickTime(), (TIMERPROC) NULL); // start click timer
-			iLastPosition=LOWORD(lParam)*HIWORD(lParam);
+	case WM_LBUTTONUP:
+		if (iMouseClick && (iLastPosition == (LOWORD(lParam)*HIWORD(lParam)))) {
+			bLBUTTONDBLCLK = TRUE;
+		} else {
+			// start click timer
+			iMouseClick = SetTimer(ghWnd, CLICK_TIMER, GetDoubleClickTime(), (TIMERPROC) NULL);
+			iLastPosition = LOWORD(lParam) * HIWORD(lParam);
 		}
 
-		if (bLBUTTONDBLCLK)
-		{
+		if (bLBUTTONDBLCLK) {
 			iPosition = LOWORD(lParam) / cxChar;
-			iLastPosition=0;
+			iLastPosition = 0;
 
 			// Select text below double mouse click
 			SelectByDoubleClick(hWnd, &Pane2, iPosition, HIWORD(lParam) / cyChar);
 
-			bLBUTTONDBLCLK=false;
+			bLBUTTONDBLCLK = FALSE;
 		}
 		ReleaseCapture();
 		selecting = 0;
-
 		break;
 
-		case WM_PAINT:
+	case WM_PAINT:
 		PanePaint(&Pane2);
 		break;
 
-		case WM_HSCROLL:
+	case WM_HSCROLL:
 		PaneHScroll(&Pane2, wParam);
 		break;
 
-		case WM_VSCROLL:
+	case WM_VSCROLL:
 		PaneVScroll(&Pane2, wParam, lParam);
 		break;
 
-		case WM_CLOSE: // fall through
+	case WM_CLOSE:
+		// fall through
 
-		default:
-		return (DefWindowProc(hWnd, uMsg, wParam, lParam));
-	}
-	return 0L;
-} // end of Pane2WndProc
+	default:
+		return DefWindowProc(hWnd, uMsg, wParam, lParam);
+    }
 
-
-void InvertSelection(void)
-{
-	HDC	hDC;
-	RECT	rect;
-	unsigned int min_col, max_col, min_row, max_row;
-
-	hDC = GetDC(select_pane->hWnd);
-
-	min_col = min(iSelectionStartCol, iSelectionEndCol);
-	max_col = max(iSelectionStartCol, iSelectionEndCol);
-	min_row = min(iSelectionStartRow, iSelectionEndRow);
-	max_row = max(iSelectionStartRow, iSelectionEndRow);
-
-	rect.left   = min_col * cxChar;
-	rect.top    = min_row * cyChar;
-	rect.right  = (max_col + 1) * cxChar - 1;
-	rect.bottom = (max_row + 1) * cyChar - 1;
-
-	InvertRect(hDC, &rect);
-	ReleaseDC(select_pane->hWnd, hDC);
-
-	return;
+    return 0;
 }
 
 
-void SaveClipToDisk(char *fname)
+void
+SaveClipToDisk(char *fname)
 {
 	HGLOBAL hClipBuffer;
 	LPSTR lpClipBuffer;
@@ -2120,7 +2065,8 @@ void SaveClipToDisk(char *fname)
 }
 
 
-void PrintClip(void)
+void
+PrintClip(void)
 {
 	HGLOBAL hClipBuffer;
 	LPSTR lpClipBuffer;
@@ -2153,7 +2099,8 @@ void PrintClip(void)
 }
 
 
-void CopyToClipboard(PaneStruct *pane, UINT min_col, UINT max_col, UINT min_row, UINT max_row)
+void
+CopyToClipboard(PaneStruct *pane, UINT min_col, UINT max_col, UINT min_row, UINT max_row)
 {
 	unsigned int num_lines, index, line_no;
 	unsigned int offset, xx;
@@ -2224,10 +2171,11 @@ void CopyToClipboard(PaneStruct *pane, UINT min_col, UINT max_col, UINT min_row,
 	CloseClipboard();
 
 	return;
-} // CopyToClipboard()
+}
 
 
-void PanePaint(PaneStruct *pane)
+void
+PanePaint(PaneStruct *pane)
 {
 	HDC			hDC;
 	HFONT		hOldFont;
@@ -2294,12 +2242,11 @@ void PanePaint(PaneStruct *pane)
 	EndPaint(pane->hWnd, &ps);
 
 	if (select_on && selected && (pane == select_pane)) InvertSelection();
-
-	return;
 }
 
 
-DWORD GetColorRGB(BYTE color)
+DWORD
+GetColorRGB(BYTE color)
 {
 	DWORD rgb;
 
@@ -2370,7 +2317,8 @@ DWORD GetColorRGB(BYTE color)
 }
 
 
-void PaneHScroll(PaneStruct *pane, WPARAM wParam)
+void
+PaneHScroll(PaneStruct *pane, WPARAM wParam)
 {
 	int iHscrollInc;
 	int scroll_amt;
@@ -2436,11 +2384,11 @@ void PaneHScroll(PaneStruct *pane, WPARAM wParam)
 			InvertSelection();
 		}
 	}
-	return;
-} // end of PaneHScroll
+}
 
 
-void PaneVScroll(PaneStruct *pane, WPARAM wParam, LPARAM lParam)
+void
+PaneVScroll(PaneStruct *pane, WPARAM wParam, LPARAM lParam)
 {
 	int iVscrollInc;
 	int scroll_amt;
@@ -2504,25 +2452,23 @@ void PaneVScroll(PaneStruct *pane, WPARAM wParam, LPARAM lParam)
 			InvertSelection();
 		}
 	}
-	return;
-} // end of PaneVScroll
+}
 
 
-VOID NEAR GoModalDialogBoxParam(HINSTANCE hInstance, LPCSTR lpszTemplate, HWND hWnd, DLGPROC lpDlgProc, LPARAM lParam)
+void
+GoModalDialogBoxParam(HINSTANCE hInstance, LPCSTR lpszTemplate, HWND hWnd, DLGPROC lpDlgProc, LPARAM lParam)
 {
 	DLGPROC  lpProcInstance;
 
 	lpProcInstance = (DLGPROC) MakeProcInstance((FARPROC) lpDlgProc,hInstance);
 	DialogBoxParam(hInstance, lpszTemplate, hWnd, lpProcInstance, lParam);
 	FreeProcInstance((FARPROC) lpProcInstance);
-
-	return;
-
-} // end of GoModalDialogBoxParam()
+}
 
 
 // PDW Version/Copyright info
-BOOL FAR PASCAL AboutDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR
+AboutDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg)
 	{
@@ -2552,13 +2498,14 @@ BOOL FAR PASCAL AboutDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		break;
 	}
 	return (FALSE);
-} // end of AboutDlgProc
+}
 
 
 // PH: PDW Debug information
-BOOL FAR PASCAL DebugDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR
+DebugDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	extern bool bFlexTIME_detected;
+	extern int bFlexTIME_detected;
 
 	char rxqual[10]="- %";
 	char temp[32];
@@ -2604,11 +2551,11 @@ BOOL FAR PASCAL DebugDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		sprintf(temp, "%id%ih%im%is", days, hours, minutes, seconds);
 
 		SetDlgItemText(hDlg, IDC_DEBUG_RUNNING, temp);
-		SetDlgItemInt(hDlg, IDC_DEBUG_MSG, nCount_Messages, false);
+		SetDlgItemInt(hDlg, IDC_DEBUG_MSG, nCount_Messages, FALSE);
 
 		if (Profile.monitor_paging)
 		{
-			SetDlgItemInt (hDlg, IDC_DEBUG_GROUPMSG,nCount_Groupcalls, false);
+			SetDlgItemInt (hDlg, IDC_DEBUG_GROUPMSG,nCount_Groupcalls, FALSE);
 			sprintf(szTEMP, "%i / %i", nCount_Missed[0], nCount_Missed[1]);
 			SetDlgItemText(hDlg, IDC_DEBUG_MISSED, szTEMP);
 		}
@@ -2617,10 +2564,10 @@ BOOL FAR PASCAL DebugDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			SetDlgItemText(hDlg, IDC_DEBUG_GROUPMSG, "-");
 			SetDlgItemText(hDlg, IDC_DEBUG_MISSED,   "-");
 		}
-		SetDlgItemInt(hDlg, IDC_DEBUG_REJECTED,nCount_Rejected, false);
-		SetDlgItemInt(hDlg, IDC_DEBUG_BLOCKED, nCount_Blocked,  false);
+		SetDlgItemInt(hDlg, IDC_DEBUG_REJECTED,nCount_Rejected, FALSE);
+		SetDlgItemInt(hDlg, IDC_DEBUG_BLOCKED, nCount_Blocked,  FALSE);
 
-//		SetDlgItemInt(hDlg, IDC_DEBUG_TEST, iDebug_Test, false);
+//		SetDlgItemInt(hDlg, IDC_DEBUG_TEST, iDebug_Test, FALSE);
 		sprintf(szTEMP, "%i / %i", nCount_BlockBuffer[0], nCount_BlockBuffer[1]);
 		SetDlgItemText(hDlg, IDC_DEBUG_BLOCKBUFFER, szTEMP);
 
@@ -2640,10 +2587,11 @@ BOOL FAR PASCAL DebugDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		break;
 	}
 	return (FALSE);
-} // end of DebugDlgProc
+}
 
 
-BOOL FAR PASCAL SystemTrayDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR
+SystemTrayDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	static int iRestore = Profile.SystemTrayRestore;
 
@@ -2658,14 +2606,14 @@ BOOL FAR PASCAL SystemTrayDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
 		CheckDlgButton(hDlg, IDC_SYSTEMTRAY,         Profile.SystemTray);
 		CheckDlgButton(hDlg, IDC_SYSTEMTRAY_RESTORE, Profile.SystemTrayRestore);
 
-		EnableWindow(GetDlgItem(hDlg, IDC_SYSTEMTRAY_RESTORE), Profile.SystemTray ? true : false);
+		EnableWindow(GetDlgItem(hDlg, IDC_SYSTEMTRAY_RESTORE), Profile.SystemTray ? TRUE : FALSE);
 
 		switch (Profile.SystemTrayRestore)
 		{
 			case 0:
-			EnableWindow(GetDlgItem(hDlg, IDC_SYSTEMTRAY_NEW),    false);
-			EnableWindow(GetDlgItem(hDlg, IDC_SYSTEMTRAY_MONLY),  false);
-			EnableWindow(GetDlgItem(hDlg, IDC_SYSTEMTRAY_FILTER), false);
+			EnableWindow(GetDlgItem(hDlg, IDC_SYSTEMTRAY_NEW),    FALSE);
+			EnableWindow(GetDlgItem(hDlg, IDC_SYSTEMTRAY_MONLY),  FALSE);
+			EnableWindow(GetDlgItem(hDlg, IDC_SYSTEMTRAY_FILTER), FALSE);
 			break;
 
 			case 1:
@@ -2690,14 +2638,14 @@ BOOL FAR PASCAL SystemTrayDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
 
 			if (!IsDlgButtonChecked(hDlg, IDC_SYSTEMTRAY))
 			{
-				EnableWindow(GetDlgItem(hDlg, IDC_SYSTEMTRAY_RESTORE), false);
-				EnableWindow(GetDlgItem(hDlg, IDC_SYSTEMTRAY_NEW),     false);
-				EnableWindow(GetDlgItem(hDlg, IDC_SYSTEMTRAY_MONLY),   false);
-				EnableWindow(GetDlgItem(hDlg, IDC_SYSTEMTRAY_FILTER),  false);
+				EnableWindow(GetDlgItem(hDlg, IDC_SYSTEMTRAY_RESTORE), FALSE);
+				EnableWindow(GetDlgItem(hDlg, IDC_SYSTEMTRAY_NEW),     FALSE);
+				EnableWindow(GetDlgItem(hDlg, IDC_SYSTEMTRAY_MONLY),   FALSE);
+				EnableWindow(GetDlgItem(hDlg, IDC_SYSTEMTRAY_FILTER),  FALSE);
 
 				iRestore=0;
 			}
-			else EnableWindow(GetDlgItem(hDlg, IDC_SYSTEMTRAY_RESTORE), true);
+			else EnableWindow(GetDlgItem(hDlg, IDC_SYSTEMTRAY_RESTORE), TRUE);
 
 			break;
 
@@ -2705,9 +2653,9 @@ BOOL FAR PASCAL SystemTrayDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
 
 			iRestore=IsDlgButtonChecked(hDlg, IDC_SYSTEMTRAY_RESTORE);
 
-			EnableWindow(GetDlgItem(hDlg, IDC_SYSTEMTRAY_NEW),    iRestore ? true : false);
-			EnableWindow(GetDlgItem(hDlg, IDC_SYSTEMTRAY_MONLY),  iRestore ? true : false);
-			EnableWindow(GetDlgItem(hDlg, IDC_SYSTEMTRAY_FILTER), iRestore ? true : false);
+			EnableWindow(GetDlgItem(hDlg, IDC_SYSTEMTRAY_NEW),    iRestore ? TRUE : FALSE);
+			EnableWindow(GetDlgItem(hDlg, IDC_SYSTEMTRAY_MONLY),  iRestore ? TRUE : FALSE);
+			EnableWindow(GetDlgItem(hDlg, IDC_SYSTEMTRAY_FILTER), iRestore ? TRUE : FALSE);
 
 			if ((!IsDlgButtonChecked(hDlg, IDC_SYSTEMTRAY_NEW)) &&
 			    (!IsDlgButtonChecked(hDlg, IDC_SYSTEMTRAY_MONLY)) &&
@@ -2740,8 +2688,8 @@ BOOL FAR PASCAL SystemTrayDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
 
 			if (!Profile.SystemTray)
 			{
-				if (bTrayed) SystemTrayWindow(false);
-				SystemTrayIcon(true); // PH: Remove PDW-icon from systemtray
+				if (bTrayed) SystemTrayWindow(FALSE);
+				SystemTrayIcon(TRUE); // PH: Remove PDW-icon from systemtray
 			}
 			WriteSettings();
 
@@ -2764,7 +2712,8 @@ BOOL FAR PASCAL SystemTrayDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
 
 
 // This deals with logfile dialog box options.
-BOOL FAR PASCAL LogFileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR
+LogFileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	static char szLog[] = {"Log Files (*.log)\0*.log\0All Files (*.*)\0*.*\0\0"};
 
@@ -2955,10 +2904,11 @@ BOOL FAR PASCAL LogFileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 	}
 	return (FALSE);
 
-}  // end of LogFileDlgProc()
+}
 
 // Get custom audio information.
-BOOL FAR PASCAL CustomAudioDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR
+CustomAudioDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	char buf[20];
 	int i;
@@ -3044,10 +2994,11 @@ BOOL FAR PASCAL CustomAudioDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
 		break;
 	}
 	return (FALSE);
-} // end of CustomAudioDlgProc
+}
 
 
-BOOL FAR PASCAL SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR
+SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	static char *comports[5] = { "COM1", "COM2", "COM3", "COM4", "Custom" };
 	static char *cirqs[9]	 = {"2/9", "3", "4", "5", "6", "7", "10", "11", "12" };
@@ -3082,8 +3033,8 @@ BOOL FAR PASCAL SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 				if (Profile.comPort == 5)
 				{
-					EnableWindow(GetDlgItem(hDlg, IDC_COMADDR), true);
-					EnableWindow(GetDlgItem(hDlg, IDC_COMIRQ),  true);
+					EnableWindow(GetDlgItem(hDlg, IDC_COMADDR), TRUE);
+					EnableWindow(GetDlgItem(hDlg, IDC_COMIRQ),  TRUE);
 				}
 			}
 			for (i=0; i<9; i++)
@@ -3173,21 +3124,21 @@ BOOL FAR PASCAL SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
 			EnableWindow(GetDlgItem(hDlg, IDC_RS232MODE), Profile.comPortRS232);
 			EnableWindow(GetDlgItem(hDlg, IDC_LEVEL), !Profile.comPortRS232);
-			EnableWindow(GetDlgItem(hDlg, IDC_AUDIODEVICES),	false);
-			EnableWindow(GetDlgItem(hDlg, IDC_AUDIOCONFIG),		false);
-			EnableWindow(GetDlgItem(hDlg, IDC_AUDIOSAMPLERATE), false);
-			EnableWindow(GetDlgItem(hDlg, IDC_AUDIOCUSTOM),		false);
+			EnableWindow(GetDlgItem(hDlg, IDC_AUDIODEVICES),	FALSE);
+			EnableWindow(GetDlgItem(hDlg, IDC_AUDIOCONFIG),		FALSE);
+			EnableWindow(GetDlgItem(hDlg, IDC_AUDIOSAMPLERATE), FALSE);
+			EnableWindow(GetDlgItem(hDlg, IDC_AUDIOCUSTOM),		FALSE);
 		}
 		else if (Profile.audioEnabled)
 		{
-			EnableWindow(GetDlgItem(hDlg, IDC_COMPORT),   false);
-			EnableWindow(GetDlgItem(hDlg, IDC_COMSLICER), false);
-			EnableWindow(GetDlgItem(hDlg, IDC_COMRS232),  false);
-			EnableWindow(GetDlgItem(hDlg, IDC_RS232MODE), false);
-			EnableWindow(GetDlgItem(hDlg, IDC_LEVEL),     false);
+			EnableWindow(GetDlgItem(hDlg, IDC_COMPORT),   FALSE);
+			EnableWindow(GetDlgItem(hDlg, IDC_COMSLICER), FALSE);
+			EnableWindow(GetDlgItem(hDlg, IDC_COMRS232),  FALSE);
+			EnableWindow(GetDlgItem(hDlg, IDC_RS232MODE), FALSE);
+			EnableWindow(GetDlgItem(hDlg, IDC_LEVEL),     FALSE);
 
 			if (Profile.audioConfig > 0) // config != custom?
-				EnableWindow(GetDlgItem(hDlg, IDC_AUDIOCUSTOM),false);
+				EnableWindow(GetDlgItem(hDlg, IDC_AUDIOCUSTOM),FALSE);
 		}
 
 		old_device = Profile.audioDevice;	// PH: Get the old audiodevice-#
@@ -3199,7 +3150,7 @@ BOOL FAR PASCAL SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		if (audio_devices == 0)
 		{
 			SendDlgItemMessage(hDlg, IDC_AUDIODEVICES, CB_ADDSTRING, 0, (LPARAM) (LPSTR) "No soundcards present/available");
-			EnableWindow(GetDlgItem(hDlg, IDC_AUDIOENABLE), false);
+			EnableWindow(GetDlgItem(hDlg, IDC_AUDIOENABLE), FALSE);
 		}
 		else
 		{
@@ -3211,7 +3162,7 @@ BOOL FAR PASCAL SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			}
 		}
 		SendDlgItemMessage(hDlg, IDC_AUDIODEVICES, CB_SETCURSEL, more_audio ? Profile.audioDevice : 0, 0L);
-		if (!more_audio) EnableWindow(GetDlgItem(hDlg, IDC_AUDIODEVICES), false);
+		if (!more_audio) EnableWindow(GetDlgItem(hDlg, IDC_AUDIODEVICES), FALSE);
 
 		value = GetWindowLong(GetDlgItem(hDlg, IDC_AUDIODEVICES), GWL_STYLE) - CBS_DROPDOWNLIST;
 		SetWindowLong(GetDlgItem(hDlg, IDC_AUDIODEVICES), GWL_STYLE, value | ES_READONLY);
@@ -3237,7 +3188,7 @@ BOOL FAR PASCAL SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			case IDC_AUDIOCONFIG:
 
 			config = SendDlgItemMessage(hDlg, IDC_AUDIOCONFIG, CB_GETCURSEL, 0, 0L);
-			EnableWindow(GetDlgItem(hDlg, IDC_AUDIOCUSTOM), config ? false : true);
+			EnableWindow(GetDlgItem(hDlg, IDC_AUDIOCUSTOM), config ? FALSE : TRUE);
 
 			break;
 
@@ -3269,8 +3220,8 @@ BOOL FAR PASCAL SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			if ((nOSType == OS_WINNT) && slicer) // HWi
 			{
 				MessageBox(hDlg,"In Windows NT, only the soundcard and RS232 are supported!", "PDW Setup", MB_ICONERROR);
-				CheckDlgButton(hDlg, IDC_COMRS232,  true);
-				CheckDlgButton(hDlg, IDC_COMSLICER, false);
+				CheckDlgButton(hDlg, IDC_COMRS232,  TRUE);
+				CheckDlgButton(hDlg, IDC_COMSLICER, FALSE);
 			}
 			else
 			{
@@ -3312,8 +3263,8 @@ BOOL FAR PASCAL SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					SetDlgItemText(hDlg, IDC_COMADDR, (LPCSTR) "N/A");
 				}
 			}
-			EnableWindow(GetDlgItem(hDlg, IDC_COMADDR), (comport == 4) && slicer && bWin9x ? true : false);
-			EnableWindow(GetDlgItem(hDlg, IDC_COMIRQ),  (comport == 4) && slicer && bWin9x ? true : false);
+			EnableWindow(GetDlgItem(hDlg, IDC_COMADDR), (comport == 4) && slicer && bWin9x ? TRUE : FALSE);
+			EnableWindow(GetDlgItem(hDlg, IDC_COMIRQ),  (comport == 4) && slicer && bWin9x ? TRUE : FALSE);
 			EnableWindow(GetDlgItem(hDlg, IDC_COMPORT), serial);
 			EnableWindow(GetDlgItem(hDlg, IDC_COMSLICER), serial);
 			EnableWindow(GetDlgItem(hDlg, IDC_COMRS232), serial);
@@ -3335,8 +3286,8 @@ BOOL FAR PASCAL SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				if (HIWORD(wParam) == CBN_SELENDOK)
 				{
 					comport = SendDlgItemMessage(hDlg, IDC_COMPORT, CB_GETCURSEL, 0, 0L);
-					EnableWindow(GetDlgItem(hDlg, IDC_COMADDR),(comport == 4) ? true : false);
-					EnableWindow(GetDlgItem(hDlg, IDC_COMIRQ), (comport == 4) ? true : false);
+					EnableWindow(GetDlgItem(hDlg, IDC_COMADDR),(comport == 4) ? TRUE : FALSE);
+					EnableWindow(GetDlgItem(hDlg, IDC_COMIRQ), (comport == 4) ? TRUE : FALSE);
 
 					switch (comport)
 					{
@@ -3486,10 +3437,11 @@ BOOL FAR PASCAL SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		break;
 	}
 	return (FALSE);
-} // end of SetupDlgProc
+}
 
 
-BOOL NEAR SelectFont(HWND hDlg)
+int
+SelectFont(HWND hDlg)
 {
 	CHOOSEFONT	cfFont;
 	HDC			hDC;
@@ -3576,15 +3528,16 @@ BOOL NEAR SelectFont(HWND hDlg)
 
 		DrawTitleBarGfx(ghWnd);		// Redraw pane1/pane2 title bars
 
-		ClearPanes(true, true);		// Must start over so everything lines up
+		ClearPanes(TRUE, TRUE);		// Must start over so everything lines up
 
 		WriteSettings();
 	}
 	return (TRUE);
-} // end of SelectFont
+}
 
 
-BOOL FAR PASCAL ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR
+ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	static HWND hWndBox;
 	static HWND hColorWnd;
@@ -3848,10 +3801,11 @@ BOOL FAR PASCAL ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 		break;
 	}
 	return (FALSE);
-} // end of ColorsDlgProc
+}
 
 
-LRESULT FAR PASCAL ColorWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK
+ColorWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	HDC			hDC;
 	HFONT		hOldFont;
@@ -3965,10 +3919,11 @@ LRESULT FAR PASCAL ColorWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		return (DefWindowProc(hWnd, uMsg, wParam, lParam));
 	}
 	return 0L;
-} // end of ColorWndProc
+}
 
 
-BOOL FAR PASCAL ACARSColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR
+ACARSColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	static HWND hWndBox;
 	static HWND hColorWnd;
@@ -4249,9 +4204,11 @@ BOOL FAR PASCAL ACARSColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
 	   break;
    }
    return (FALSE);
-} // end of ACARSColorsDlgProc
+}
 
-LRESULT FAR PASCAL ACARSColorWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+
+LRESULT CALLBACK
+ACARSColorWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	HDC			hDC;
 	HFONT			hOldFont;
@@ -4364,10 +4321,11 @@ LRESULT FAR PASCAL ACARSColorWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 		return (DefWindowProc(hWnd, uMsg, wParam, lParam));
 	}
 	return 0L;
-} // end of ACARSColorWndProc
+}
 
 
-BOOL FAR PASCAL MOBITEXColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR
+MOBITEXColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	static HWND hWndBox;
 	static HWND hColorWnd;
@@ -4655,10 +4613,11 @@ BOOL FAR PASCAL MOBITEXColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 		break;
 	}
 	return (FALSE);
-} // end of MOBITEXColorsDlgProc
+}
 
 
-LRESULT FAR PASCAL MOBITEXColorWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK
+MOBITEXColorWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	HDC			hDC;
 	HFONT		hOldFont;
@@ -4777,11 +4736,12 @@ LRESULT FAR PASCAL MOBITEXColorWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 		default:
 			return (DefWindowProc(hWnd, uMsg, wParam, lParam));
 	}
-	return 0L;
-} // end of MOBITEXColorWndProc
+	return FALSE;
+}
 
 
-BOOL FAR PASCAL ERMESColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR
+ERMESColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	static HWND hWndBox;
 	static HWND hColorWnd;
@@ -5069,10 +5029,11 @@ BOOL FAR PASCAL ERMESColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
 		break;
 	}
 	return (FALSE);
-} // end of ERMESColorsDlgProc
+}
 
 
-LRESULT FAR PASCAL ERMESColorWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK
+ERMESColorWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	HDC          hDC;
 	HFONT        hOldFont;
@@ -5200,15 +5161,16 @@ LRESULT FAR PASCAL ERMESColorWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 		return (DefWindowProc(hWnd, uMsg, wParam, lParam));
 	}
 	return 0L;
-} // end of ERMESColorWndProc
+}
 
 
-BOOL FAR PASCAL OptionsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR
+OptionsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	int state, len, fnu, both;
 	char tbuf[128];
 
-	extern bool bFlexTIME_detected;
+	extern int bFlexTIME_detected;
 
 	switch (uMsg)
 	{
@@ -5278,35 +5240,35 @@ BOOL FAR PASCAL OptionsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 		
 		if (Profile.monitor_paging)
 		{
-			EnableWindow(GetDlgItem(hDlg, IDC_DECODEPOCSAG), true);
+			EnableWindow(GetDlgItem(hDlg, IDC_DECODEPOCSAG), TRUE);
 
 			if (Profile.decodepocsag)
 			{
-				EnableWindow(GetDlgItem(hDlg, IDC_POCSAG_512), true);
-				EnableWindow(GetDlgItem(hDlg, IDC_POCSAG_1200),true);
-				EnableWindow(GetDlgItem(hDlg, IDC_POCSAG_2400),true);
+				EnableWindow(GetDlgItem(hDlg, IDC_POCSAG_512), TRUE);
+				EnableWindow(GetDlgItem(hDlg, IDC_POCSAG_1200),TRUE);
+				EnableWindow(GetDlgItem(hDlg, IDC_POCSAG_2400),TRUE);
 				EnableWindow(GetDlgItem(hDlg, IDC_POCSAG_FNU), !Profile.pocsag_showboth);
 				EnableWindow(GetDlgItem(hDlg, IDC_POCSAG_BOTH),!Profile.pocsag_fnu);
 			}
 
-			EnableWindow(GetDlgItem(hDlg, IDC_DECODEFLEX), true);
+			EnableWindow(GetDlgItem(hDlg, IDC_DECODEFLEX), TRUE);
 
 			if (Profile.decodeflex)
 			{
-				EnableWindow(GetDlgItem(hDlg, IDC_FLEX_1600),true);
-				EnableWindow(GetDlgItem(hDlg, IDC_FLEX_3200),true);
-				EnableWindow(GetDlgItem(hDlg, IDC_FLEX_6400),true);
-				EnableWindow(GetDlgItem(hDlg, IDC_SHOWINSTR),true);
-				EnableWindow(GetDlgItem(hDlg, IDC_SHOW_CFS), true);
+				EnableWindow(GetDlgItem(hDlg, IDC_FLEX_1600),TRUE);
+				EnableWindow(GetDlgItem(hDlg, IDC_FLEX_3200),TRUE);
+				EnableWindow(GetDlgItem(hDlg, IDC_FLEX_6400),TRUE);
+				EnableWindow(GetDlgItem(hDlg, IDC_SHOWINSTR),TRUE);
+				EnableWindow(GetDlgItem(hDlg, IDC_SHOW_CFS), TRUE);
 
 				if (Profile.showinstr)
 				{
-					EnableWindow(GetDlgItem(hDlg, IDC_CONVERT_SI),true);
+					EnableWindow(GetDlgItem(hDlg, IDC_CONVERT_SI),TRUE);
 				}
 
 				if (bFlexTIME_detected)
 				{
-					EnableWindow(GetDlgItem(hDlg, IDC_FLEXTIME), true);
+					EnableWindow(GetDlgItem(hDlg, IDC_FLEXTIME), TRUE);
 					SetDlgItemText(hDlg, IDC_FLEXTIME, "Use FlexTIME as Systemtime");
 				}
 			}
@@ -5314,40 +5276,40 @@ BOOL FAR PASCAL OptionsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 		}
 		else if (Profile.monitor_mobitex)
 		{
-			EnableWindow(GetDlgItem(hDlg, IDC_MB_USEFRSYNC), true);
-			EnableWindow(GetDlgItem(hDlg, IDC_MB_BITSYNC),   true);
-			EnableWindow(GetDlgItem(hDlg, IDC_MB_MIN_MSG),   true);
-			EnableWindow(GetDlgItem(hDlg, IDC_MB_BITSCRAMBLER), true);
-			EnableWindow(GetDlgItem(hDlg, IDC_MB_RAMNET),    true);
-			EnableWindow(GetDlgItem(hDlg, IDC_MB_SHOWMPAK),  true);
-			EnableWindow(GetDlgItem(hDlg, IDC_MB_SHOWTEXT),  true);
-			EnableWindow(GetDlgItem(hDlg, IDC_MB_SHOWDATA),  true);
-			EnableWindow(GetDlgItem(hDlg, IDC_MB_SHOWHPDATA),true);
-			EnableWindow(GetDlgItem(hDlg, IDC_MB_SHOWSWEEP), true);
-			EnableWindow(GetDlgItem(hDlg, IDC_MB_VERBOSE),   true);
+			EnableWindow(GetDlgItem(hDlg, IDC_MB_USEFRSYNC), TRUE);
+			EnableWindow(GetDlgItem(hDlg, IDC_MB_BITSYNC),   TRUE);
+			EnableWindow(GetDlgItem(hDlg, IDC_MB_MIN_MSG),   TRUE);
+			EnableWindow(GetDlgItem(hDlg, IDC_MB_BITSCRAMBLER), TRUE);
+			EnableWindow(GetDlgItem(hDlg, IDC_MB_RAMNET),    TRUE);
+			EnableWindow(GetDlgItem(hDlg, IDC_MB_SHOWMPAK),  TRUE);
+			EnableWindow(GetDlgItem(hDlg, IDC_MB_SHOWTEXT),  TRUE);
+			EnableWindow(GetDlgItem(hDlg, IDC_MB_SHOWDATA),  TRUE);
+			EnableWindow(GetDlgItem(hDlg, IDC_MB_SHOWHPDATA),TRUE);
+			EnableWindow(GetDlgItem(hDlg, IDC_MB_SHOWSWEEP), TRUE);
+			EnableWindow(GetDlgItem(hDlg, IDC_MB_VERBOSE),   TRUE);
 
 			if (IsDlgButtonChecked(hDlg, IDC_MB_SHOWHPDATA))
 			{
-				EnableWindow(GetDlgItem(hDlg, IDC_MB_SHOWHPID),  true);
+				EnableWindow(GetDlgItem(hDlg, IDC_MB_SHOWHPID),  TRUE);
 			}
 
 			if (mb.cfs)
 			{
-				EnableWindow(GetDlgItem(hDlg, IDC_MB_FRSYNC),true);
+				EnableWindow(GetDlgItem(hDlg, IDC_MB_FRSYNC),TRUE);
 			}
 
 			strcat(tbuf, "Mobitex");
 		}
 		else if (Profile.monitor_acars)
 		{
-			EnableWindow(GetDlgItem(hDlg, IDC_ACARS_PC_YES), true);
-			EnableWindow(GetDlgItem(hDlg, IDC_ACARS_PC_NO),  true);
+			EnableWindow(GetDlgItem(hDlg, IDC_ACARS_PC_YES), TRUE);
+			EnableWindow(GetDlgItem(hDlg, IDC_ACARS_PC_NO),  TRUE);
 
 			strcat(tbuf, "ACARS");
 		}
 		else if (Profile.monitor_ermes)
 		{
-			EnableWindow(GetDlgItem(hDlg, IDC_SHOW_CFS), true);
+			EnableWindow(GetDlgItem(hDlg, IDC_SHOW_CFS), TRUE);
 
 			strcat(tbuf, "ERMES");
 		}
@@ -5403,7 +5365,7 @@ BOOL FAR PASCAL OptionsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 			{
 				 EnableWindow(GetDlgItem(hDlg, IDC_CONVERT_SI), state);
 			}
-			else EnableWindow(GetDlgItem(hDlg, IDC_CONVERT_SI), false);
+			else EnableWindow(GetDlgItem(hDlg, IDC_CONVERT_SI), FALSE);
 
 			break;
 
@@ -5503,10 +5465,11 @@ BOOL FAR PASCAL OptionsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 		break;
    }
    return (FALSE);
-} // end of OptionsDlgProc
+}
 
 
-BOOL FAR PASCAL GeneralOptionsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR
+GeneralOptionsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	char tmp_path[MAX_PATH];
 	int test=0;
@@ -5523,7 +5486,7 @@ BOOL FAR PASCAL GeneralOptionsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
 		CheckDlgButton(hDlg, IDC_CONFIRMEXIT,    Profile.confirmExit);
 		CheckDlgButton(hDlg, IDC_BLOCKDUPLICATE, Profile.BlockDuplicate);
 		CheckDlgButton(hDlg, IDC_BLOCKEDTXT,    (Profile.BlockDuplicate & 0x04));
-		SetDlgItemInt(hDlg,	 IDC_BLOCKDUPTIMER,  Profile.BlockDuplicate >> 4, false);
+		SetDlgItemInt(hDlg,	 IDC_BLOCKDUPTIMER,  Profile.BlockDuplicate >> 4, FALSE);
 		SendDlgItemMessage(hDlg, IDC_BLOCKDUPTIMER, EM_LIMITTEXT, 1, 0L);
 
 		EnableWindow(GetDlgItem(hDlg, IDC_BLOCKDUPOPTION), Profile.BlockDuplicate & 0x03);
@@ -5539,13 +5502,13 @@ BOOL FAR PASCAL GeneralOptionsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
 
 		if (Profile.FlexGroupMode)
 		{
-			EnableWindow(GetDlgItem(hDlg, IDC_SEP_SCREEN), false);
+			EnableWindow(GetDlgItem(hDlg, IDC_SEP_SCREEN), FALSE);
 
 			if (Profile.FlexGroupMode & FLEXGROUPMODE_LOGGING)
 			{
-				EnableWindow(GetDlgItem(hDlg, IDC_SEP_LOGFILE),    false);
-				EnableWindow(GetDlgItem(hDlg, IDC_SEP_FILTERFILE), false);
-				EnableWindow(GetDlgItem(hDlg, IDC_SEP_SEPFILES),   false);
+				EnableWindow(GetDlgItem(hDlg, IDC_SEP_LOGFILE),    FALSE);
+				EnableWindow(GetDlgItem(hDlg, IDC_SEP_FILTERFILE), FALSE);
+				EnableWindow(GetDlgItem(hDlg, IDC_SEP_SEPFILES),   FALSE);
 			}
 		}
 
@@ -5674,10 +5637,11 @@ BOOL FAR PASCAL GeneralOptionsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
 		break;
    }
    return (FALSE);
-} // end of OptionsDlgProc
+}
 
 
-BOOL FAR PASCAL ScreenOptionsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR
+ScreenOptionsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	int i, j, cursel, nextsel, lastsel, state, mode=0;
 	char tbuf[100];
@@ -5716,12 +5680,12 @@ BOOL FAR PASCAL ScreenOptionsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 		{
 			for (i=1; i<=7; i++)
 			{
-				EnableWindow(GetDlgItem(hDlg, IDC_SCREEN_COLUMN+i),  Profile.FlexGroupMode ? false : true);
+				EnableWindow(GetDlgItem(hDlg, IDC_SCREEN_COLUMN+i),  Profile.FlexGroupMode ? FALSE : TRUE);
 			}
-			EnableWindow(GetDlgItem(hDlg, IDC_FLEXGROUPMODE), true);
-			EnableWindow(GetDlgItem(hDlg, IDC_FGM_LOGGING),        Profile.FlexGroupMode ? true : false);
-			EnableWindow(GetDlgItem(hDlg, IDC_FGM_COMBINE),        Profile.FlexGroupMode ? true : false);
-			EnableWindow(GetDlgItem(hDlg, IDC_FGM_HIDEGROUPCODES), Profile.FlexGroupMode ? true : false);
+			EnableWindow(GetDlgItem(hDlg, IDC_FLEXGROUPMODE), TRUE);
+			EnableWindow(GetDlgItem(hDlg, IDC_FGM_LOGGING),        Profile.FlexGroupMode ? TRUE : FALSE);
+			EnableWindow(GetDlgItem(hDlg, IDC_FGM_COMBINE),        Profile.FlexGroupMode ? TRUE : FALSE);
+			EnableWindow(GetDlgItem(hDlg, IDC_FGM_HIDEGROUPCODES), Profile.FlexGroupMode ? TRUE : FALSE);
 		}
 
 		return (TRUE);
@@ -5777,11 +5741,11 @@ BOOL FAR PASCAL ScreenOptionsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
 			for (i=1; i<=7; i++)
 			{
-				EnableWindow(GetDlgItem(hDlg, IDC_SCREEN_COLUMN+i),  state ? false : true);
+				EnableWindow(GetDlgItem(hDlg, IDC_SCREEN_COLUMN+i),  state ? FALSE : TRUE);
 			}
-			EnableWindow(GetDlgItem(hDlg, IDC_FGM_LOGGING),        state ? true : false);
-			EnableWindow(GetDlgItem(hDlg, IDC_FGM_COMBINE),        state ? true : false);
-			EnableWindow(GetDlgItem(hDlg, IDC_FGM_HIDEGROUPCODES), state ? true : false);
+			EnableWindow(GetDlgItem(hDlg, IDC_FGM_LOGGING),        state ? TRUE : FALSE);
+			EnableWindow(GetDlgItem(hDlg, IDC_FGM_COMBINE),        state ? TRUE : FALSE);
+			EnableWindow(GetDlgItem(hDlg, IDC_FGM_HIDEGROUPCODES), state ? TRUE : FALSE);
 
 			break;
 
@@ -5844,10 +5808,11 @@ BOOL FAR PASCAL ScreenOptionsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 		break;
    }
    return (FALSE);
-} // end of ScreenOptionsDlgProc
+}
 
 
-BOOL FAR PASCAL ScrollDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR
+ScrollDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	int pane1_size = Profile.pane1_size;
 	int pane2_size = Profile.pane2_size;
@@ -6032,15 +5997,16 @@ BOOL FAR PASCAL ScrollDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 		break;
 	}
 	return (FALSE);
-} // end of ScrollDlgProc
+}
 
 
-void Copy_Filter_Fields(FILTER *out_filter, FILTER in_filter)
+void
+Copy_Filter_Fields(FILTER *out_filter, FILTER in_filter)
 {
 	out_filter->type = in_filter.type;
 
 	if (in_filter.capcode[0]) strcpy(out_filter->capcode, in_filter.capcode);
-	else							  out_filter->capcode[0] = 0;
+	else			  out_filter->capcode[0] = 0;
 
 	out_filter->reject        = in_filter.reject;
 	out_filter->wave_number   = in_filter.wave_number;
@@ -6048,10 +6014,10 @@ void Copy_Filter_Fields(FILTER *out_filter, FILTER in_filter)
 	out_filter->label_color   = in_filter.label_color;
 
 	if (in_filter.label[0]) strcpy(out_filter->label, in_filter.label);
-	else						   out_filter->label[0] = 0;
+	else			   out_filter->label[0] = 0;
 
 	if (in_filter.text[0]) strcpy(out_filter->text, in_filter.text);
-	else						  out_filter->text[0] = 0;
+	else			  out_filter->text[0] = 0;
 
 	out_filter->cmd_enabled		= in_filter.cmd_enabled;
 	out_filter->monitor_only	= in_filter.monitor_only;
@@ -6073,10 +6039,11 @@ void Copy_Filter_Fields(FILTER *out_filter, FILTER in_filter)
 	strcpy(out_filter->lasthit_time, in_filter.lasthit_time);
 
 	return;
-} // end of Copy_Filter_Fields()
+}
 
 
-void BuildFilterString(char *temp_str, FILTER filter)
+void
+BuildFilterString(char *temp_str, FILTER filter)
 {
 	char *filter_types[7] = {"UNUSED", "FLEX","POCSAG","TEXT","ERMES ","ACARS ", "MOBITX"};
 	char *wave_names[11]  = {"Default","Sound-0","Sound-1","Sound-2","Sound-3","Sound-4",
@@ -6146,7 +6113,8 @@ void BuildFilterString(char *temp_str, FILTER filter)
 } // end of BuildFilterString()
 
 
-BOOL FAR PASCAL FilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR
+FilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	int index, more;
 	int x, y, w, h, buttonspace, start, next;
@@ -6375,7 +6343,7 @@ BOOL FAR PASCAL FilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 
 					case 'C' :	// Copy current selection
 
-					if(CheckSelection(false))
+					if(CheckSelection(FALSE))
 					{
 						PostMessage(hFilterDlg, WM_COMMAND, IDT_MENU_COPY, 0L) ;
 					}
@@ -6389,7 +6357,7 @@ BOOL FAR PASCAL FilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 
 					case 'V' :	// Paste copied filters
 
-					if(CheckSelection(false))
+					if(CheckSelection(FALSE))
 					{
 						PostMessage(hFilterDlg, WM_COMMAND, IDT_MENU_PASTE, 0L) ;
 					}
@@ -6416,7 +6384,7 @@ BOOL FAR PASCAL FilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 
 					case VK_INSERT :	// Insert filter
 
-					if(CheckSelection(false))
+					if(CheckSelection(FALSE))
 					{
 						PostMessage(hFilterDlg, WM_COMMAND, IDC_FILTERADD, 0L) ;
 					}
@@ -6430,7 +6398,7 @@ BOOL FAR PASCAL FilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 
 					case VK_F3:			// Find next filter
 
-					if (Profile.filters.size()) FindFilter(-1, "", false, (GetKeyState(VK_SHIFT) & 0x80) ? true : false);
+					if (Profile.filters.size()) FindFilter(-1, "", FALSE, (GetKeyState(VK_SHIFT) & 0x80) ? TRUE : FALSE);
 
 					break ;
 
@@ -6452,7 +6420,7 @@ BOOL FAR PASCAL FilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 
 					case VK_F5:			// Copy current selection
 
-					if(CheckSelection(false))
+					if(CheckSelection(FALSE))
 					{
 						PostMessage(hFilterDlg, WM_COMMAND, IDT_MENU_COPY, 0L) ;
 					}
@@ -6499,11 +6467,11 @@ BOOL FAR PASCAL FilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 		switch (LOWORD(wParam))
 		{
 			case IDT_MENU_SORT_ADDRESS :
-				SortFilter(hDlg, true);
+				SortFilter(hDlg, TRUE);
 			break;
 
 			case IDT_MENU_SORT_LABEL :
-				SortFilter(hDlg, false);
+				SortFilter(hDlg, FALSE);
 			break;
 
 			case IDT_MENU_COPY :
@@ -6517,7 +6485,7 @@ BOOL FAR PASCAL FilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 			break;
 
 			case IDT_MENU_RESET :
-				ResetHitcounters(false) ;
+				ResetHitcounters(FALSE) ;
 			break;
 
 			case IDT_MENU_SELECTALL :
@@ -6585,13 +6553,13 @@ BOOL FAR PASCAL FilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 
 			if ((index = ListView_GetNextItem(hListView, -1, LVNI_SELECTED)) != CB_ERR)
 			{
-				bEditFilter = true;
+				bEditFilter = TRUE;
 
 				Copy_Filter_Fields(&filter, Profile.filters[index]);
 
 				GoModalDialogBoxParam(ghInstance, MAKEINTRESOURCE(FILTEREDITDLGBOX),
 											 hDlg, (DLGPROC) FilterEditDlgProc, 0L);
-				bEditFilter = false;
+				bEditFilter = FALSE;
 			}
 			else MessageBox(hDlg, "You must select a filter to edit!", "PDW Filter", MB_ICONERROR);
 
@@ -6601,7 +6569,7 @@ BOOL FAR PASCAL FilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 
 			more = ListView_GetSelectedCount(hListView) > 1 ; 
 
-			bDeletingFilters = true;
+			bDeletingFilters = TRUE;
 
 			SetWindowText(hDlg, (LPSTR) "PDW Filters - Please wait while removing filters...");
 
@@ -6640,7 +6608,7 @@ BOOL FAR PASCAL FilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 			}
 			else MessageBox(hDlg, "You must select a filter to remove!", "PDW Filter", MB_ICONERROR);
 
-			bDeletingFilters = false;
+			bDeletingFilters = FALSE;
 
 			sprintf(szTEMP, "PDW Filters (%u)", (unsigned)Profile.filters.size());
 			SetWindowText(hDlg, (LPSTR) szTEMP);
@@ -6691,8 +6659,8 @@ BOOL FAR PASCAL FilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 				PostMessage(hFilterDlg, WM_COMMAND, IDC_FILTEREDIT, 0L);
 				break;
 			}
-			bUpdateFilters = true;	// PH: Update filters.ini in UpdateFilters() when IDLE
-			bFilterFindCASE = false;
+			bUpdateFilters = TRUE;	// PH: Update filters.ini in UpdateFilters() when IDLE
+			bFilterFindCASE = FALSE;
 
 			hFilterDlg = NULL;
 			EndDialog(hDlg, TRUE);
@@ -6705,7 +6673,8 @@ BOOL FAR PASCAL FilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 }  // end of FilterDlgProc()
 
 
-BOOL FAR PASCAL FilterOptionsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR
+FilterOptionsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	static char szFilterLog[] =
 		{"Filter Log Files (*.flt)\0*.flt\0All Files (*.*)\0*.*\0\0"};
@@ -6765,8 +6734,8 @@ BOOL FAR PASCAL FilterOptionsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 		{
 			if (Profile.filterfile_use_date)
 			{
-				EnableWindow(GetDlgItem(hDlg, IDC_FILTERFILE),   false);
-				EnableWindow(GetDlgItem(hDlg, IDC_FILTERBROWSE), false);
+				EnableWindow(GetDlgItem(hDlg, IDC_FILTERFILE),   FALSE);
+				EnableWindow(GetDlgItem(hDlg, IDC_FILTERBROWSE), FALSE);
 				SetDlgItemText(hDlg, IDC_FILTERFILE, szFilenameDate);
 			}
 			else if (Profile.filterfile[0]) // Show filename if exists.
@@ -6776,9 +6745,9 @@ BOOL FAR PASCAL FilterOptionsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 		}
 		else
 		{
-			EnableWindow(GetDlgItem(hDlg, IDC_FILTERFILE),     false);
-			EnableWindow(GetDlgItem(hDlg, IDC_FILTERFILEDATE), false);
-			EnableWindow(GetDlgItem(hDlg, IDC_FILTERBROWSE),   false);
+			EnableWindow(GetDlgItem(hDlg, IDC_FILTERFILE),     FALSE);
+			EnableWindow(GetDlgItem(hDlg, IDC_FILTERFILEDATE), FALSE);
+			EnableWindow(GetDlgItem(hDlg, IDC_FILTERBROWSE),   FALSE);
 		}
 
 		// Filter command-file stuff
@@ -6786,8 +6755,8 @@ BOOL FAR PASCAL FilterOptionsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
 		if (Profile.filter_cmd_file_enabled)
 		{
-			EnableWindow(GetDlgItem(hDlg, IDC_FILTERCMDBROWSE), true);
-			EnableWindow(GetDlgItem(hDlg, IDC_FILTERCMDFILE),   true);
+			EnableWindow(GetDlgItem(hDlg, IDC_FILTERCMDBROWSE), TRUE);
+			EnableWindow(GetDlgItem(hDlg, IDC_FILTERCMDFILE),   TRUE);
 		}
 
 		SendDlgItemMessage(hDlg, IDC_FILTERCMDARGS, EM_LIMITTEXT, MAX_FILE_LEN, 0L);
@@ -6861,8 +6830,8 @@ BOOL FAR PASCAL FilterOptionsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 			}
 			else
 			{
-				EnableWindow(GetDlgItem(hDlg, IDC_FILTERFILE),   false);
-				EnableWindow(GetDlgItem(hDlg, IDC_FILTERBROWSE), false);
+				EnableWindow(GetDlgItem(hDlg, IDC_FILTERFILE),   FALSE);
+				EnableWindow(GetDlgItem(hDlg, IDC_FILTERBROWSE), FALSE);
 			}
 			break;
 
@@ -6929,7 +6898,7 @@ BOOL FAR PASCAL FilterOptionsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 			EnableWindow(GetDlgItem(hDlg, IDC_FILTERCMDFILE),   state);
 
 			if (state) SetFocus(GetDlgItem(hDlg, IDC_FILTERCMDFILE));
-			else   EnableWindow(GetDlgItem(hDlg, IDC_FILTERCMDARGS), false);
+			else   EnableWindow(GetDlgItem(hDlg, IDC_FILTERCMDARGS), FALSE);
 
 			break;
 
@@ -7093,10 +7062,11 @@ BOOL FAR PASCAL FilterOptionsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 		break;
 	}
 	return (FALSE);
-}	// end of FilterOptionsDlgProc()
+}
 
 
-BOOL FAR PASCAL FilterEditDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR
+FilterEditDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	static char szFilterLog[] = {"Text File (*.txt)\0*.txt\0All Files (*.*)\0*.*\0\0"};
 
@@ -7117,7 +7087,7 @@ BOOL FAR PASCAL FilterEditDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
 
 	static int offset=0, sep_filterfiles=0, initializing=1, focus, lastfocus;
 
-	static bool bApplying=false, bFilterJump=false;
+	static int bApplying=FALSE, bFilterJump=FALSE;
 
 	int type=0, monitor_only=0, reject=0, match_exact=0, label_en=0, smtp=0;
 	int filter_cmd=0, color=0, audio=0, iHits=0;
@@ -7407,13 +7377,13 @@ BOOL FAR PASCAL FilterEditDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
 
 		if (Profile.SMTP)
 		{
-			EnableWindow(GetDlgItem(hDlg, IDC_FILTERSMTP), true);
+			EnableWindow(GetDlgItem(hDlg, IDC_FILTERSMTP), TRUE);
 			SendDlgItemMessage(hDlg, IDC_FILTERSMTP, WM_SETTEXT, 0, (LPARAM) "Send email");
 		}
 
 		if (filter.type == UNUSED_FILTER) // Add Filter
 		{
-			EnableWindow(GetDlgItem(hDlg, IDC_FILTERTYPE), true);
+			EnableWindow(GetDlgItem(hDlg, IDC_FILTERTYPE), TRUE);
 			filter.type = (FILTER_TYPE) (Profile.filter_default_type+1);
 			SendDlgItemMessage(hDlg, IDC_FILTERAUDIO, CB_SETCURSEL, (WPARAM) 1, 0L);
 			SendDlgItemMessage(hDlg, IDC_FILTERLABELCOLOR, CB_SETCURSEL, (WPARAM) 0, 0L);
@@ -7479,7 +7449,7 @@ BOOL FAR PASCAL FilterEditDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
 				{
 					sprintf(temp, "Last hit: %s  %s", filter.lasthit_date, filter.lasthit_time);
 					SetDlgItemText(hDlg, IDC_FILTERLASTHIT, temp);
-					EnableWindow(GetDlgItem(hDlg, IDC_FILTERRESET), true);
+					EnableWindow(GetDlgItem(hDlg, IDC_FILTERRESET), TRUE);
 				}
 				else
 				{
@@ -7592,8 +7562,8 @@ BOOL FAR PASCAL FilterEditDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
 		}
 		else
 		{
-			EnableWindow(GetDlgItem(hDlg, IDC_FILTER_NEXT), (index == Profile.filters.size()-1) ? false : true);
-			EnableWindow(GetDlgItem(hDlg, IDC_FILTER_PREVIOUS), (index == 0) ? false : true);
+			EnableWindow(GetDlgItem(hDlg, IDC_FILTER_NEXT), (index == Profile.filters.size()-1) ? FALSE : TRUE);
+			EnableWindow(GetDlgItem(hDlg, IDC_FILTER_PREVIOUS), (index == 0) ? FALSE : TRUE);
 		}
 
 		SetFocus(GetDlgItem(hDlg, IDC_FILTERCAPCODE));
@@ -7665,27 +7635,27 @@ BOOL FAR PASCAL FilterEditDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
 
 		if (filter.type != TEXT_FILTER)
 		{
-			if (!multiple_edit) EnableWindow(GetDlgItem(hDlg, IDC_FILTERCAPCODE), true);
+			if (!multiple_edit) EnableWindow(GetDlgItem(hDlg, IDC_FILTERCAPCODE), TRUE);
 			EnableWindow(GetDlgItem(hDlg, IDC_FILTERTEXT), capcode);
 		}
 		else	// if TEXT filter
 		{
-			EnableWindow(GetDlgItem(hDlg, IDC_FILTERCAPCODE), false);
-			EnableWindow(GetDlgItem(hDlg, IDC_FILTERTEXT),    true);
+			EnableWindow(GetDlgItem(hDlg, IDC_FILTERCAPCODE), FALSE);
+			EnableWindow(GetDlgItem(hDlg, IDC_FILTERTEXT),    TRUE);
 		}
 
 		if (IsDlgButtonChecked(hDlg, IDC_FILTER_MONITOR_ONLY) != BST_INDETERMINATE)
 		{
 			 EnableWindow(GetDlgItem(hDlg, IDC_FILTERAUDIO), (!reject && captxt));
 		}
-		else EnableWindow(GetDlgItem(hDlg, IDC_FILTERAUDIO), false);
+		else EnableWindow(GetDlgItem(hDlg, IDC_FILTERAUDIO), FALSE);
 
 		EnableWindow(GetDlgItem(hDlg, IDC_FILTERLABEL),      (!reject && captxt));
 		EnableWindow(GetDlgItem(hDlg, IDC_FILTERLABELEN),    (!reject && label));
 		EnableWindow(GetDlgItem(hDlg, IDC_FILTERLABELCOLOR), (!reject && label));
 		EnableWindow(GetDlgItem(hDlg, IDC_SEPFILTERFILEEN),  (!reject && captxt));
 
-		EnableWindow(GetDlgItem(hDlg, IDC_SEPFILTERFILEBROWSE1), sep_en ? true    : false);
+		EnableWindow(GetDlgItem(hDlg, IDC_SEPFILTERFILEBROWSE1), sep_en ? TRUE    : FALSE);
 		ShowWindow  (GetDlgItem(hDlg, IDC_SEPFILTERFILEBROWSE2), sep1   ? SW_SHOW : SW_HIDE);
 		ShowWindow  (GetDlgItem(hDlg, IDC_SEPFILTERFILEBROWSE3), sep2   ? SW_SHOW : SW_HIDE);
 
@@ -7705,8 +7675,8 @@ BOOL FAR PASCAL FilterEditDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
 		}
 		sep_filterfiles = (sep1!=0)+(sep2!=0)+(sep3!=0); // Number of sepfiles
 
-		EnableWindow(GetDlgItem(hDlg, IDC_FILTERCMD),  multiple_edit ? true : (captxt && !reject));
-		EnableWindow(GetDlgItem(hDlg, IDC_FILTERSMTP), captxt ? true : false);
+		EnableWindow(GetDlgItem(hDlg, IDC_FILTERCMD),  multiple_edit ? TRUE : (captxt && !reject));
+		EnableWindow(GetDlgItem(hDlg, IDC_FILTERSMTP), captxt ? TRUE : FALSE);
 
 		return (TRUE);
 
@@ -7769,7 +7739,7 @@ BOOL FAR PASCAL FilterEditDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
 
 			SetDlgItemText(hDlg, IDC_FILTERHITS,    "Number of hits: 0");
 			SetDlgItemText(hDlg, IDC_FILTERLASTHIT, "");
-			EnableWindow(GetDlgItem(hDlg, IDC_FILTERRESET), false);
+			EnableWindow(GetDlgItem(hDlg, IDC_FILTERRESET), FALSE);
 
 			SetFocus(GetDlgItem(hDlg, IDOK));
 
@@ -7883,7 +7853,7 @@ BOOL FAR PASCAL FilterEditDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
 
 			case IDC_FILTER_APPLY:
 
-			bApplying=true;
+			bApplying=TRUE;
 
 			case IDOK:
 
@@ -8275,7 +8245,7 @@ BOOL FAR PASCAL FilterEditDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
 
 			if (bApplying)
 			{
-				bApplying=false;
+				bApplying=FALSE;
 			}
 			else EndDialog(hDlg, TRUE);
 
@@ -8287,13 +8257,13 @@ BOOL FAR PASCAL FilterEditDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
 			index = ListView_GetNextItem(hListView, -1, LVNI_SELECTED);
 			index += (LOWORD(wParam) == IDC_FILTER_NEXT) ? 1 : -1;
 
-			bFilterJump=true;
+			bFilterJump=TRUE;
 			Copy_Filter_Fields(&filter, Profile.filters[index]);
 			ListView_SetItemState (hListView, -1, 0, LVIS_SELECTED | LVIS_FOCUSED);
 			ListView_SetItemState (hListView, index, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
 			ListView_EnsureVisible(hListView, index, TRUE);
 			SendMessage(hDlg, WM_INITDIALOG, NULL, 0L);
-			bFilterJump=false;
+			bFilterJump=FALSE;
 
 			return (TRUE);
 
@@ -8308,23 +8278,24 @@ BOOL FAR PASCAL FilterEditDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
 		break;
 	}
 	return (FALSE);
-} // end of FilterEditDlgBox
+}
 
 
-BOOL FAR PASCAL FilterFindDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR
+FilterFindDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	static char search_string[FILTER_LABEL_LEN+1]="";
 	static char old_search_string[FILTER_LABEL_LEN+1]="";
 
 	int nHits;
 	static int index=0;
-	static bool bInit=true;
+	static int bInit=TRUE;
 
 	switch (uMsg)
 	{
 		case WM_INITDIALOG:
 
-		bInit=true;
+		bInit=TRUE;
 
 		if (!CenterWindow(hDlg)) return (FALSE);
 
@@ -8341,7 +8312,7 @@ BOOL FAR PASCAL FilterFindDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
 		}
 		CheckDlgButton(hDlg, IDC_FILTERFIND_CASE, bFilterFindCASE);
 
-		bInit=false;
+		bInit=FALSE;
 
 		return (TRUE);
 
@@ -8354,7 +8325,7 @@ BOOL FAR PASCAL FilterFindDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
 		{
 			case IDC_FILTERFIND_CASE:
 
-			bFilterFindCASE = IsDlgButtonChecked(hDlg, IDC_FILTERFIND_CASE) ? true : false;
+			bFilterFindCASE = IsDlgButtonChecked(hDlg, IDC_FILTERFIND_CASE) ? TRUE : FALSE;
 
 			case IDOK:
 			case IDC_FILTERFIND:
@@ -8381,7 +8352,7 @@ BOOL FAR PASCAL FilterFindDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
 				else index = ListView_GetSelectionMark(hListView)+1;
 			}
 
-			nHits = FindFilter(index, search_string, true, false);
+			nHits = FindFilter(index, search_string, TRUE, FALSE);
 			SetDlgItemInt(hDlg, IDC_FILTERFIND_HITS, nHits, FALSE);
 
 			strcpy(old_search_string, search_string);
@@ -8398,10 +8369,11 @@ BOOL FAR PASCAL FilterFindDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
 		break;
 	}
 	return (FALSE);
-} // end of FilterFindDlgProc
+}
 
 
-BOOL FAR PASCAL FilterCheckDuplicateDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR
+FilterCheckDuplicateDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	static char szFilter1[MAX_STR_LEN]="";
 	static char szFilter2[MAX_STR_LEN]="";
@@ -8418,7 +8390,7 @@ BOOL FAR PASCAL FilterCheckDuplicateDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
 
 	unsigned int nFilters, nFilters2;
 
-	static bool bDuplicate;
+	static int bDuplicate;
 
 	HWND hResults = GetDlgItem(hDlg, IDC_FILTERFIND_DUPLICATE);
 	HWND hProgress= GetDlgItem(hDlg, IDC_PROGRESS1);
@@ -8441,7 +8413,7 @@ BOOL FAR PASCAL FilterCheckDuplicateDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
 				(strstr(szFilter1, Profile.filters[index1].capcode) == 0) ||
 				(strstr(szFilter2, Profile.filters[index2].capcode) == 0))
 			{
-				bDuplicate=false;
+				bDuplicate=FALSE;
 			}
 			else
 			{
@@ -8481,13 +8453,13 @@ BOOL FAR PASCAL FilterCheckDuplicateDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
 			nFilters=Profile.filters.size();
 			nFilters2=nFilters*nFilters;
 
-			EnableWindow(GetDlgItem(hDlg, IDOK),     false);
-			EnableWindow(GetDlgItem(hDlg, IDCANCEL), false);
+			EnableWindow(GetDlgItem(hDlg, IDOK),     FALSE);
+			EnableWindow(GetDlgItem(hDlg, IDCANCEL), FALSE);
 
 			if (bDuplicate)
 			{
-				EnableWindow(hResults, false);
-				bDuplicate=false;
+				EnableWindow(hResults, FALSE);
+				bDuplicate=FALSE;
 				index2++;
 			}
 			while (index1<nFilters && !bDuplicate)
@@ -8519,7 +8491,7 @@ BOOL FAR PASCAL FilterCheckDuplicateDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
 						{
 							if (strcmp(szFirstText, Profile.filters[index2].text) == 0)
 							{
-								bDuplicate=true;
+								bDuplicate=TRUE;
 							}
 						}
 					}
@@ -8572,8 +8544,8 @@ BOOL FAR PASCAL FilterCheckDuplicateDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
 				index1=0;
 				index2=1;
 			}
-			EnableWindow(GetDlgItem(hDlg, IDOK), true);
-			EnableWindow(GetDlgItem(hDlg, IDCANCEL), true);
+			EnableWindow(GetDlgItem(hDlg, IDOK), TRUE);
+			EnableWindow(GetDlgItem(hDlg, IDCANCEL), TRUE);
 			MessageBeep(MB_OK);
 			
 			break;
@@ -8602,10 +8574,11 @@ BOOL FAR PASCAL FilterCheckDuplicateDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
 		break;
 	}
 	return (FALSE);
-} // end of FilterCheckDuplicateDlgProc
+}
 
 
-void SetMailOptions(HWND hDlg, int nOptions)
+void
+SetMailOptions(HWND hDlg, int nOptions)
 {
 	int tmp ;
 
@@ -8636,7 +8609,9 @@ void SetMailOptions(HWND hDlg, int nOptions)
 
 }
 
-int GetMailOptions(HWND hDlg)
+
+int
+GetMailOptions(HWND hDlg)
 {
 	int ret, nOptions ;
 
@@ -8702,7 +8677,8 @@ int GetMailOptions(HWND hDlg)
 }
 
 
-char *GetTestMail(int nLine)
+char *
+GetTestMail(int nLine)
 {
 	static char szBuf[9][128] ;
 	time_t lTime ;
@@ -8722,7 +8698,8 @@ char *GetTestMail(int nLine)
 }
 
 
-BOOL FAR PASCAL MailDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR
+MailDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	static int nOldOptions ;
 	int i;
@@ -8764,10 +8741,10 @@ BOOL FAR PASCAL MailDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			SendDlgItemMessage(hDlg, IDC_SMTP_CHARSET, CB_ADDSTRING, 0, (LPARAM)(LPCTSTR) szSmtpCharSets[i]) ; 
 		}
 
-		SetDlgItemInt(hDlg, IDC_SMTP_SESSIONS,  nSMTPsessions, false);
-		SetDlgItemInt(hDlg, IDC_SMTP_EMAILS,    nSMTPemails,   false);
-		SetDlgItemInt(hDlg, IDC_SMTP_ERRORS,    nSMTPerrors,   false);
-		SetDlgItemInt(hDlg, IDC_SMTP_LASTERROR, iSMTPlastError,false);
+		SetDlgItemInt(hDlg, IDC_SMTP_SESSIONS,  nSMTPsessions, FALSE);
+		SetDlgItemInt(hDlg, IDC_SMTP_EMAILS,    nSMTPemails,   FALSE);
+		SetDlgItemInt(hDlg, IDC_SMTP_ERRORS,    nSMTPerrors,   FALSE);
+		SetDlgItemInt(hDlg, IDC_SMTP_LASTERROR, iSMTPlastError,FALSE);
 		
 		SetMailOptions(hDlg, Profile.nMailOptions) ;
 		nOldOptions = GetMailOptions(hDlg) ;
@@ -8854,10 +8831,11 @@ BOOL FAR PASCAL MailDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		break;
 	}
 	return (FALSE);
-} // end of MailDlgProc
+}
 
 
-BOOL FAR PASCAL MonStatDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR
+MonStatDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	static int idc_stat_hr_n[NUM_STAT] =
 	{
@@ -8956,8 +8934,8 @@ BOOL FAR PASCAL MonStatDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 			}
 			else
 			{
-				EnableWindow(GetDlgItem(hDlg, IDC_STATFILE),   true);
-				EnableWindow(GetDlgItem(hDlg, IDC_STATBROWSE), true);
+				EnableWindow(GetDlgItem(hDlg, IDC_STATFILE),   TRUE);
+				EnableWindow(GetDlgItem(hDlg, IDC_STATBROWSE), TRUE);
 				SetDlgItemText(hDlg, IDC_STATFILE, Profile.stat_file);
 			}
 		}
@@ -8987,8 +8965,8 @@ BOOL FAR PASCAL MonStatDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 			}
 			else
 			{
-				EnableWindow(GetDlgItem(hDlg, IDC_STATFILE),   false);
-				EnableWindow(GetDlgItem(hDlg, IDC_STATBROWSE), false);
+				EnableWindow(GetDlgItem(hDlg, IDC_STATFILE),   FALSE);
+				EnableWindow(GetDlgItem(hDlg, IDC_STATBROWSE), FALSE);
 				SetDlgItemText(hDlg, IDC_STATFILE, "");
 				CheckDlgButton(hDlg, IDC_STATFILEDATE, BST_UNCHECKED);
 			}
@@ -9086,10 +9064,11 @@ BOOL FAR PASCAL MonStatDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 		break;
 	}
 	return (FALSE);
-} // end of MonStatDlgProc
+}
 
 
-UINT CALLBACK CenterOpenDlgBox(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+UINT CALLBACK
+CenterOpenDlgBox(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg)
 	{
@@ -9101,7 +9080,8 @@ UINT CALLBACK CenterOpenDlgBox(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 } // end of CenterOpenDlgBox
 
 
-BOOL CenterWindow(HWND hWnd)
+int
+CenterWindow(HWND hWnd)
 {
 	RECT rRect, rParentRect;
 	HWND hParentWnd;
@@ -9139,7 +9119,8 @@ BOOL CenterWindow(HWND hWnd)
 } // end of CenterWindow
 
 
-BOOL ErrorMessageBox(LPCTSTR lpszText, LPCTSTR lpszTitle, LPCTSTR lpszFile, INT Line)
+int
+ErrorMessageBox(LPCTSTR lpszText, LPCTSTR lpszTitle, LPCTSTR lpszFile, INT Line)
 {
 	#define ERROR_BUFFER_SIZE 512
 
@@ -9189,10 +9170,11 @@ BOOL ErrorMessageBox(LPCTSTR lpszText, LPCTSTR lpszTitle, LPCTSTR lpszFile, INT 
 	LocalFree((HLOCAL) hMessageBoxBuffer);
 
 	return (TRUE);
-} // end of ErrorMessageBox
+}
 
 
-BOOL GetPrivateProfileSettings(LPCTSTR lpszAppTitle, LPCTSTR lpszIniPathName, PPROFILE pProfile)
+int
+GetPrivateProfileSettings(LPCTSTR lpszAppTitle, LPCTSTR lpszIniPathName, PPROFILE pProfile)
 {
 	TCHAR ValBuf[16];
 	TCHAR color_str[13];
@@ -9408,27 +9390,28 @@ BOOL GetPrivateProfileSettings(LPCTSTR lpszAppTitle, LPCTSTR lpszIniPathName, PP
 	GetPrivateProfileString("Filter", TEXT("FilterCmdArgs"), "", pProfile->filter_cmd_args, MAX_FILE_LEN, lpszIniPathName);
 	pProfile->filter_default_type = (INT) GetPrivateProfileInt("Filter", TEXT("FilterDefaultType"), pProfile->filter_default_type, lpszIniPathName);
 
-	if (ReadFilters(szFilterPathName, &Profile, false) == false)
+	if (ReadFilters(szFilterPathName, &Profile, FALSE) == FALSE)
 	{
 		if (MessageBox(ghWnd, "An error occured while loading filters.ini.\nTry to load a backup instead?", "PDW Filters", MB_ICONQUESTION | MB_OKCANCEL) == IDOK)
 		{
-			if (ReadFilters(szFilterBackup, &Profile, false) == false)
+			if (ReadFilters(szFilterBackup, &Profile, FALSE) == FALSE)
 			{
 				MessageBox(ghWnd, "Also failed, starting without filters...", "PDW Filters", MB_ICONINFORMATION);
 			}
 		}
 	}
 	return (TRUE);
-} // end of GetPrivateProfileSettings
+}
 
 
-bool ReadFilters(char *szFilters, PPROFILE pProfile, bool bNew)
+int
+ReadFilters(char *szFilters, PPROFILE pProfile, int bNew)
 {
 	char *pSearch=NULL;
 	char *token;
 	char szSepfiles[MAX_STR_LEN];
 	char szLine[MAX_STR_LEN];				// Buffer for current line
-	bool bError=false;
+	int bError=FALSE;
 	int  i=0, pos, nLines=0, iFilterCount=0, iFilter=0;
 
 	FILTER filter;
@@ -9459,21 +9442,21 @@ bool ReadFilters(char *szFilters, PPROFILE pProfile, bool bNew)
 			{
 				if (strcmp(szLine, "[Filter]") != 0)
 				{
-					bError=true;
+					bError=TRUE;
 				}
 			}
 			else if ((nLines == 1) || (nLines == 3))
 			{
 				if (strcmp(szLine, "") != 0)
 				{
-					bError=true;
+					bError=TRUE;
 				}
 			}
 			else if (nLines == 2)
 			{
 				if (strncmp(szLine, "FilterCount=", 12) != 0)
 				{
-					bError=true;
+					bError=TRUE;
 				}
 				else
 				{
@@ -9493,7 +9476,7 @@ bool ReadFilters(char *szFilters, PPROFILE pProfile, bool bNew)
 
 				if (!isdigit(szLine[pos]) || szLine[pos+1] != ',')
 				{
-					bError=true;
+					bError=TRUE;
 				}
 				else
 				{
@@ -9648,7 +9631,7 @@ bool ReadFilters(char *szFilters, PPROFILE pProfile, bool bNew)
 					iFilter++;
 				}
 			}
-			if (bError) return(false);
+			if (bError) return(FALSE);
 			else nLines++;
 		}
 		fclose(pFile);
@@ -9656,26 +9639,28 @@ bool ReadFilters(char *szFilters, PPROFILE pProfile, bool bNew)
 	}
 	else
 	{
-		if (bNew) return(true);
+		if (bNew) return(TRUE);
 
 		MessageBox(ghWnd, "FILTERS.INI not found!", "PDW Filters", MB_ICONINFORMATION);
-		return(false);
+		return(FALSE);
 	}
 
 	if (bNew)
 	{
 		DeleteFile(szFilters);
-		return(true);
+		return(TRUE);
 	}
 	else if (iFilterCount)
 	{
-		CopyFile(szFilters, szFilterBackup, false);
-		bUpdateFilters = true;	// PH: Update filters.ini in UpdateFilters() when IDLE
+		CopyFile(szFilters, szFilterBackup, FALSE);
+		bUpdateFilters = TRUE;	// PH: Update filters.ini in UpdateFilters() when IDLE
 	}
-	return(true);
+	return(TRUE);
 }
 
-void WriteSettings()
+
+void
+WriteSettings(void)
 {
 	if (GetFileAttributes(szIniPathName) & FILE_ATTRIBUTE_READONLY)
 	{
@@ -9866,10 +9851,11 @@ void WriteSettings()
 		fclose(pFile);
 		pFile=NULL;
 	}
-} // end of WritePrivateProfileSettings
+}
 
 
-void WriteFilters(PPROFILE pProfile, int backup)
+void
+WriteFilters(PPROFILE pProfile, int backup)
 {
 	char szLine[256];
 	char szFilename[MAX_PATH];
@@ -9886,7 +9872,7 @@ void WriteFilters(PPROFILE pProfile, int backup)
 		strcpy(szFilename, szFilterPathName);
 		sprintf(ext, ".%03i", backup);
 		ChangeFileExtension(szFilename, ext);
-		CopyFile(szFilterPathName, szFilename, false);
+		CopyFile(szFilterPathName, szFilename, FALSE);
 	}
 	if ((pFiltersFile = fopen(szFilterPathName, "w+")) != NULL)
 	{
@@ -9990,7 +9976,8 @@ void WriteFilters(PPROFILE pProfile, int backup)
 }
 
 
-bool LoadDriver(void)	// HWi
+int
+LoadDriver(void)	// HWi
 {
 	SLICER_IN_STR  slicer_in;
 	SLICER_OUT_STR slicer_out;
@@ -10005,7 +9992,7 @@ bool LoadDriver(void)	// HWi
 		if (hDriver == INVALID_HANDLE_VALUE)
 		{
 			MessageBox(ghWnd, "Unable to Load Comport Driver!", "PDW Driver", MB_ICONWARNING);
-			return(false);
+			return(FALSE);
 		}
 		slicer_in.irq = Profile.comPortIRQ;
 		slicer_in.com_port = Profile.comPortAddr;
@@ -10016,7 +10003,7 @@ bool LoadDriver(void)	// HWi
 			MessageBox(ghWnd,"Unknown Error from Comport Driver!", "PDW Driver", MB_ICONWARNING);
 			CloseHandle(hDriver); // Dynamically UNLOAD the Virtual device driver
 			nDriverLoaded = DRIVER_NOT_LOADED;
-			return(false);
+			return(FALSE);
 		}
 		nDriverLoaded = DRIVER_VXD_LOADED;	    // HWi must be only TRUE when all is OK
 	}
@@ -10030,7 +10017,7 @@ bool LoadDriver(void)	// HWi
 			MessageBox(ghWnd,"Unable to open the selected Comport", "PDW Driver", MB_ICONWARNING);
 //			OUTPUTDEBUGMSG((("Error: rs232_connect() = %d\n"), hDriver));		
 			nDriverLoaded = DRIVER_NOT_LOADED;
-			return(false);
+			return(FALSE);
 		}
 		nDriverLoaded = DRIVER_COM_LOADED;	    // HWi must be only TRUE when all is OK
 		hDriver = (HANDLE)1;	//FIXME: just a non-NULL value
@@ -10064,7 +10051,7 @@ bool LoadDriver(void)	// HWi
 
 		UnloadDriver(); // HWi
 
-		return(false);
+		return(FALSE);
 	}
 
 	freqdata	= slicer_out.freqdata;
@@ -10072,13 +10059,14 @@ bool LoadDriver(void)	// HWi
 	cpstn		= slicer_out.cpstn;
 	bufsize		= slicer_out.bufsize;
 
-//	bDriverLoaded = true;	    // HWi must be only TRUE when all is OK
+//	bDriverLoaded = TRUE;	    // HWi must be only TRUE when all is OK
 
-	return(true);
+	return(TRUE);
 } // end of LoadDriver
 
 
-void UnloadDriver(void)	//HWi made this a function to clean up the code
+void
+UnloadDriver(void)	//HWi made this a function to clean up the code
 {
 	if (nDriverLoaded)
 	{
@@ -10098,7 +10086,8 @@ void UnloadDriver(void)	//HWi made this a function to clean up the code
 
 
 // This is used to get the Edit menu - 'Save' filename.
-bool GetEditSaveName(HWND hWnd)
+int
+GetEditSaveName(HWND hWnd)
 {
 	char szFileSave[MAX_FILE_LEN], szFileTitle[256];
 	static char szLog[] = {"TXT Files (*.txt)\0*.txt\0All Files (*.*)\0*.*\0\0"};
@@ -10127,14 +10116,15 @@ bool GetEditSaveName(HWND hWnd)
 	if (GetSaveFileName(&ofn))
 	{
 		strcpy(Profile.edit_save_file,szFileSave);
-		return(true);
+		return(TRUE);
 	}
-	return(false);
+	return(FALSE);
 }
 
 
 // HWi added listview Drag&Drop stuff
-void InitListControl(HWND hDlg)
+void
+InitListControl(HWND hDlg)
 {
 	int  width ;
 	RECT rect ;
@@ -10178,7 +10168,8 @@ void InitListControl(HWND hDlg)
 }
 
 
-bool WINAPI InsertListViewItem(char *szLine, int nItem)
+int WINAPI
+InsertListViewItem(char *szLine, int nItem)
 { 
 	LVITEM lvitem = { 0 } ;
  
@@ -10189,19 +10180,20 @@ bool WINAPI InsertListViewItem(char *szLine, int nItem)
 	lvitem.lParam = nItem;
 	lvitem.pszText = szLine;
 	ListView_InsertItem(hListView, &lvitem);
-	return(true);
+	return(TRUE);
 } 
 
 
-void OnBeginDrag(NMHDR* pNMHDR) 
+void
+OnBeginDrag(NMHDR* pNMHDR) 
 {
 	int			iPos, iHeight, items=0;
-	bool		bFirst=true;
+	int		bFirst=TRUE;
 	POINT		p, pt;
 	IMAGEINFO	imf;
 	HIMAGELIST	hOneImageList, hTempImageList;
 
-	if (!CheckSelection(false)) return;
+	if (!CheckSelection(FALSE)) return;
 
 	p.x = 8;
 	p.y = 8;
@@ -10220,7 +10212,7 @@ void OnBeginDrag(NMHDR* pNMHDR)
 				hDragImageList = ListView_CreateDragImage(hListView, iPos, &p);
 				ImageList_GetImageInfo(hDragImageList, 0, &imf);
 				iHeight = imf.rcImage.bottom;
-				bFirst = false;
+				bFirst = FALSE;
 			}
 			else 
 			{	// For the rest selected items, we create a single-line drag image,
@@ -10245,13 +10237,15 @@ void OnBeginDrag(NMHDR* pNMHDR)
 	pt = ((NM_LISTVIEW*) (pNMHDR))->ptAction;
 	ClientToScreen(hListView, &pt);
 	ImageList_DragEnter(GetDesktopWindow(), pt.x, pt.y);
-	bDragging = true;
+	bDragging = TRUE;
 
 	// Don't forget to capture the mouse
 	SetCapture(hFilterDlg);
 }
 
-void OnMouseMove(UINT nFlags, int x, int y)
+
+void
+OnMouseMove(UINT nFlags, int x, int y)
 {
 	int nIndex ;
 	POINT p, pt;
@@ -10297,10 +10291,10 @@ void OnMouseMove(UINT nFlags, int x, int y)
 		//Note that we can drop here
 		SetCursor(LoadCursor(NULL, IDC_ARROW));
 		// Redraw item
-		bDragLine = true;
+		bDragLine = TRUE;
 		ListView_RedrawItems(pDropWnd, nIndex, nIndex);
 		UpdateWindow(pDropWnd);
-		bDragLine = false;
+		bDragLine = FALSE;
 		ImageList_DragShowNolock(TRUE);
 
 		KillScrollTimer();
@@ -10350,9 +10344,10 @@ void OnMouseMove(UINT nFlags, int x, int y)
 }
 
 
-void OnMouseWheel(WPARAM wParam, int x, int y, RECT g_rect)
+void
+OnMouseWheel(WPARAM wParam, int x, int y, RECT g_rect)
 {
-	bool bScrollingUp;
+	int bScrollingUp;
 	POINT p;
 	HWND hScrollWND;
 
@@ -10374,7 +10369,8 @@ void OnMouseWheel(WPARAM wParam, int x, int y, RECT g_rect)
 }
 
 
-void OnLButtonUp(UINT nFlags, int x, int y) 
+void
+OnLButtonUp(UINT nFlags, int x, int y) 
 {
 	#define MAX_TARGET_LEN   256
 	char	buf[MAX_TARGET_LEN] ;
@@ -10383,7 +10379,7 @@ void OnLButtonUp(UINT nFlags, int x, int y)
 	int iPos, iRet;
 
 	// End the drag-and-drop process
-	bDragging = false;
+	bDragging = FALSE;
 	ImageList_DragLeave(hListView);
 	ImageList_EndDrag();
 	ImageList_Destroy(hDragImageList);
@@ -10455,7 +10451,8 @@ void OnLButtonUp(UINT nFlags, int x, int y)
 }
 
 
-void SetScrollTimer(EScrollDirection ScrollDirection)
+void
+SetScrollTimer(EScrollDirection ScrollDirection)
 {
 	if (m_uScrollTimer == 0)
 	{
@@ -10464,7 +10461,9 @@ void SetScrollTimer(EScrollDirection ScrollDirection)
 	m_ScrollDirection = ScrollDirection;
 }
 
-void KillScrollTimer()
+
+void
+KillScrollTimer(void)
 {
 	if (m_uScrollTimer != 0)
 	{
@@ -10476,7 +10475,8 @@ void KillScrollTimer()
 }
 
 
-void OnTimer(UINT nIDEvent) 
+void
+OnTimer(UINT nIDEvent) 
 {
 	if (nIDEvent == SCROLL_TIMER && hDragImageList)
 	{
@@ -10488,7 +10488,9 @@ void OnTimer(UINT nIDEvent)
 	}
 }
 
-void Marker(LONG x, LONG y, HDC hdc) 
+
+void
+Marker(LONG x, LONG y, HDC hdc) 
 { 
 	if (Profile.FilterWindowColors) SelectObject(hdc,SysPEN[WHITE]);
 
@@ -10502,7 +10504,9 @@ void Marker(LONG x, LONG y, HDC hdc)
 	LineTo(hdc,   (int) x - 1, (int) y + 4); 
 } 
 
-LONG OnCustomDraw(LPNMLVCUSTOMDRAW pLVCD)
+
+LONG
+OnCustomDraw(LPNMLVCUSTOMDRAW pLVCD)
 {
 	LONG ret = CDRF_DODEFAULT ;
 
@@ -10522,7 +10526,8 @@ LONG OnCustomDraw(LPNMLVCUSTOMDRAW pLVCD)
 }
 
 
-BOOL TestIfBigger(int nHigher, int nLower, bool bAddress)
+int
+TestIfBigger(int nHigher, int nLower, int bAddress)
 {
 	int nCapcodeCmp;
 
@@ -10571,11 +10576,12 @@ BOOL TestIfBigger(int nHigher, int nLower, bool bAddress)
 }
 
 
-void SortFilter(HWND hDlg, bool bAddress)
+void
+SortFilter(HWND hDlg, int bAddress)
 {
 	int index, min, i ;	
 				
-	bSortingFilters = true;
+	bSortingFilters = TRUE;
 
 	if ((index = ListView_GetNextItem(hListView, -1, LVNI_SELECTED)) != CB_ERR)
 	{
@@ -10610,17 +10616,18 @@ void SortFilter(HWND hDlg, bool bAddress)
 		if (sprintf(szTEMP, "PDW Filters (%u)", (int)Profile.filters.size()) != EOF)
 		SetWindowText(hDlg, (LPSTR) szTEMP);
 	}
-	bSortingFilters = false;
+	bSortingFilters = FALSE;
 }
 
 
-bool CheckSelection(bool bMore)
+int
+CheckSelection(int bMore)
 {
 	int index = -1, old = -1;	
 				
 	if (bMore)
 	{
-		if(ListView_GetSelectedCount(hListView) <= 1) return(false);
+		if(ListView_GetSelectedCount(hListView) <= 1) return(FALSE);
 	}
 
 	while ((index = ListView_GetNextItem(hListView, index, LVNI_SELECTED)) != CB_ERR)
@@ -10633,16 +10640,17 @@ bool CheckSelection(bool bMore)
 		{
 			if(old != index-1)
 			{
-				return(false) ;
+				return(FALSE) ;
 			}
 		}
 		old = index ;
 	} 
-	return(true) ;
+	return(TRUE) ;
 }
 
 
-int CompareCapcodes(char *szCapcode1, char *szCapcode2)
+int
+CompareCapcodes(char *szCapcode1, char *szCapcode2)
 {
 	for (int i=0; i<9; i++) 
 	{
@@ -10653,7 +10661,8 @@ int CompareCapcodes(char *szCapcode1, char *szCapcode2)
 }
 
 
-void CopyFilter(void)
+void
+CopyFilter(void)
 {
 	int nIndex ;
 
@@ -10667,7 +10676,9 @@ void CopyFilter(void)
 	}
 }
 
-void PasteFilter(void) 
+
+void
+PasteFilter(void) 
 {
 	int i, nIndex, item;
 
@@ -10704,7 +10715,9 @@ void PasteFilter(void)
 	}
 }
 
-void ResetHitcounters(bool bAll)
+
+void
+ResetHitcounters(int bAll)
 {
 	int index=-1, i=0;
 
@@ -10740,11 +10753,13 @@ void ResetHitcounters(bool bAll)
 			Profile.filters[index].lasthit_date[0] = '\0' ;
 			Profile.filters[index].lasthit_time[0] = '\0' ;
 		}
-		bUpdateFilters = true;	// PH: Update filters.ini in UpdateFilters() when IDLE
+		bUpdateFilters = TRUE;	// PH: Update filters.ini in UpdateFilters() when IDLE
 	}
 }
 
-void SetWindowPaneSize(int param)
+
+void
+SetWindowPaneSize(int param)
 {
 	int maximize_state;
 	
@@ -10775,9 +10790,10 @@ void SetWindowPaneSize(int param)
 }
 
 
-void SystemTrayWindow(bool bHideWindow)
+void
+SystemTrayWindow(int bHideWindow)
 {
-	bool bAnimationInfo=false;
+	int bAnimationInfo=FALSE;
 
 	ANIMATIONINFO ani = { 0 };
 
@@ -10790,7 +10806,7 @@ void SystemTrayWindow(bool bHideWindow)
 	ani.cbSize = sizeof(ani);
 	SystemParametersInfo(SPI_GETANIMATION,sizeof(ani),&ani,0);
 
-	if (ani.iMinAnimate) bAnimationInfo=true;
+	if (ani.iMinAnimate) bAnimationInfo=TRUE;
 
 	if (!bTrayed)
 	{
@@ -10818,10 +10834,10 @@ void SystemTrayWindow(bool bHideWindow)
 		}
 		ShowWindow(ghWnd, SW_HIDE);
 
-		SystemTrayIcon(false);
+		SystemTrayIcon(FALSE);
 
 		Profile.minimize_flg=1;
-		bTrayed=true;
+		bTrayed=TRUE;
 	}
 	else if (bTrayed)	// PH: Restore PDW-window from systemtray
 	{
@@ -10830,14 +10846,15 @@ void SystemTrayWindow(bool bHideWindow)
 		SetFocus(ghWnd);
 
 		Profile.minimize_flg=0;
-		bTrayed=false;
+		bTrayed=FALSE;
 	}
 }
 
 
-void SystemTrayIcon(bool bRemoveIcon)
+void
+SystemTrayIcon(int bRemoveIcon)
 {
-	static bool bIcon=false;
+	static int bIcon=FALSE;
 
 	NOTIFYICONDATA nid = { 0 };
 
@@ -10853,20 +10870,21 @@ void SystemTrayIcon(bool bRemoveIcon)
 	if (bRemoveIcon)	// PH: Remove PDW-icon from systemtray
 	{
 		if (bIcon) Shell_NotifyIcon(NIM_DELETE, &nid);
-		bIcon=false;
+		bIcon=FALSE;
 		return;
 	}
 	else if (!bIcon)
 	{
 		Shell_NotifyIcon(NIM_ADD, &nid);
-		bIcon=true;
+		bIcon=TRUE;
 	}
 }
 
 
-void SetNewWindowText(char *text)
+void
+SetNewWindowText(char *text)
 {
-//	extern bool bMode_IDLE;			// Set if no signal
+//	extern int bMode_IDLE;			// Set if no signal
 
 	strcpy(szTEMP, szWindowText[0]);
 
@@ -10887,7 +10905,8 @@ void SetNewWindowText(char *text)
 }
 
 
-void AutoRecording()
+void
+AutoRecording(void)
 {
 	if (strstr(szPath, "DEBUG")) return;
 
@@ -10901,7 +10920,7 @@ void AutoRecording()
 
 	Get_Date_Time();
 
-	bAutoRecording=true;
+	bAutoRecording=TRUE;
 
 	if (bRecording)
 	{
@@ -10914,7 +10933,7 @@ void AutoRecording()
 		strncat(szFilename, &szCurrentTime[6], 2);
 		 strcat(szFilename, "].rec");
 
-		CopyFile(szTMPfile, szFilename, false);
+		CopyFile(szTMPfile, szFilename, FALSE);
 		DeleteFile(szTMPfile);
 	}
 
@@ -10930,7 +10949,8 @@ void AutoRecording()
 }
 
 
-void ShowContextMenu(int menu, HWND hWindow)
+void
+ShowContextMenu(int menu, HWND hWindow)
 {
 	int more;
 	HMENU hMenu = CreatePopupMenu();
@@ -10941,12 +10961,12 @@ void ShowContextMenu(int menu, HWND hWindow)
 	{
 		case HMENU_FILTERS:
 		more = ListView_GetSelectedCount(hListView) > 1;
-		AppendMenu(hMenu, MF_STRING | CheckSelection(true) ? 0 : MF_GRAYED, IDT_MENU_SORT_ADDRESS, "Sort by Address") ;
-		AppendMenu(hMenu, MF_STRING | CheckSelection(true) ? 0 : MF_GRAYED, IDT_MENU_SORT_LABEL,   "Sort by Label") ;
+		AppendMenu(hMenu, MF_STRING | CheckSelection(TRUE) ? 0 : MF_GRAYED, IDT_MENU_SORT_ADDRESS, "Sort by Address") ;
+		AppendMenu(hMenu, MF_STRING | CheckSelection(TRUE) ? 0 : MF_GRAYED, IDT_MENU_SORT_LABEL,   "Sort by Label") ;
 		AppendMenu(hMenu, MF_SEPARATOR, NULL, NULL);
 		AppendMenu(hMenu, MF_STRING,										IDT_MENU_SELECTALL, "Select All") ;
-		AppendMenu(hMenu, MF_STRING | CheckSelection(false) ? 0 : MF_GRAYED, IDT_MENU_COPY, "Copy") ;
-		AppendMenu(hMenu, MF_STRING | CheckSelection(false) && (nCopyEnd != -1) ? 0 : MF_GRAYED, IDT_MENU_PASTE, "Paste") ;
+		AppendMenu(hMenu, MF_STRING | CheckSelection(FALSE) ? 0 : MF_GRAYED, IDT_MENU_COPY, "Copy") ;
+		AppendMenu(hMenu, MF_STRING | CheckSelection(FALSE) && (nCopyEnd != -1) ? 0 : MF_GRAYED, IDT_MENU_PASTE, "Paste") ;
 		AppendMenu(hMenu, MF_SEPARATOR, NULL, NULL);
 		AppendMenu(hMenu, MF_STRING | more ? MF_GRAYED : 0,					IDC_FILTERADD, "Add...") ;
 		AppendMenu(hMenu, MF_STRING,										IDC_FILTEREDIT,"Edit...");
@@ -10985,7 +11005,8 @@ void ShowContextMenu(int menu, HWND hWindow)
 }
 
 
-void SelectByDoubleClick(HWND hWnd, PaneStruct *pane, int iPosition, int StartRow)
+void
+SelectByDoubleClick(HWND hWnd, PaneStruct *pane, int iPosition, int StartRow)
 {
 	int line_no = pane->iVscrollPos + iSelectionStartRow;
 	int offset  = line_no * (LINE_SIZE+1);
@@ -11027,7 +11048,8 @@ void SelectByDoubleClick(HWND hWnd, PaneStruct *pane, int iPosition, int StartRo
 	}
 }
 
-void GoogleMaps(int iPosition)
+void
+GoogleMaps(int iPosition)
 {
 	char szTMP[1024];
 	char szString[32];
@@ -11093,10 +11115,12 @@ void GoogleMaps(int iPosition)
 	ShellExecute(NULL, "open", szTMP, NULL, NULL, SW_SHOWNORMAL);
 }
 
-int FindFilter(int index, char *szSearchString, bool bShowHits, bool bBackwards)
+
+int
+FindFilter(int index, char *szSearchString, int bShowHits, int bBackwards)
 {
 	int i, nHits=0, iFilter, nFilters, iMatch;
-	bool bFound=false, bAddress=true;
+	int bFound=FALSE, bAddress=TRUE;
 	char szAddress[FILTER_CAPCODE_LEN+1];
 	char szText[FILTER_TEXT_LEN+1];
 	char szLabel[FILTER_LABEL_LEN+1];
@@ -11170,7 +11194,7 @@ int FindFilter(int index, char *szSearchString, bool bShowHits, bool bBackwards)
 			if (!bFound)
 			{
 				iMatch=index;
-				bFound=true;	// We have a match!
+				bFound=TRUE;	// We have a match!
 			}
 			nHits++;		// Keep track of the number of hits
 			if (!bShowHits) break;
@@ -11190,7 +11214,8 @@ int FindFilter(int index, char *szSearchString, bool bShowHits, bool bBackwards)
 }
 
 
-void pumpMessages(void)
+void
+pumpMessages(void)
 {
     MSG  msg;
 

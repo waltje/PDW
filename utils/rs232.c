@@ -1,5 +1,6 @@
 #include <windows.h>
 #include <winbase.h>
+#include <stdio.h>
 #include "../pdw.h"
 #include "../slicer.h"
 #include "debug.h"

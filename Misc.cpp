@@ -3,15 +3,13 @@
 //
 #include <windows.h>
 #include "pdw.h"
-#include "initapp.h"
-#include "gfx.h"
-#include "decode.h"
-#include "misc.h"
 #include "language.h"
+#include "gfx.h"
+#include "smtp.h"
 #include "sound_in.h"
-#include "helper_funcs.h"
-#include "utils/binary.h"
-#include "utils/smtp.h"
+#include "utils/utils.h"
+#include "decode/decode.h"
+#include "misc.h"
 
 
 #define FILTER_PARAM_LEN	500
@@ -20,27 +18,27 @@
 
 #define MAX_SEPFILES		32
 
-#define MONITOR				0
-#define FILTER				1
-#define SEPARATE			2
+#define MONITOR			0
+#define FILTER			1
+#define SEPARATE		2
 
 #define BLOCK_ADDRESS		0
-#define BLOCK_TIME			1
+#define BLOCK_TIME		1
 #define BLOCK_CHECKSUM		2
 #define BLOCK_MSGADDRESS	0x01	// == 1
 #define BLOCK_ONLYMSG		0x02	// == 2
-#define BLOCK_TIMER			0x03	// == 3
+#define BLOCK_TIMER		0x03	// == 3
 #define BLOCK_OPTION		0x03	// == First 2 bits
 #define BLOCK_LOGFILE		0x04
 
-#define OPEN_FILE			0
-#define CLOSE_FILES			1
+#define OPEN_FILE		0
+#define CLOSE_FILES		1
 
-#define CURRENT				0
-#define PREVIOUS			1
+#define CURRENT			0
+#define PREVIOUS		1
 
-#define BUILDSHOWLINE_LINEFEED 1
-#define BUILDSHOWLINE_LASTCHAR 2
+#define BUILDSHOWLINE_LINEFEED	1
+#define BUILDSHOWLINE_LASTCHAR	2
 
 unsigned int bch[1025], ecs[25];     // error correction sequence
 
@@ -53,59 +51,59 @@ int aGroupCodes[17][MAXIMUM_GROUPSIZE];
 int GroupFrame[17] = { -1, -1, -1, -1, -1, -1, -1, -1,
 					   -1, -1, -1, -1, -1, -1, -1, -1, -1 };
 
-int iPanePos=0;								// PH: Current line position, used by Wordwrap
-int iLabelspace_Logfile[2];					// PH: # of spaces before label ([MONITOR] / [FILTER])
+int iPanePos=0;				// PH: Current line position, used by Wordwrap
+int iLabelspace_Logfile[2];		// PH: # of spaces before label ([MONITOR] / [FILTER])
 
-int  iConvertingGroupcall=0;				// PH: Set with groupbit if converting a groupcall
-bool bMode_IDLE=true;						// PH: Set if not receiving data
+int  iConvertingGroupcall=0;		// PH: Set with groupbit if converting a groupcall
+int bMode_IDLE=TRUE;			// PH: Set if not receiving data
 
-bool bMobitexReplace;						// PH: Set if a mobitex message needs to be replaced (replace.txt)
-char szMobitexReplace[256];					// PH: Contains mobitex replacement string (replace.txt)
+int bMobitexReplace;			// PH: Set if a mobitex message needs to be replaced (replace.txt)
+char szMobitexReplace[256];		// PH: Contains mobitex replacement string (replace.txt)
 
-char aNumeric[17]={"0123456789*U -]["};		// contains numeric paging data format
+char aNumeric[17]={"0123456789*U -]["};	// contains numeric paging data format
 
-bool bShown[2]  = { false, false };
-bool bLogged[3] = { false, false, false };
+int bShown[2]  = { FALSE, FALSE };
+int bLogged[3] = { FALSE, FALSE, FALSE };
 
-char Current_MSG[9][MAX_STR_LEN];			// PH: Buffer for all message items
-											// 1 = MSG_CAPCODE
-											// 2 = MSG_TIME
-											// 3 = MSG_DATE
-											// 4 = MSG_MODE
-											// 5 = MSG_TYPE
-											// 6 = MSG_BITRATE
-											// 7 = MSG_MESSAGE
-											// 8 = MSG_MOBITEX
+char Current_MSG[9][MAX_STR_LEN];	// PH: Buffer for all message items
+		// 1 = MSG_CAPCODE
+		// 2 = MSG_TIME
+		// 3 = MSG_DATE
+		// 4 = MSG_MODE
+		// 5 = MSG_TYPE
+		// 6 = MSG_BITRATE
+		// 7 = MSG_MESSAGE
+		// 8 = MSG_MOBITEX
 
 
-char Previous_MSG[2][9][MAX_STR_LEN];		// PH: Buffer for previous message items
+char Previous_MSG[2][9][MAX_STR_LEN];	// PH: Buffer for previous message items
 											// PH: [8]=last filtered messagetext
 
 unsigned long int iSecondsElapsed=0;
 unsigned long int aMessages[1000][3] = {0};	// PH: Array used for blocking messages
 
-char szLogFileLine[MAX_STR_LEN+64];			// PH: Current Logfile line
+char szLogFileLine[MAX_STR_LEN+64];	// PH: Current Logfile line
 char szSepfilenames[MAX_SEPFILES][MAX_PATH];// PH: Buffer for current separate filename and the sepfiles in current groupcall
 FILE* pSepFilterFiles[MAX_SEPFILES];
 extern char szWindowText[6][1000];
-extern char szFilenameDate[16];				// PH: Global buffer for date as filename
+extern char szFilenameDate[16];		// PH: Global buffer for date as filename
 
-BYTE message_color[MAX_STR_LEN+1];			// buffer for filter colors
-BYTE messageitems_colors[7];				// buffer for message items colors
-unsigned char message_buffer[MAX_STR_LEN+1];// buffer for message characters
-unsigned char mobitex_buffer[MAX_STR_LEN+1];// buffer for mobitex characters
-unsigned char rev_msg_buffer[MAX_STR_LEN+1];// required for logfile output
+BYTE message_color[MAX_STR_LEN+1];	// buffer for filter colors
+BYTE messageitems_colors[7];		// buffer for message items colors
+BYTE message_buffer[MAX_STR_LEN+1];	// buffer for message characters
+BYTE mobitex_buffer[MAX_STR_LEN+1];	// buffer for mobitex characters
+BYTE rev_msg_buffer[MAX_STR_LEN+1];	// required for logfile output
 
 int iMessageIndex=0;
 
 char *dsc_pchar;
 BYTE *dsc_pcolor;
 
-FILE *pBlocked = NULL;						// PH: Used for blocked messages
+FILE *pBlocked = NULL;			// PH: Used for blocked messages
 
 
 void ResetBools();
-bool BlockChecker(char *address, int fnu, char *message, bool reject);
+int BlockChecker(char *address, int fnu, char *message, int reject);
 
 // Displays debug messages in the filter pane.
 void misc_debug_msg(char *msg)
@@ -224,13 +222,12 @@ void display_show_char(PaneStruct *pane, char cin)
 
 	if (iMessageIndex < MAX_STR_LEN-1) iMessageIndex++;
 
-} // end of display_show_char
+}
 
 
 //  - Output characters to the selected Pane's buffer. 
 //  - Displays line of text when complete.
 //  - After displaying line, start over on next line.
-//void build_show_line(PaneStruct *pane, char cin, int linefeed)
 void build_show_line(PaneStruct *pane, char cin, int option)
 {
 	int index = iItemPositions[7]; // PH: Used when moving to new line
@@ -289,7 +286,7 @@ void build_show_line(PaneStruct *pane, char cin, int option)
 		}
 	}
 	iPanePos = pane->currentPos;	// Get current pane position
-} // end of build_show_line()
+}
 
 
 // Display the current line.
@@ -424,7 +421,7 @@ void ConvertGroupcall(int groupbit, char *vtype, int capcode)
 
 				sprintf(address, "%i", addresses);
 
-				if (BlockChecker(address, 0, (char*)message_buffer, false))
+				if (BlockChecker(address, 0, (char*)message_buffer, FALSE))
 				{
 					if (Profile.show_rejectblocked)
 					{
@@ -587,18 +584,18 @@ void ShowMessage()
 	int iMOBITEX=0;							// PH: Set if converting a Mobitex message
 	int BlockOnlyMsg =((Profile.BlockDuplicate & BLOCK_OPTION) == BLOCK_ONLYMSG);
 
-	bool bMONITOR=true;		// PH: To indicate if current message has to be written to Pane1
+	int bMONITOR=TRUE;		// PH: To indicate if current message has to be written to Pane1
 
-	bool bBlock=false, bSkip_character=false;
-	bool bMATCH=false, bMONITOR_ONLY=false, bFILTERED=false;
-	bool bShowMessage=true, bFragment=false, bGroupcode;
-	bool bNumeric=false;
-	bool bNewFile, bNewLine;					// PH: To indicate if the logfile is new / already exists
-	bool bSeparator[2] = { true, true };		// PH: Set if a separator is needed
-	bool bCombine = false;						// PH: Used for grouping not-group messages
+	int bBlock=FALSE, bSkip_character=FALSE;
+	int bMATCH=FALSE, bMONITOR_ONLY=FALSE, bFILTERED=FALSE;
+	int bShowMessage=TRUE, bFragment=FALSE, bGroupcode;
+	int bNumeric=FALSE;
+	int bNewFile, bNewLine;					// PH: To indicate if the logfile is new / already exists
+	int bSeparator[2] = { TRUE, TRUE };		// PH: Set if a separator is needed
+	int bCombine = FALSE;						// PH: Used for grouping not-group messages
 
-	static bool bPlayWaveFile, bPreviousDoubleDisplay=false;
-	static bool bPreviousNumeric[2]= { false, false };	// PH: Was prev.MSG numeric?
+	static int bPlayWaveFile, bPreviousDoubleDisplay=FALSE;
+	static int bPreviousNumeric[2]= { FALSE, FALSE };	// PH: Was prev.MSG numeric?
 														// ([MONITOR] / [FILTER])
 	char szFilename[MAX_PATH];					// Buffer for filenames
 	char szFragment[50]="";						// Buffer for fragment text
@@ -608,7 +605,6 @@ void ShowMessage()
 	char szCurrentLabel[2][FILTER_LABEL_LEN+50] = { "", "" };
 	char aGroupnumbers[16][8]={"-1", "-2", "-3", "-4", "-5", "-6", "-7", "-8", "-9", "10", "11", "12", "13", "14", "15", "16"};
 
-	extern bool bTrayed, bDoubleDisplay;
 	extern int  nCount_Messages, nCount_Rejected, nCount_Blocked, nCount_Groupcalls;
 
 	DWORD dwColor;
@@ -637,11 +633,11 @@ void ShowMessage()
 
 	memcpy(Current_MSG[MSG_MESSAGE], message_buffer, MAX_STR_LEN);
 
-	bMobitexReplace=false;
+	bMobitexReplace=FALSE;
 
 	iMatch=Check_4_Filtermatch();	// PH: Check if current message matches a filter
 
-	bGroupcode = memcmp(Current_MSG[MSG_CAPCODE], "20295", 5) ? false : true;
+	bGroupcode = memcmp(Current_MSG[MSG_CAPCODE], "20295", 5) ? FALSE : TRUE;
 
 	if (!iConvertingGroupcall)
 	{
@@ -654,11 +650,11 @@ void ShowMessage()
 
 		if (Profile.FlexGroupMode & FLEXGROUPMODE_HIDEGROUPCODES)
 		{
-			bShowMessage=false;
+			bShowMessage=FALSE;
 
 			if (!bShown[MONITOR] && (Profile.BlockDuplicate & BLOCK_OPTION) == BLOCK_TIMER)	// Nothing shown + using timer
 			{
-				BlockChecker(0, 0, Current_MSG[MSG_MESSAGE], true);	// Current message might me in block-buffer
+				BlockChecker(0, 0, Current_MSG[MSG_MESSAGE], TRUE);	// Current message might me in block-buffer
 			}
 		}
 	}
@@ -668,7 +664,7 @@ void ShowMessage()
 		if ((strstr(Current_MSG[MSG_TYPE], "NUM")) ||
 			(strstr(Current_MSG[MSG_TYPE], "TONE")))
 		{
-			bNumeric = true;	// This is a numeric / tone-only message
+			bNumeric = TRUE;	// This is a numeric / tone-only message
 		}
 
 		if (iMatch != -1)
@@ -678,18 +674,18 @@ void ShowMessage()
 			memcpy(Profile.filters[iMatch].lasthit_time, Current_MSG[MSG_TIME], 8);// Update last time
 			memcpy(Profile.filters[iMatch].lasthit_date, Current_MSG[MSG_DATE], 8);// Update last date
 
-			bUpdateFilters = true;										// Update filters.ini in UpdateFilters()
+			bUpdateFilters = TRUE;										// Update filters.ini in UpdateFilters()
 
-			bMATCH=true;
+			bMATCH=TRUE;
 
 			if (Profile.filters[iMatch].monitor_only || bMobitexReplace)
 			{
-				bMONITOR_ONLY=true;
+				bMONITOR_ONLY=TRUE;
 			}
 			else
 			{
-				bFILTERED=true;
-				if (Profile.filterwindowonly) bMONITOR=false;	// Don't display filtered messages in monitor pane
+				bFILTERED=TRUE;
+				if (Profile.filterwindowonly) bMONITOR=FALSE;	// Don't display filtered messages in monitor pane
 			}
 
 			if (Profile.filters[iMatch].reject)
@@ -705,8 +701,8 @@ void ShowMessage()
 
 					if (bPlayWaveFile)
 					{
-						PlayWaveFile(NULL, NULL, true);
-						bPlayWaveFile = false;
+						PlayWaveFile(NULL, NULL, TRUE);
+						bPlayWaveFile = FALSE;
 					}
 					if (iConvertingGroupcall)
 					{
@@ -725,7 +721,7 @@ void ShowMessage()
 
 		if (Profile.BlockDuplicate && !iConvertingGroupcall)	// Do we want to block duplicate messages?
 		{
-			bBlock = BlockChecker(Current_MSG[MSG_CAPCODE], strstr(Current_MSG[MSG_MODE], "POCSAG") ? atoi(&Current_MSG[MSG_MODE][7]) : 0, Current_MSG[MSG_MESSAGE], false);
+			bBlock = BlockChecker(Current_MSG[MSG_CAPCODE], strstr(Current_MSG[MSG_MODE], "POCSAG") ? atoi(&Current_MSG[MSG_MODE][7]) : 0, Current_MSG[MSG_MESSAGE], FALSE);
 
 			if (bBlock)
 			{
@@ -760,8 +756,8 @@ void ShowMessage()
 					if (CompareMessage(MSG_MESSAGE, FILTER) &&	// Compare messages
 						CompareMessage(MSG_TYPE, FILTER))		// Compare types (mostly for Mobitex)
 					{
-						bFILTERED=false;
-						bMONITOR_ONLY=true;
+						bFILTERED=FALSE;
+						bMONITOR_ONLY=TRUE;
 					}
 				}
 			}
@@ -772,15 +768,15 @@ void ShowMessage()
 			{
 				default:
 				case 1:
-						SystemTrayWindow(false);
+						SystemTrayWindow(FALSE);
 				break;
 
 				case 2:
-						if (bMONITOR_ONLY || bFILTERED) SystemTrayWindow(false);
+						if (bMONITOR_ONLY || bFILTERED) SystemTrayWindow(FALSE);
 				break;
 
 				case 3:
-						if (bFILTERED) SystemTrayWindow(false);
+						if (bFILTERED) SystemTrayWindow(FALSE);
 				break;
 			}
 		}
@@ -793,7 +789,7 @@ void ShowMessage()
 				{
 					if (memcmp(Current_MSG[MSG_CAPCODE], Previous_MSG[MONITOR][MSG_CAPCODE], 2) == 0)
 					{
-						bCombine=true;
+						bCombine=TRUE;
 					}
 				}
 			}
@@ -824,32 +820,32 @@ void ShowMessage()
 			{
 				if (bShown[pane])	// Already shown? (groupcall)
 				{
-					bSeparator[pane] = false;
+					bSeparator[pane] = FALSE;
 				}
 				else if (bDoubleDisplay)
 				{
 					if (strcmp(Current_MSG[MSG_TYPE], "NUMERIC") == 0)
 					{
-						bSeparator[pane] = false;
-						bPreviousNumeric[pane] = false;
+						bSeparator[pane] = FALSE;
+						bPreviousNumeric[pane] = FALSE;
 					}
 				}
 				else if (bNumeric && bPreviousNumeric[pane] && !Profile.FlexGroupMode)	// If prev+current messages are numeric
 				{
-					bSeparator[pane] = false;
+					bSeparator[pane] = FALSE;
 				}
 				else if (CompareMessage(MSG_MESSAGE, MONITOR) && !Profile.FlexGroupMode)	// Compare messages
 				{
-					bSeparator[pane] = false;
+					bSeparator[pane] = FALSE;
 				}
 			}
-			else bSeparator[pane] = false;
+			else bSeparator[pane] = FALSE;
 
 			if (!bDoubleDisplay) bPreviousNumeric[pane] = bNumeric;
 
 			if (Profile.FlexGroupMode && bShown[pane])
 			{
-				bSeparator[pane] = false;
+				bSeparator[pane] = FALSE;
 				continue;
 			}
 
@@ -861,7 +857,7 @@ void ShowMessage()
 				}
 				else sprintf(szFragment, "[Continued message - Fragment #%c]", char(Current_MSG[MSG_BITRATE][3])+1);
 
-				bFragment=true;
+				bFragment=TRUE;
 			}
 
 			if (bSeparator[pane] && pPane->Bottom) // If pane is not empty, add an empty line
@@ -897,7 +893,7 @@ void ShowMessage()
 						}
 					}
 
-					for (pos=0; message_buffer[pos] != 0; pos++, bSkip_character=false)
+					for (pos=0; message_buffer[pos] != 0; pos++, bSkip_character=FALSE)
 					{
 						ch = message_buffer[pos];
 						display_color(pPane, message_color[pos]);
@@ -925,14 +921,14 @@ void ShowMessage()
 							if (ch == char(23))
 							{
 								build_show_line(pPane, ' ', BUILDSHOWLINE_LINEFEED);
-								bSkip_character=true;
+								bSkip_character=TRUE;
 							}
 						}
 						else if (ch == ' ')				// PH: If character is a space
 						{
 							if (iPanePos == iItemPositions[MSG_MESSAGE])
 							{
-								bSkip_character=true;	// PH: If first char is a space, skip it
+								bSkip_character=TRUE;	// PH: If first char is a space, skip it
 							}
 							else if (!Profile.monitor_mobitex)	// PH: Check for wordwrap
 							{
@@ -948,7 +944,7 @@ void ShowMessage()
 								if (panepos > NewLinePoint)		// PH: Move to new line
 								{
 									build_show_line(pPane, ' ', BUILDSHOWLINE_LINEFEED);
-									bSkip_character=true;
+									bSkip_character=TRUE;
 								}
 							}
 						}
@@ -956,11 +952,11 @@ void ShowMessage()
 						{
 							if (Profile.Linefeed)
 							{
-								if (iPanePos == iItemPositions[MSG_MESSAGE]) bSkip_character=true;
+								if (iPanePos == iItemPositions[MSG_MESSAGE]) bSkip_character=TRUE;
 								else
 								{
 									build_show_line(pPane, ' ', BUILDSHOWLINE_LINEFEED);
-									bSkip_character=true;
+									bSkip_character=TRUE;
 								}
 							}
 						}
@@ -1028,7 +1024,7 @@ void ShowMessage()
 				display_show_strV2(pPane, " ");
 				display_line(pPane);		// Separate grouped num+alpha message
 			}
-			bShown[pane]=true;
+			bShown[pane]=TRUE;
 		}
 		iMessageIndex = 0;					// reset to beginning of filter buffer
 
@@ -1148,13 +1144,13 @@ void ShowMessage()
 		{
 			LogFileHandling(MONITOR, szFilename, OPEN_FILE);
 
-			bNewFile = (!FileExists(szFilename)) ? true : false;
+			bNewFile = (!FileExists(szFilename)) ? TRUE : FALSE;
 			pLogFile = fopen(szFilename, "a");
 		}
 
 		if (pLogFile)
 		{
-			bNewLine = (bSeparator[MONITOR] && !bNewFile) ? true : false;
+			bNewLine = (bSeparator[MONITOR] && !bNewFile) ? TRUE : FALSE;
 
 			if (Profile.FlexGroupMode & FLEXGROUPMODE_LOGGING)
 			{
@@ -1166,12 +1162,12 @@ void ShowMessage()
 
 				if (!bLogged[MONITOR])
 				{
-					bLogged[MONITOR] = true;
+					bLogged[MONITOR] = TRUE;
 				}
 			}
 			else
 			{
-				CollectLogfileLine(Profile.ColLogfile, false);
+				CollectLogfileLine(Profile.ColLogfile, FALSE);
 
 				if (szCurrentLabel[1][0] && Profile.LabelLog) // PH: Add labels also in logfile
 				{
@@ -1195,7 +1191,7 @@ void ShowMessage()
 		{
 			if (!(Profile.FlexGroupMode & FLEXGROUPMODE_LOGGING))
 			{
-				CollectLogfileLine(Profile.ColFilterfile, true);
+				CollectLogfileLine(Profile.ColFilterfile, TRUE);
 
 				if (szCurrentLabel[1][0])
 				{
@@ -1218,19 +1214,19 @@ void ShowMessage()
 				{
 					LogFileHandling(FILTER, szFilename, OPEN_FILE);
 
-					bNewFile = (!FileExists(szFilename)) ? true : false;
+					bNewFile = (!FileExists(szFilename)) ? TRUE : FALSE;
 					pFilterFile = fopen(szFilename, "a");
 				}
 				if (pFilterFile)		// PH: Write current message to filterfile
 				{
-					bNewLine = (bSeparator[FILTER] && !bNewFile) ? true : false;
+					bNewLine = (bSeparator[FILTER] && !bNewFile) ? TRUE : FALSE;
 
 					if (Profile.FlexGroupMode & FLEXGROUPMODE_LOGGING)
 					{
 						if (isdigit(szLogFileLine[0]) && !bLogged[FILTER] && !bCombine)
 						{
 							fprintf(pFilterFile, "%s%s", bNewLine ? "\n" : "", szLogFileLine);
-							bLogged[FILTER]=true;
+							bLogged[FILTER]=TRUE;
 						}
 						fprintf(pFilterFile, "%s    %s  %s\n", bFragment ? szFragment : "               ", Current_MSG[MSG_CAPCODE], szCurrentLabel[0]);
 					}
@@ -1248,15 +1244,15 @@ void ShowMessage()
 					{
 						if (_stricmp(szSepfilenames[CURRENT], szSepfilenames[iSepfile]) == 0)
 						{
-							bNewLine = false;
-							bLogged[SEPARATE] = true;
+							bNewLine = FALSE;
+							bLogged[SEPARATE] = TRUE;
 							break;	// Exit if filename already exists
 						}
 						else if (!szSepfilenames[iSepfile][0])
 						{
-							bNewLine = (Profile.Separator && FileExists(szSepfilenames[CURRENT])) ? true : false;
+							bNewLine = (Profile.Separator && FileExists(szSepfilenames[CURRENT])) ? TRUE : FALSE;
 							strcpy(szSepfilenames[iSepfile], szSepfilenames[CURRENT]);
-							bLogged[SEPARATE] = false;
+							bLogged[SEPARATE] = FALSE;
 							break;
 						}
 					}
@@ -1279,7 +1275,7 @@ void ShowMessage()
 
 			if (Profile.filterbeep)	// Playsound to indicate that a filtered item was received
 			{
-				if (PlayWaveFile(bMONITOR_ONLY, bFILTERED, false)) bPlayWaveFile=true;
+				if (PlayWaveFile(bMONITOR_ONLY, bFILTERED, FALSE)) bPlayWaveFile=TRUE;
 			}
 		}
 	} // if (bShowMessage)
@@ -1292,20 +1288,20 @@ void ShowMessage()
 
 		if (bPlayWaveFile)
 		{
-			PlayWaveFile(NULL, NULL, true);
-			bPlayWaveFile = false;
+			PlayWaveFile(NULL, NULL, TRUE);
+			bPlayWaveFile = FALSE;
 		}
 		
-		if (bFragment) bFragment=false;
+		if (bFragment) bFragment=FALSE;
 
 		ResetBools();
 /*
-		bShown[MONITOR] = false;
-		bShown[FILTER]  = false;
+		bShown[MONITOR] = FALSE;
+		bShown[FILTER]  = FALSE;
 
-		bLogged[MONITOR]  = false;
-		bLogged[FILTER]   = false;
-		bLogged[SEPARATE] = false;
+		bLogged[MONITOR]  = FALSE;
+		bLogged[FILTER]   = FALSE;
+		bLogged[SEPARATE] = FALSE;
 */
 		memset(message_buffer, 0, sizeof(message_buffer));
 	}
@@ -1329,11 +1325,11 @@ void ShowMessage()
 } // end of ShowMessage()
 
 
-bool BlockChecker(char *address, int fnu, char *message, bool reject)
+int BlockChecker(char *address, int fnu, char *message, int reject)
 {
 	extern int nCount_BlockBuffer[2];
 
-	bool bBlock=false;
+	int bBlock=FALSE;
 
 	int i, j, sum=0;
 	int BlockTimer   = (Profile.BlockDuplicate >> 4) * 60;
@@ -1351,7 +1347,7 @@ bool BlockChecker(char *address, int fnu, char *message, bool reject)
 			if (CompareMessage(MSG_MESSAGE, MONITOR) &&	// Compare messages
 				CompareMessage(MSG_TYPE, MONITOR))		// Compare types (mostly for Mobitex)
 			{
-				bBlock=true;
+				bBlock=TRUE;
 			}
 		}
 	}
@@ -1403,7 +1399,7 @@ bool BlockChecker(char *address, int fnu, char *message, bool reject)
 						{
 							if (aMessages[i][BLOCK_CHECKSUM] == lChecksum)	// Message the same?
 							{
-								bBlock=true;						// Block this message
+								bBlock=TRUE;						// Block this message
 								break;
 							}
 						}
@@ -1445,12 +1441,12 @@ bool BlockChecker(char *address, int fnu, char *message, bool reject)
 
 void ResetBools()
 {
-	bShown[MONITOR] = false;
-	bShown[FILTER]  = false;
+	bShown[MONITOR] = FALSE;
+	bShown[FILTER]  = FALSE;
 
-	bLogged[MONITOR]  = false;
-	bLogged[FILTER]   = false;
-	bLogged[SEPARATE] = false;
+	bLogged[MONITOR]  = FALSE;
+	bLogged[FILTER]   = FALSE;
+	bLogged[SEPARATE] = FALSE;
 }
 
 
@@ -1536,18 +1532,18 @@ char LogFileHandling(int file, char *szFileName, int action)
 
 int CompareMessage(int item, int mon_or_filt)
 {
-	if ((item == MSG_MESSAGE) && !Current_MSG[item][0] && !Previous_MSG[mon_or_filt][item][0]) return true;
+	if ((item == MSG_MESSAGE) && !Current_MSG[item][0] && !Previous_MSG[mon_or_filt][item][0]) return TRUE;
 
-	if (strcmp(Current_MSG[item], Previous_MSG[mon_or_filt][item]) != 0) return false;
+	if (strcmp(Current_MSG[item], Previous_MSG[mon_or_filt][item]) != 0) return FALSE;
 
-	return true;
+	return TRUE;
 }
 
 
 char *MakeFilterLabel(char *szLabel, char *szCapcode, char *szNewLabel)
 {
 	unsigned max = strlen(szCapcode), pos=0;
-	bool bFound=false;
+	int bFound=FALSE;
 
 	unsigned tmp;
 
@@ -1570,7 +1566,7 @@ char *MakeFilterLabel(char *szLabel, char *szCapcode, char *szNewLabel)
 }
 
 
-bool PlayWaveFile(bool bMONITOR_ONLY, bool bFILTERED, bool bPlay)
+int PlayWaveFile(int bMONITOR_ONLY, int bFILTERED, int bPlay)
 {
 	char *p={0};
 	char szText[FILTER_TEXT_LEN+2]="";
@@ -1611,7 +1607,7 @@ bool PlayWaveFile(bool bMONITOR_ONLY, bool bFILTERED, bool bPlay)
 
 		if ((Profile.filterbeep == 2) && bMONITOR_ONLY)
 		{
-			return (false);
+			return (FALSE);
 		}
 
 		if (Profile.filters[iMatch].capcode[0])
@@ -1680,13 +1676,13 @@ bool PlayWaveFile(bool bMONITOR_ONLY, bool bFILTERED, bool bPlay)
 				Prio[CURRENT] = PrioTMP[CURRENT];
 				dwFileSize[CURRENT]=dwFileSizeTMP[CURRENT];
 			}
-			else return (true);
+			else return (TRUE);
 
 			strcpy(szWavefileTMP[PREVIOUS], szWavefileTMP[CURRENT]);
 			PrioTMP[PREVIOUS] = PrioTMP[CURRENT];
 			dwFileSizeTMP[PREVIOUS]=dwFileSizeTMP[CURRENT];
 
-			return (true);
+			return (TRUE);
 		}
 	}
 	else
@@ -1708,7 +1704,7 @@ bool PlayWaveFile(bool bMONITOR_ONLY, bool bFILTERED, bool bPlay)
 		dwFileSize[CURRENT] = 0;
 	}
 
-	return (false);
+	return (FALSE);
 }
 
 
@@ -1718,7 +1714,7 @@ int Check_4_Filtermatch()
 	int mode = 0;
 	int i=0, j=0, k=0, l=0, m=0, n=0, pos=0;
 
-	bool bCompare=false, bCorrectHeader=false, bKeyword=false;
+	int bCompare=FALSE, bCorrectHeader=FALSE, bKeyword=FALSE;
 
 	char szTextTMP[FILTER_TEXT_LEN+1]="";
 	char* pSearch={0};
@@ -2077,7 +2073,7 @@ void ActivateCommandFile()
 }
 
 
-void CollectLogfileLine(char *string, bool bFilter)
+void CollectLogfileLine(char *string, int bFilter)
 {
 	extern int FLEX_9;
 	int spacing=0;
@@ -2169,7 +2165,7 @@ void display_color(PaneStruct *pane, BYTE ct)
 
 void display_showmo(int mode)
 {
-	bMode_IDLE = mode ? false : true;
+	bMode_IDLE = mode ? FALSE : TRUE;
 
 	if (bMode_IDLE)
 	{

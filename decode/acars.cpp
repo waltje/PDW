@@ -1,18 +1,13 @@
-//
-// acars.cpp
-//
 #include <windows.h>
-#include <mmsystem.h>
 #include <stdio.h>
-#include <commdlg.h>
 #include <string.h>
 #include <ctype.h>
-#include "pdw.h"
-#include "initapp.h"
-#include "gfx.h"
-#include "misc.h"
+#include "../pdw.h"
+#include "../misc.h"
+#include "../gfx.h"
+#include "../utils/utils.h"
+#include "decode.h"
 #include "acars.h"
-#include "helper_funcs.h"
 
 
 //#define AC_OUT_DEBUG 1

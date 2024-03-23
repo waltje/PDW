@@ -10,15 +10,15 @@
 //
 //
 #include <windows.h>
-#include "resource.h"
 #include "pdw.h"
-#include "initapp.h"
 #include "sigind.h"
-#include "decode.h"
+#include "decode/acars.h"
+#include "decode/ermes.h"
+#include "decode/flex.h"
+#include "decode/mobitex.h"
+#include "decode/pocsag.h"
+#include "decode/decode.h"
 #include "sound_in.h"
-#include "acars.h"
-#include "mobitex.h"
-#include "ermes.h"		// PH: new
 
 
 // #define AU_ACARS_BIT_TEST  1
@@ -48,7 +48,7 @@ HWAVEOUT hWaveOut;                   // Handle to audio device
 WAVEHDR WaveHeader[NUMBER_BUFFERS];  // Audio buffers to be put into audio queue
 int buffers_ready=0;                 // Used by callback function to indicate buffer(s) ready
 int last_buff_processed = -1;        // Used for predicting next buffer to be filled.
-bool bCapturing=false;               // Used to check to see if capturing is enabled.
+int bCapturing=FALSE;               // Used to check to see if capturing is enabled.
 char high_audio=DEFAULT_HI_AUDIO;
 char low_audio =DEFAULT_LO_AUDIO;
 
@@ -80,10 +80,6 @@ int config_index = 1;
 int cross_over = 0;
 int skipped_sc = 0;
 
-// pocsag globals
-extern POCSAG pocsag;
-extern int pocsag_baud_rate, pocbit;
-
 // ACARS globals
 int process_acars_bit = 0;
 
@@ -94,17 +90,17 @@ int audio_buffer_cnt = 0;
 #ifdef AUDIO_IN_DEBUG
 void Display_Sync(char bit);
 void Debug_MSG(char *msg);
-BOOL Test_Sync(int next_bit);
+int Test_Sync(int next_bit);
 void Debug_BIT_MSG(char *msg_bit);
 #endif
 
-extern bool bMode_IDLE;
+extern int bMode_IDLE;
 
 //   Start_Capturing
 //
 //   Starts capturing audio data from the soundcard.
 //
-BOOL Start_Capturing(void)
+int Start_Capturing(void)
 {
 	WAVEFORMATEX my_wave_format={0};
 	HGLOBAL h_memory_block = NULL;
@@ -112,7 +108,7 @@ BOOL Start_Capturing(void)
 	MMRESULT result;
 	char *msg;
 
-	bCapturing = false;
+	bCapturing = FALSE;
 
 	// Describe the type of audio connection we want to open
 	my_wave_format.wFormatTag		= WAVE_FORMAT_PCM;
@@ -205,7 +201,7 @@ BOOL Start_Capturing(void)
 	// Start capturing audio
 	if (waveInStart(hWaveIn) == MMSYSERR_NOERROR)
 	{
-		bCapturing = true;
+		bCapturing = TRUE;
 		return(TRUE);     // OK!
 	}
 	return(FALSE);
@@ -215,9 +211,9 @@ BOOL Start_Capturing(void)
 //
 //   Resets the connection to the audio device and closes it.
 //
-BOOL Stop_Capturing(void)
+int Stop_Capturing(void)
 {   
-	bCapturing = false;
+	bCapturing = FALSE;
 
 	// Reset the audio connection... takes waiting buffers out of input queue
 	waveInReset(hWaveIn);
@@ -266,12 +262,12 @@ void Process_ReadyBuffers(HWND hwnd)
 
 	if (flex_timer)	// If dropping out of FLEX mode reset and start over
 	{
-		bMode_IDLE = false;
+		bMode_IDLE = FALSE;
 		flex_timer--;
 
 		if (flex_timer == 0)
 		{
-			bMode_IDLE = true;
+			bMode_IDLE = TRUE;
 			if (!pocbit)	// Don't reset if POCSAG signal found immediately after flex signal.
 			{
 				BaudRate = 1600;
@@ -520,7 +516,7 @@ void Audio_To_Bits(char *lpAudioBuffer, long LenAudioBuffer)
 
 		if (pocbit || flex_timer)
 		{
-			bMode_IDLE = false;
+			bMode_IDLE = FALSE;
 
 			if (atb_sig_cnt < 3)			// Update signal indicator.
 			{
@@ -528,7 +524,7 @@ void Audio_To_Bits(char *lpAudioBuffer, long LenAudioBuffer)
 				atb_sig_cnt++;
 			}
 		}
-		else bMode_IDLE = true;
+		else bMode_IDLE = TRUE;
 
 		atb_len++; // Keep count of number of 1/0 samples.
 
@@ -728,7 +724,7 @@ void ACARS_To_Bits(char *lpAudioBuffer, long LenAudioBuffer)
 				UpdateSigInd(1);	// Move signal indicator right 1
 				atb_sig_cnt++;
 			}
-			bMode_IDLE=false;
+			bMode_IDLE=FALSE;
 		}
 		atb_value = val;
 		atb_len++;			// Keep count of number of 1/0 samples.

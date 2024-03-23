@@ -1,6 +1,15 @@
-#ifndef KROKET_H
-#define KROKET_H
+#ifndef PDW_BINARY_H
+# define PDW_BINARY_H
 
-char *DeKroket(char *szData, char *szReturn) ;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#endif /* ! KROKET_H */
+char *DeKroket(char *szData, char *szReturn);
+
+#ifdef __cplusplus
+}
+#endif
+
+
+#endif	/*PDW_BINARY_H*/

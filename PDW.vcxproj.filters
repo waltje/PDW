@@ -15,105 +15,93 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="acars.cpp">
+    <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="decode.cpp">
+    <ClCompile Include="initapp.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ermes.cpp">
+    <ClCompile Include="language.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="flex.cpp">
+    <ClCompile Include="gfx.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="gfx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="helper_funcs.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="initapp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="language.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="menu.cpp">
+    <ClCompile Include="menu.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="misc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mobitex.cpp">
+    <ClCompile Include="printer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="sigind.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="pocsag.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="printer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sigind.cpp">
+    <ClCompile Include="smtp.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sound_in.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="toolbar.cpp">
+    <ClCompile Include="toolbar.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="utils/binary.cpp">
+    <ClCompile Include="utils/binary.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="utils/debug.cpp">
+    <ClCompile Include="utils/debug.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="utils/messagequeue.cpp">
+    <ClCompile Include="utils/messagequeue.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="utils/ipcnfg.cpp">
+    <ClCompile Include="utils/ipcnfg.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="utils/ostype.cpp">
+    <ClCompile Include="utils/ostype.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="utils/rs232.cpp">
+    <ClCompile Include="utils/rs232.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="utils/smtp.cpp">
+    <ClCompile Include="utils/utils.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="decode/decode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="decode/acars.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="decode/ermes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="decode/flex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="decode/mobitex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="decode/pocsag.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="resrc1.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="acars.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="decode.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ermes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="gfx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="helper_funcs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="html.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="initapp.h">
+    <ClInclude Include="pdw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="language.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gfx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="menu.h">
@@ -122,22 +110,19 @@
     <ClInclude Include="misc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mobitex.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="pdw.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="printer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sigind.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="slicer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="smtp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="smtp_int.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sound_in.h">
@@ -155,9 +140,6 @@
     <ClInclude Include="utils/messagequeue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="utils/globals.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="utils/ipcnfg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -167,10 +149,25 @@
     <ClInclude Include="utils/rs232.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="utils/smtp.h">
+    <ClInclude Include="utils/utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="utils/smtp_int.h">
+    <ClInclude Include="decode/decode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="decode/acars.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="decode/ermes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="decode/flex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="decode/mobitex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="decode/pocsag.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

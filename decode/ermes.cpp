@@ -1,23 +1,12 @@
-//
-// ermes.cpp
-//
 #include <windows.h>
-#include <commctrl.h>
-#include <mmsystem.h>
 #include <stdio.h>
-#include <commdlg.h>
 #include <string.h>
-#include <ctype.h>
-#include <time.h>
-#include "pdw.h"
-#include "initapp.h"
-#include "gfx.h"
+#include "../pdw.h"
+#include "../misc.h"
+#include "../gfx.h"
+#include "../utils/utils.h"
 #include "decode.h"
-#include "misc.h"
-#include "acars.h"
-#include "mobitex.h"
 #include "ermes.h"
-#include "helper_funcs.h"
 
 
 #define min(a,b) (((a) < (b)) ? (a) : (b))
@@ -39,11 +28,11 @@
 ERMES em;
 
 // error detection / correction matrix
-int gmat[18]={	0xF08, 0x784, 0x3C2, 0x1E1, 0xD96, 0x6CB, 0xE03, 0xA67, 0x855,
+static int gmat[18]={	0xF08, 0x784, 0x3C2, 0x1E1, 0xD96, 0x6CB, 0xE03, 0xA67, 0x855,
 		0x94C, 0x4A6, 0x253, 0xC4F, 0xB41, 0x8C6, 0x463, 0xF57, 0xACD };
 
-char numformat[17]={"0123456789/ U-.%"};					// contains numeric paging data format
-char alpformat[33]={"@£$¥èéùìòÇ Øø Åå            ÆæßÉ"};	// contains alphanumeric paging data format
+static char numformat[17]={"0123456789/ U-.%"};					// contains numeric paging data format
+static char alpformat[33]={"@£$¥èéùìòÇ Øø Åå            ÆæßÉ"};	// contains alphanumeric paging data format
 
 
 // Default ERMES settings
@@ -390,12 +379,12 @@ void ERMES::showme(long int l, int c)
 // pick out address & message information
 void ERMES::docw(long int col, int blkc)
 {
+	static int last_shown=0;
+	static short int nadd=0, mess=0, lwd=0, ncbc=0;
 	long int ecol;
 	short int cycle, frame, batch;
-	static short int nadd=0, mess=0, lwd=0, ncbc=0;
 
-	static int last_shown=0;
-	extern bool bEmpty_Frame;		// Set if FLEX-Frame=EMTPY / ERMES-Batch=0
+	extern int bEmpty_Frame;		// Set if FLEX-Frame=EMTPY / ERMES-Batch=0
 
 	extern char szWindowText[6][1000];	// PH: Additional info in titlebar
 

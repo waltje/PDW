@@ -1,5 +1,5 @@
 /***************************************************
- * Filename : ostype.h
+ * Filename : ostype.c
  *			  All rights reserved.
  * Started  : 07-Dec-1998 by Herman Withaar
  *			: $Date: 2004/07/13 21:50:02 $	$Revision: 1.1.1.1 $

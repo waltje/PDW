@@ -14,12 +14,13 @@
 //	  void FLEX::showwordhex(int wordnum)
 //	  void frame_flex(char gin)
 #include <windows.h>
-#include "pdw.h"
-#include "initapp.h"
-#include "misc.h"
-#include "sound_in.h"
-#include "helper_funcs.h"
-#include "utils/debug.h"
+#include "../pdw.h"
+#include "../misc.h"
+#include "../sound_in.h"
+#include "../utils/debug.h"
+#include "../utils/utils.h"
+#include "decode.h"
+#include "flex.h"
 
 
 #define min(a,b) (((a) < (b)) ? (a) : (b))
@@ -55,12 +56,12 @@ long int capcode;
 int FlexTempAddress;		// PH: Set to corresponding groupaddress (0-15)
 int FLEX_9=0;			// PH: Set if receiving 9-digit capcodes
 
-bool bEmpty_Frame;		// PH: Set if FLEX-Frame=EMTPY / ERMES-Batch=0
+int bEmpty_Frame;		// PH: Set if FLEX-Frame=EMTPY / ERMES-Batch=0
 
-bool bFLEX_groupmessage;	// PH: Set if receiving a groupmessage (2029568-2029583)
-bool bFLEX_Frame_contains_SI;	// PH: Set if this frame contains Short instructions
-bool bFlexTIME_detected=false;	// PH: Set if FlexTIME is detected
-bool bFlexTIME_not_used=false;	// PH: Set if FlexTIME is not used on this network
+int bFLEX_groupmessage;	// PH: Set if receiving a groupmessage (2029568-2029583)
+int bFLEX_Frame_contains_SI;	// PH: Set if this frame contains Short instructions
+int bFlexTIME_detected=FALSE;	// PH: Set if FlexTIME is detected
+int bFlexTIME_not_used=FALSE;	// PH: Set if FlexTIME is not used on this network
 
 SYSTEMTIME recFlexTime, recTmpTime;
 FILE *pFlexTIME = NULL;
@@ -102,8 +103,8 @@ void flex_reset(void)
 	flex_blk = 0;
 	flex_bc = 0;
 	flex_timer = 0;
-	bReflex = false;
-	bFlexActive = false;
+	bReflex = FALSE;
+	bFlexActive = FALSE;
 }
 
 // checksum check for BIW and vector type words
@@ -187,9 +188,9 @@ void FLEX::show_address(long int l, long int l2, bool bLongAddress)
 
 	if (Profile.convert_si && (capcode >= 2029568) && (capcode <= 2029583))
 	{
-		 bFLEX_groupmessage=true;
+		 bFLEX_groupmessage=TRUE;
 	}
-	else bFLEX_groupmessage=false;
+	else bFLEX_groupmessage=FALSE;
 
 	/* Show Capcode */
 
@@ -285,7 +286,7 @@ void FLEX::FlexTIME()
 
 	static int FLEX_time=0, FLEX_date=0, count=0;
 
-	bool bTime = false, bDate = false;
+	bool bTime = FALSE, bDate = FALSE;
 
 //	OUTPUTDEBUGMSG((("Frame[0] = 0x%08X\n"), frame[0]));		
 //	OUTPUTDEBUGMSG((("Priority addresses %d\n"), (frame[0] >> 4) & 0xF));		
@@ -314,7 +315,7 @@ void FLEX::FlexTIME()
 					recFlexTime.wDay = frame[i] & 0x1F;
 					frame[i] >>= 5;
 					recFlexTime.wMonth = (frame[i] & 0xF);
-					bDate = true;
+					bDate = TRUE;
 					FLEX_date=1;
 //					OUTPUTDEBUGMSG((("BIW DATE: %d-%d-%d\n"), recFlexTime.wDay, recFlexTime.wMonth, recFlexTime.wYear));		
 					break;
@@ -325,7 +326,7 @@ void FLEX::FlexTIME()
 					recFlexTime.wMinute = frame[i] & 0x3F;
 					frame[i] >>= 6;
 					recFlexTime.wSecond = seconds;
-					bTime = true;
+					bTime = TRUE;
 					FLEX_time=1;
 //					OUTPUTDEBUGMSG((("BIW TIME: %02d:%02d:%02d\n"), recFlexTime.wHour, recFlexTime.wMinute, recFlexTime.wSecond));
 					break;
@@ -344,13 +345,13 @@ void FLEX::FlexTIME()
 		}
 	}
 
-	if (FLEX_time && FLEX_date && !bFlexTIME_detected) bFlexTIME_detected = true;
+	if (FLEX_time && FLEX_date && !bFlexTIME_detected) bFlexTIME_detected = TRUE;
 
 	if (iCurrentFrame == 0)
 	{
 		count++;
 
-		if (count == 15 && !bFlexTIME_detected) bFlexTIME_not_used = true;
+		if (count == 15 && !bFlexTIME_detected) bFlexTIME_not_used = TRUE;
 		else if (Profile.FlexTIME)
 		{
 			if (bTime || bDate)
@@ -385,7 +386,7 @@ void FLEX::showframe(int asa, int vsa)
 {
 	int vb, vt, tt, w1, w2, j, k, l, m, n=0, i, c=0;
 	long int cc, cc2, cc3;
-	bool bLongAddress=false, bXsumError=false;
+	bool bLongAddress=FALSE, bXsumError=FALSE;
 
 	int iFragmentNumber, iAssignedFrame;
 
@@ -402,14 +403,14 @@ void FLEX::showframe(int asa, int vsa)
 
 	if (xsumchk(frame[0]) == 0)			// make sure we start out with valid BIW
 	{
-		for (j=asa; j<vsa; j++, c=0, bLongAddress=false, bXsumError=false) // run through whole address field
+		for (j=asa; j<vsa; j++, c=0, bLongAddress=FALSE, bXsumError=FALSE) // run through whole address field
 		{
 			cc2 = frame[j] & 0x1fffffl;	// Check if this can be the low part of a long address
 
 			// check for long addresses (bLongAddress indicates long address)
-			if (cc2 < 0x008001l) bLongAddress=true;
-			else if ((cc2 > 0x1e0000l) && (cc2 < 0x1f0001l)) bLongAddress=true;
-			else if (cc2 > 0x1f7FFEl) bLongAddress=true;
+			if (cc2 < 0x008001l) bLongAddress=TRUE;
+			else if ((cc2 > 0x1e0000l) && (cc2 < 0x1f0001l)) bLongAddress=TRUE;
+			else if (cc2 > 0x1f7FFEl) bLongAddress=TRUE;
 
 			vb = vsa + j - asa;	// this is the vector word number associated with the address word j
 			vt = (frame[vb] >> 4) & 0x07;	// get message vector type
@@ -505,7 +506,7 @@ void FLEX::showframe(int asa, int vsa)
 
 				if (!Profile.showinstr) continue;
 
-				if (Profile.convert_si) bFLEX_Frame_contains_SI = true;
+				if (Profile.convert_si) bFLEX_Frame_contains_SI = TRUE;
 
 				strcpy(szWindowText[4], "Groupcall");
 
@@ -712,7 +713,7 @@ void FLEX::showblock(int blknum)
 	int j, k, err, asa, vsa;
 	long int cc;
 	static int last_frame;
-	bool bNoMoreData=false;	// Speed up frame processing
+	bool bNoMoreData=FALSE;	// Speed up frame processing
 
 	for (int i=0; i<8; i++)	// format 32 bit frame into output buffer to do error correction
 	{
@@ -741,7 +742,7 @@ void FLEX::showblock(int blknum)
 	}
 	if ((flex_speed == STAT_FLEX1600) && ((cc == 0x0000l) || (cc == 0x1fffffl)))
 	{
-		bNoMoreData=true;	// Speed up frame processing
+		bNoMoreData=TRUE;	// Speed up frame processing
 	}
 
 	vsa = (int) ((frame[0] >> 10) & 0x3f);		// get word where vector  field starts (6 bits)
@@ -751,11 +752,11 @@ void FLEX::showblock(int blknum)
 	{
 		if (vsa == asa)					// PH: Assuming no messages in current frame,
 		{
-			bEmpty_Frame=true;
+			bEmpty_Frame=TRUE;
 		}
 		else
 		{
-			bEmpty_Frame=false;
+			bEmpty_Frame=FALSE;
 		}
 
 		if (!bFlexTIME_detected && !bFlexTIME_not_used)
@@ -909,12 +910,12 @@ void frame_flex(char gin)
 							else flex_speed = STAT_FLEX3200;
 						}
 
-						bFlexActive = true;
+						bFlexActive = TRUE;
 						flex_timer  = 20;
 
 						g_sps   = (speed & 0x01) ? 3200 : 1600;
 						level   = (speed & 0x02) ? 4 : 2;
-						bReflex = (speed & 0x04) ? true : false;
+						bReflex = (speed & 0x04) ? TRUE : FALSE;
 
 						if (g_sps == 3200) g_sps2 = 3200;
 
@@ -938,12 +939,12 @@ void frame_flex(char gin)
 			{
 				if (Profile.flex_1600)	// 1000011100001100-0111100011110011
 				{
-					bFlexActive = true;
+					bFlexActive = TRUE;
 					flex_timer = 21;
 					g_sps = 1600;
 					flex_speed = STAT_FLEX1600;
 					level = 2;
-					bReflex = false;
+					bReflex = FALSE;
 				}
 				else return;
 			}
@@ -951,12 +952,12 @@ void frame_flex(char gin)
 			{
 				if (Profile.flex_3200)	// 1011000001101000-0100111110010111
 				{
-					bFlexActive = true;
+					bFlexActive = TRUE;
 					flex_timer = 20;  // 2 seconds
 					g_sps = 1600;
 					flex_speed = STAT_FLEX3200;
 					level = 4;
-					bReflex = false;
+					bReflex = FALSE;
 				}
 				else return;
 			}
@@ -964,13 +965,13 @@ void frame_flex(char gin)
 			{
 				if (Profile.flex_6400)	// 1101111010100000-0010000101011111
 				{
-					bFlexActive = true;
+					bFlexActive = TRUE;
 					flex_timer = 20;  // 2 seconds
 					g_sps = 3200;
 					g_sps2 = 3200;
 					flex_speed = STAT_FLEX6400;
 					level = 4;
-					bReflex = false;
+					bReflex = FALSE;
 				}
 				else return;
 			}
@@ -978,13 +979,13 @@ void frame_flex(char gin)
 			{
 				if (Profile.flex_3200)	// 0111101100011000-1000010011100111
 				{
-					bFlexActive = true;
+					bFlexActive = TRUE;
 					flex_timer = 20;	// 2 seconds
 					g_sps = 3200;
 					g_sps2 = 3200;
 					flex_speed = STAT_FLEX3200;
 					level = 2;
-					bReflex = false;
+					bReflex = FALSE;
 				}
 				else return;
 			}
@@ -992,25 +993,25 @@ void frame_flex(char gin)
 			{
 				if (Profile.flex_3200)	// 0100110001111100-1011001110000011
 				{
-					bFlexActive = true;
+					bFlexActive = TRUE;
 					flex_timer = 20;  // 2 seconds
 					g_sps = 3200;
 					g_sps2 = 3200;
 					flex_speed = STAT_FLEX6400;
 					level = 4;
-					bReflex = true;
+					bReflex = TRUE;
 				}
 				else return;
 			}
 			else if (((slr[0] ^ slr[3]) & 0xFFFF) == 0xFFFF)
 			{
-				bFlexActive = true;
+				bFlexActive = TRUE;
 				flex_timer = 20;  // 2 seconds
 				g_sps = 3200;
 				g_sps2 = 3200;
 				flex_speed = STAT_FLEX3200;
 				level = 2;
-				bReflex = true;
+				bReflex = TRUE;
 
 				display_color(&Pane1, COLOR_MISC);
 				display_line(&Pane1);
@@ -1080,7 +1081,7 @@ void frame_flex(char gin)
 				}
 				display_cfstatus(cy, fr);
 
-				bFLEX_Frame_contains_SI = false;
+				bFLEX_Frame_contains_SI = FALSE;
 
 				if (bFlexActive)
 				{
@@ -1209,7 +1210,7 @@ void frame_flex(char gin)
 				ct_bit = ct1600;  // ct_bit = serial port baudrate
 				BaudRate = 1600;  // BaudRate = soundcard baudrate
 
-				bFlexActive = false;
+				bFlexActive = FALSE;
 
 				// if in reflex mode: display raw message if BIW != 0x1fffff
 				if (bReflex && (phase_A.frame[0] != 0x1fffffl))

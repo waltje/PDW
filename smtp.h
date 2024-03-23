@@ -1,5 +1,5 @@
-#ifndef SMTP_H
-# define SMTP_H
+#ifndef PDW_SMTP_H
+# define PDW_SMTP_H
 
 
 #define MAIL_OPTION_MODE_ALL		0x000000
@@ -59,11 +59,24 @@
 #define MAX_SMTP_CHARSETS   28
 
 
-extern char *szSmtpCharSets[];
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern int nSMTPsessions;
+extern int nSMTPemails;
+extern int nSMTPerrors;
+extern int iSMTPlastError;
+
+extern const char *szSmtpCharSets[];
 
 
 int MailInit(char *szMailHost, char *szMailHeloDomain, char *szMailFrom, char *szMailTo, char *szMailUser, char *szMailPassword, int iMailPort, int nOptions) ;
-int SendMail(HWND hResponse, bool bMatch, bool bMonitor_only, int iSeparateSMTP, char *sz1, char *sz2, char *sz3, char *sz4, char *sz5, char *sz6, char *sz7, char *szLabel) ;
+int SendMail(HWND hResponse, int bMatch, int bMonitor_only, int iSeparateSMTP, char *sz1, char *sz2, char *sz3, char *sz4, char *sz5, char *sz6, char *sz7, char *szLabel) ;
+
+#ifdef __cplusplus
+}
+#endif
 
 
-#endif	/*SMTP_H*/
+#endif	/*PDW_SMTP_H*/
