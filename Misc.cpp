@@ -9,6 +9,7 @@
 #include "sound_in.h"
 #include "utils/utils.h"
 #include "decode/decode.h"
+#include "decode/flex.h"
 #include "misc.h"
 
 
@@ -1920,7 +1921,8 @@ int Check_4_Filtermatch()
 }
 
 
-void ActivateCommandFile()
+void
+ActivateCommandFile(void)
 {
 //	int  arg_pos=0, arg, tmp_index;		// Command file / argument stuff
 	int  arg_pos=0, arg;
@@ -2073,662 +2075,646 @@ void ActivateCommandFile()
 }
 
 
-void CollectLogfileLine(char *string, int bFilter)
+void
+CollectLogfileLine(char *string, int bFilter)
 {
-	extern int FLEX_9;
-	int spacing=0;
+    int i, col, pos, spacing = 0;
 
-	szLogFileLine[0] = '\0';
-	
-	for (int col=1; col<8; col++)
-	{
-		if (col == 7)
-		{
-			iLabelspace_Logfile[bFilter ? FILTER : MONITOR] = strlen(szLogFileLine);
-			spacing = strlen(szLogFileLine);
+    szLogFileLine[0] = '\0';
+
+    for (col = 1; col < 8; col++) {
+	if (col == 7) {
+		iLabelspace_Logfile[bFilter ? FILTER : MONITOR] = strlen(szLogFileLine);
+		spacing = strlen(szLogFileLine);
+		strcat(szLogFileLine, " ");
+	}
+
+	if (strchr(string, '0'+col)) {
+		if (col == 7) {
+			if (Profile.monitor_acars) {
+				for (pos = 0; Current_MSG[MSG_MESSAGE][pos] != 0; pos++) {
+					if (Current_MSG[MSG_MESSAGE][pos] == char(23)) {
+						strcat(szLogFileLine, "\n");
+						for (i = 0; i < spacing+1; i++)
+							strcat(szLogFileLine, " ");
+					} else
+						strncat(szLogFileLine, (char*)&Current_MSG[MSG_MESSAGE][pos], 1);
+				}
+			} else if (Profile.monitor_mobitex) {
+				if (Current_MSG[MSG_MOBITEX][0] && bFilter) {
+					for (pos = 0; Current_MSG[MSG_MOBITEX][pos] != 0; pos++) {
+						if (Current_MSG[MSG_MOBITEX][pos] == '»') {
+							strcat(szLogFileLine, "\n");
+							for (i = 0; i < spacing+1; i++)
+								strcat(szLogFileLine, " ");
+						} else
+							strncat(szLogFileLine, (char*)&Current_MSG[MSG_MOBITEX][pos], 1);
+					}
+				} else {
+					strcat(szLogFileLine, Current_MSG[MSG_MESSAGE]);
+				}
+			} else if ((strstr(Current_MSG[MSG_MESSAGE], "»") != 0) && Profile.Linefeed) {
+				for (pos = 0; Current_MSG[MSG_MESSAGE][pos] != 0; pos++) {
+					if (Current_MSG[MSG_MESSAGE][pos] == '»') {
+						strcat(szLogFileLine, "\n");
+						for (i = 0; i < spacing+1; i++)
+							strcat(szLogFileLine, " ");
+					} else {
+						strncat(szLogFileLine, (char*)&Current_MSG[MSG_MESSAGE][pos], 1);
+					}
+				}
+			} else {
+				 strcat(szLogFileLine, Current_MSG[MSG_MESSAGE]);
+			}
+		} else {
+			strcat(szLogFileLine, Current_MSG[col]);
+		}
+
+		if (col < 7)
 			strcat(szLogFileLine, " ");
-		}
 
-		if (strchr(string, '0'+col))
-		{
-			if (col == 7)
-			{
-				if (Profile.monitor_acars)
-				{
-					for (int pos=0; Current_MSG[MSG_MESSAGE][pos]!=0; pos++)
-					{
-						if (Current_MSG[MSG_MESSAGE][pos] == char(23))
-						{
-							strcat(szLogFileLine, "\n");
-							for (int i=0; i<spacing+1; i++) strcat(szLogFileLine, " ");
-						}
-						else strncat(szLogFileLine, (char*)&Current_MSG[MSG_MESSAGE][pos], 1);
-					}
-				}
-				else if (Profile.monitor_mobitex)
-				{
-					if (Current_MSG[MSG_MOBITEX][0] && bFilter)
-					{
-						for (int pos=0; Current_MSG[MSG_MOBITEX][pos]!=0; pos++)
-						{
-							if (Current_MSG[MSG_MOBITEX][pos] == '»')
-							{
-								strcat(szLogFileLine, "\n");
-								for (int i=0; i<spacing+1; i++) strcat(szLogFileLine, " ");
-							}
-							else strncat(szLogFileLine, (char*)&Current_MSG[MSG_MOBITEX][pos], 1);
-						}
-					}
-					else
-					{
-						strcat(szLogFileLine, Current_MSG[MSG_MESSAGE]);
-					}
-				}
-				else if ((strstr(Current_MSG[MSG_MESSAGE], "»") != 0) && Profile.Linefeed)
-				{
-					for (int pos=0; Current_MSG[MSG_MESSAGE][pos]!=0; pos++)
-					{
-						if (Current_MSG[MSG_MESSAGE][pos] == '»')
-						{
-							strcat(szLogFileLine, "\n");
-							for (int i=0; i<spacing+1; i++) strcat(szLogFileLine, " ");
-						}
-						else
-						{
-							strncat(szLogFileLine, (char*)&Current_MSG[MSG_MESSAGE][pos], 1);
-						}
-					}
-				}
-				else strcat(szLogFileLine, Current_MSG[MSG_MESSAGE]);
-			}
-			else strcat(szLogFileLine, Current_MSG[col]);
-			
-			if (col < 7) strcat(szLogFileLine, " ");
-
-			if (col == 1 && Profile.monitor_paging && FLEX_9 > 25)
-			{
-				if (strlen(Current_MSG[MSG_CAPCODE]) == 7)
-				{
-					strcat(szLogFileLine, "  ");
-				}
+		if (col == 1 && Profile.monitor_paging && FLEX_9 > 25) {
+			if (strlen(Current_MSG[MSG_CAPCODE]) == 7) {
+				strcat(szLogFileLine, "  ");
 			}
 		}
 	}
+    }
 }
 
-void display_color(PaneStruct *pane, BYTE ct)
+
+void
+display_color(PaneStruct *pane, BYTE ct)
 {
-	pane->currentColor = ct;
-	return;
-} // end of display_color
+    pane->currentColor = ct;
+}
 
 
-void display_showmo(int mode)
+void
+display_showmo(int mode)
 {
-	bMode_IDLE = mode ? FALSE : TRUE;
+    bMode_IDLE = mode ? FALSE : TRUE;
 
-	if (bMode_IDLE)
-	{
-		strcpy(szWindowText[2], "");
-		strcpy(szWindowText[3], "");
-		strcpy(szWindowText[4], "");
-	}
-	else if (mode == MODE_ERMES)
-	{
-		strcpy(szWindowText[2], "ERMES 6250");
-	}
-	else if (mode == MODE_MOBITEX)
-	{
-		strcpy(szWindowText[2], "MOBITEX");
-	}
-	else if (mode == MODE_ACARS)
-	{
-		strcpy(szWindowText[2], "ACARS 2400");
-	}
-	else if ((mode & MODE_POCSAG) == MODE_POCSAG)
-	{
-		strcpy(szWindowText[2], "POCSAG-");
+    if (bMode_IDLE) {
+	strcpy(szWindowText[2], "");
+	strcpy(szWindowText[3], "");
+	strcpy(szWindowText[4], "");
+    } else if (mode == MODE_ERMES) {
+	strcpy(szWindowText[2], "ERMES 6250");
+    } else if (mode == MODE_MOBITEX) {
+	strcpy(szWindowText[2], "MOBITEX");
+    } else if (mode == MODE_ACARS) {
+	strcpy(szWindowText[2], "ACARS 2400");
+    } else if ((mode & MODE_POCSAG) == MODE_POCSAG) {
+	strcpy(szWindowText[2], "POCSAG-");
 
-		if      ((mode & MODE_P512)  == MODE_P512)  strcat(szWindowText[2], "512");
-		else if ((mode & MODE_P1200) == MODE_P1200) strcat(szWindowText[2], "1200");
-		else if ((mode & MODE_P2400) == MODE_P2400) strcat(szWindowText[2], "2400");
+	if ((mode & MODE_P512) == MODE_P512)
+		strcat(szWindowText[2], "512");
+	else if ((mode & MODE_P1200) == MODE_P1200)
+		strcat(szWindowText[2], "1200");
+	else if ((mode & MODE_P2400) == MODE_P2400)
+		strcat(szWindowText[2], "2400");
+    } else if ((mode & MODE_FLEX_A) == MODE_FLEX_A) {
+	// must be FLEX or ReFLEX...
+	if ((mode & MODE_REFLEX) == MODE_REFLEX) {
+		// PH: ReFLEX ?
+		strcpy(szWindowText[2], "REFLEX ");
+	} else {
+		// PH: FLEX
+		strcpy(szWindowText[2], "FLEX ");
 	}
-	else if ((mode & MODE_FLEX_A) == MODE_FLEX_A)		// must be FLEX or ReFLEX...
-	{
-		if ((mode & MODE_REFLEX) == MODE_REFLEX)		// PH: ReFLEX ?
-		{
-			strcpy(szWindowText[2], "REFLEX ");
+	if ((mode & MODE_FLEX_D) == MODE_FLEX_D)
+		strcat(szWindowText[2], "4 level 6400 (Phases ABCD)");
+	else if ((mode & MODE_FLEX_B) == MODE_FLEX_B)
+		strcat(szWindowText[2], "4 level 3200 (Phases AB)");
+	else if ((mode & MODE_FLEX_C) == MODE_FLEX_C)
+		strcat(szWindowText[2], "2 level 3200 (Phases AC)");
+	else if ((mode & MODE_FLEX_A) == MODE_FLEX_A)
+		strcat(szWindowText[2], "2 level 1600 (Phase A)");
+
+	if (Profile.show_cfs) {
+		// PH: Collect cycle/frame status
+		sprintf(szWindowText[3],
+		        "Cycle:%02i Frame:%03i", iCurrentCycle, iCurrentFrame);
+	}
+    }
+
+    SetNewWindowText("");
+}
+
+
+void
+CreateDateFilename(char *ext, SYSTEMTIME *yesterday)
+{
+    char *months[12] = {
+	"JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+	"JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
+    };
+    SYSTEMTIME now;
+
+    if (yesterday != NULL)
+	now = *yesterday;
+    else
+	GetLocalTime(&now);
+
+    if (Profile.MonthNumber) {
+	 sprintf(szFilenameDate, "%02d%02d%02d%s",
+		 now.wYear % 100, now.wMonth, now.wDay, ext);
+    } else {
+	sprintf(szFilenameDate, "%02d%s%02d%s",
+		now.wYear % 100, months[now.wMonth-1], now.wDay, ext);
+    }
+}
+
+
+void
+display_show_hex21(PaneStruct *pane, long int l)
+{
+    char temp[10];
+
+    sprintf(temp, "%06lX", l);
+    if (l > 0x3fffffL)
+	display_color(pane, COLOR_BITERRORS);
+    display_show_str(pane, temp);
+}
+
+
+void
+display_show_hex16(PaneStruct *pane, int l)
+{
+    char temp[10];
+
+    sprintf(temp, "%04X", l);
+    display_show_str(pane, temp);
+}
+
+
+int
+filter_addr(char *addr_str, char *filter_str)
+{
+    int size = strlen(addr_str);
+    int i = 0;
+
+    while (i < size) {
+	if ((filter_str[i] == '?') || (addr_str[i] == filter_str[i])) {
+		i++;
+	} else
+		return 0;
+    }
+
+    return 1;
+}
+
+
+void
+WriteStatFileHourly(FILE *fp)
+{
+    long num_msg, num_char, alpha_msg, alpha_char;
+
+    fprintf(fp, "              Numeric   Numeric      Alpha     Alpha\n");
+    fprintf(fp, "                 Msgs     Chars       Msgs     Chars\n");
+
+    fprintf(fp, "POCSAG-512   %8ld %9ld   %8ld %9ld\n",
+		hourly_stat[STAT_POCSAG512][STAT_NUMERIC],
+		hourly_char[STAT_POCSAG512][STAT_NUMERIC],
+		hourly_stat[STAT_POCSAG512][STAT_ALPHA],
+		hourly_char[STAT_POCSAG512][STAT_ALPHA]);
+
+    fprintf(fp ,"POCSAG-1200  %8ld %9ld   %8ld %9ld\n",
+		hourly_stat[STAT_POCSAG1200][STAT_NUMERIC],
+		hourly_char[STAT_POCSAG1200][STAT_NUMERIC],
+		hourly_stat[STAT_POCSAG1200][STAT_ALPHA],
+		hourly_char[STAT_POCSAG1200][STAT_ALPHA]);
+
+    fprintf(fp ,"POCSAG-2400  %8ld %9ld   %8ld %9ld\n",
+		hourly_stat[STAT_POCSAG2400][STAT_NUMERIC],
+		hourly_char[STAT_POCSAG2400][STAT_NUMERIC],
+		hourly_stat[STAT_POCSAG2400][STAT_ALPHA],
+		hourly_char[STAT_POCSAG2400][STAT_ALPHA]);
+
+    fprintf(fp, "FLEX-1600    %8ld %9ld   %8ld %9ld\n",
+		hourly_stat[STAT_FLEX1600][STAT_NUMERIC],
+		hourly_char[STAT_FLEX1600][STAT_NUMERIC],
+		hourly_stat[STAT_FLEX1600][STAT_ALPHA],
+		hourly_char[STAT_FLEX1600][STAT_ALPHA]);
+
+    fprintf(fp, "FLEX-3200    %8ld %9ld   %8ld %9ld\n",
+		hourly_stat[STAT_FLEX3200][STAT_NUMERIC],
+		hourly_char[STAT_FLEX3200][STAT_NUMERIC],
+		hourly_stat[STAT_FLEX3200][STAT_ALPHA],
+		hourly_char[STAT_FLEX3200][STAT_ALPHA]);
+
+    fprintf(fp, "FLEX-6400    %8ld %9ld   %8ld %9ld\n",
+		hourly_stat[STAT_FLEX6400][STAT_NUMERIC],
+		hourly_char[STAT_FLEX6400][STAT_NUMERIC],
+		hourly_stat[STAT_FLEX6400][STAT_ALPHA],
+		hourly_char[STAT_FLEX6400][STAT_ALPHA]);
+
+    fprintf(fp, "ACARS-2400   %8ld %9ld   %8ld %9ld\n",
+		hourly_stat[STAT_ACARS2400][STAT_NUMERIC],
+		hourly_char[STAT_ACARS2400][STAT_NUMERIC],
+		hourly_stat[STAT_ACARS2400][STAT_ALPHA],
+		hourly_char[STAT_ACARS2400][STAT_ALPHA]);
+
+    fprintf(fp, "MOBITEX      %8ld %9ld   %8ld %9ld\n",
+		hourly_stat[STAT_MOBITEX][STAT_NUMERIC],
+		hourly_char[STAT_MOBITEX][STAT_NUMERIC],
+		hourly_stat[STAT_MOBITEX][STAT_ALPHA],
+		hourly_char[STAT_MOBITEX][STAT_ALPHA]);
+
+    fprintf(fp, "ERMES        %8ld %9ld   %8ld %9ld\n",
+		hourly_stat[STAT_ERMES][STAT_NUMERIC],
+		hourly_char[STAT_ERMES][STAT_NUMERIC],
+		hourly_stat[STAT_ERMES][STAT_ALPHA],
+		hourly_char[STAT_ERMES][STAT_ALPHA]);
+
+    fprintf(fp, "             -------- ---------   -------- ---------\n");
+
+    num_msg =	hourly_stat[STAT_FLEX6400][STAT_NUMERIC] +
+		hourly_stat[STAT_FLEX3200][STAT_NUMERIC] +
+		hourly_stat[STAT_FLEX1600][STAT_NUMERIC] +
+		hourly_stat[STAT_POCSAG2400][STAT_NUMERIC] +
+		hourly_stat[STAT_POCSAG1200][STAT_NUMERIC] +
+		hourly_stat[STAT_POCSAG512][STAT_NUMERIC] +
+		hourly_stat[STAT_ACARS2400][STAT_NUMERIC] +
+		hourly_stat[STAT_MOBITEX][STAT_NUMERIC] +
+		hourly_stat[STAT_ERMES][STAT_NUMERIC];
+    num_char =	hourly_char[STAT_FLEX6400][STAT_NUMERIC] +
+		hourly_char[STAT_FLEX3200][STAT_NUMERIC] +
+		hourly_char[STAT_FLEX1600][STAT_NUMERIC] +
+		hourly_char[STAT_POCSAG2400][STAT_NUMERIC] +
+		hourly_char[STAT_POCSAG1200][STAT_NUMERIC] +
+		hourly_char[STAT_POCSAG512][STAT_NUMERIC] +
+		hourly_char[STAT_ERMES][STAT_NUMERIC];
+    alpha_msg = hourly_stat[STAT_FLEX6400][STAT_ALPHA] +
+		hourly_stat[STAT_FLEX3200][STAT_ALPHA] +
+		hourly_stat[STAT_FLEX1600][STAT_ALPHA] +
+		hourly_stat[STAT_POCSAG2400][STAT_ALPHA] +
+		hourly_stat[STAT_POCSAG1200][STAT_ALPHA] +
+		hourly_stat[STAT_POCSAG512][STAT_ALPHA] +
+		hourly_stat[STAT_ACARS2400][STAT_ALPHA] +
+		hourly_stat[STAT_MOBITEX][STAT_ALPHA] +
+		hourly_stat[STAT_ERMES][STAT_ALPHA];
+    alpha_char =hourly_char[STAT_FLEX6400][STAT_ALPHA] +
+		hourly_char[STAT_FLEX3200][STAT_ALPHA] +
+		hourly_char[STAT_FLEX1600][STAT_ALPHA] +
+		hourly_char[STAT_POCSAG2400][STAT_ALPHA] +
+		hourly_char[STAT_POCSAG1200][STAT_ALPHA] +
+		hourly_char[STAT_POCSAG512][STAT_ALPHA] +
+		hourly_char[STAT_ERMES][STAT_ALPHA];
+
+    fprintf(fp, " Totals      %8ld %9ld   %8ld %9ld\n\n",
+		num_msg, num_char, alpha_msg, alpha_char);
+}
+
+
+void
+WriteStatFileDaily(FILE *fp)
+{
+    long num_msg, num_char, alpha_msg, alpha_char;
+
+    fprintf(fp, "              Numeric   Numeric      Alpha     Alpha\n");
+    fprintf(fp, "                 Msgs     Chars       Msgs     Chars\n");
+
+    fprintf(fp, "POCSAG-512   %8ld %9ld   %8ld %9ld\n",
+		daily_stat[STAT_POCSAG512][STAT_NUMERIC],
+		daily_char[STAT_POCSAG512][STAT_NUMERIC],
+		daily_stat[STAT_POCSAG512][STAT_ALPHA],
+		daily_char[STAT_POCSAG512][STAT_ALPHA]);
+
+    fprintf(fp, "POCSAG-1200  %8ld %9ld   %8ld %9ld\n",
+		daily_stat[STAT_POCSAG1200][STAT_NUMERIC],
+		daily_char[STAT_POCSAG1200][STAT_NUMERIC],
+		daily_stat[STAT_POCSAG1200][STAT_ALPHA],
+		daily_char[STAT_POCSAG1200][STAT_ALPHA]);
+
+    fprintf(fp, "POCSAG-2400  %8ld %9ld   %8ld %9ld\n",
+		daily_stat[STAT_POCSAG2400][STAT_NUMERIC],
+		daily_char[STAT_POCSAG2400][STAT_NUMERIC],
+		daily_stat[STAT_POCSAG2400][STAT_ALPHA],
+		daily_char[STAT_POCSAG2400][STAT_ALPHA]);
+
+    fprintf(fp, "FLEX-1600    %8ld %9ld   %8ld %9ld\n",
+		daily_stat[STAT_FLEX1600][STAT_NUMERIC],
+		daily_char[STAT_FLEX1600][STAT_NUMERIC],
+		daily_stat[STAT_FLEX1600][STAT_ALPHA],
+		daily_char[STAT_FLEX1600][STAT_ALPHA]);
+
+    fprintf(fp, "FLEX-3200    %8ld %9ld   %8ld %9ld\n",
+		daily_stat[STAT_FLEX3200][STAT_NUMERIC],
+		daily_char[STAT_FLEX3200][STAT_NUMERIC],
+		daily_stat[STAT_FLEX3200][STAT_ALPHA],
+		daily_char[STAT_FLEX3200][STAT_ALPHA]);
+
+    fprintf(fp, "FLEX-6400    %8ld %9ld   %8ld %9ld\n",
+		daily_stat[STAT_FLEX6400][STAT_NUMERIC],
+		daily_char[STAT_FLEX6400][STAT_NUMERIC],
+		daily_stat[STAT_FLEX6400][STAT_ALPHA],
+		daily_char[STAT_FLEX6400][STAT_ALPHA]);
+
+    fprintf(fp, "ACARS-2400   %8ld %9ld   %8ld %9ld\n",
+		daily_stat[STAT_ACARS2400][STAT_NUMERIC],
+		daily_char[STAT_ACARS2400][STAT_NUMERIC],
+		daily_stat[STAT_ACARS2400][STAT_ALPHA],
+		daily_char[STAT_ACARS2400][STAT_ALPHA]);
+
+    fprintf(fp, "MOBITEX      %8ld %9ld   %8ld %9ld\n",
+		daily_stat[STAT_MOBITEX][STAT_NUMERIC],
+		daily_char[STAT_MOBITEX][STAT_NUMERIC],
+		daily_stat[STAT_MOBITEX][STAT_ALPHA],
+		daily_char[STAT_MOBITEX][STAT_ALPHA]);
+
+    fprintf(fp, "ERMES        %8ld %9ld   %8ld %9ld\n",
+		daily_stat[STAT_ERMES][STAT_NUMERIC],
+		daily_char[STAT_ERMES][STAT_NUMERIC],
+		daily_stat[STAT_ERMES][STAT_ALPHA],
+		daily_char[STAT_ERMES][STAT_ALPHA]);
+
+    fprintf(fp, "             -------- ---------   -------- ---------\n");
+
+    num_msg =	daily_stat[STAT_FLEX6400][STAT_NUMERIC] +
+		daily_stat[STAT_FLEX3200][STAT_NUMERIC] +
+		daily_stat[STAT_FLEX1600][STAT_NUMERIC] +
+		daily_stat[STAT_POCSAG2400][STAT_NUMERIC] +
+		daily_stat[STAT_POCSAG1200][STAT_NUMERIC] +
+		daily_stat[STAT_POCSAG512][STAT_NUMERIC] +
+		daily_stat[STAT_ACARS2400][STAT_NUMERIC] +
+		daily_stat[STAT_MOBITEX][STAT_NUMERIC] +
+		daily_stat[STAT_ERMES][STAT_NUMERIC];
+    num_char =	daily_char[STAT_FLEX6400][STAT_NUMERIC] +
+		daily_char[STAT_FLEX3200][STAT_NUMERIC] +
+		daily_char[STAT_FLEX1600][STAT_NUMERIC] +
+		daily_char[STAT_POCSAG2400][STAT_NUMERIC] +
+		daily_char[STAT_POCSAG1200][STAT_NUMERIC] +
+		daily_char[STAT_POCSAG512][STAT_NUMERIC] +
+		daily_char[STAT_ERMES][STAT_NUMERIC];
+    alpha_msg = daily_stat[STAT_FLEX6400][STAT_ALPHA] +
+		daily_stat[STAT_FLEX3200][STAT_ALPHA] +
+		daily_stat[STAT_FLEX1600][STAT_ALPHA] +
+		daily_stat[STAT_POCSAG2400][STAT_ALPHA] +
+		daily_stat[STAT_POCSAG1200][STAT_ALPHA] +
+		daily_stat[STAT_POCSAG512][STAT_ALPHA] +
+		daily_stat[STAT_ACARS2400][STAT_ALPHA] +
+		daily_stat[STAT_MOBITEX][STAT_ALPHA] +
+		daily_stat[STAT_ERMES][STAT_ALPHA];
+    alpha_char= daily_char[STAT_FLEX6400][STAT_ALPHA] +
+		daily_char[STAT_FLEX3200][STAT_ALPHA] +
+		daily_char[STAT_FLEX1600][STAT_ALPHA] +
+		daily_char[STAT_POCSAG2400][STAT_ALPHA] +
+		daily_char[STAT_POCSAG1200][STAT_ALPHA] +
+		daily_char[STAT_POCSAG512][STAT_ALPHA] +
+		daily_char[STAT_ERMES][STAT_ALPHA];
+
+    fprintf(fp, "  Totals     %8ld %9ld   %8ld %9ld\n",
+		num_msg, num_char, alpha_msg, alpha_char);
+}
+
+
+void
+CountBiterrors(int errors)
+{
+    static int nErrors = 5, nErrorChecks = 100, noerrors = 0, count = 0;
+//  extern double dRX_Quality;
+
+    if (errors) {
+	nErrorChecks += abs(errors);
+	noerrors = 0;
+	count = 1;
+    } else {
+	nErrorChecks++;
+	noerrors++;
+    }
+    nErrors += errors;
+
+    if (nErrorChecks > 10000) {
+	nErrorChecks /= 1.999;
+	nErrors /= 2;
+    }
+    if (noerrors > 50) {
+	count++;
+	nErrors -= count;
+	if (nErrors < 0)
+		nErrors = 0;
+	noerrors = 0;
+    }
+
+    dRX_Quality = 100 - ((double)(nErrors * 100) / nErrorChecks);
+}
+
+
+// run through error detection and correction routine
+int
+ecd(void)
+{
+    int errors = 0, parity = 0;
+    int synd, b1, b2, i;
+    int ecc = 0x000;
+    int acc = 0;
+
+    for (i = 0; i <= 20; i++) {
+	if (ob[i] == 1) {
+		ecc = ecc ^ ecs[i];
+		parity = parity ^ 0x01;
+	}
+    }
+
+    for (i = 21; i <= 30; i++) {
+	acc = acc << 1;
+	if (ob[i] == 1)
+		acc = acc ^ 0x01;
+    }
+
+    synd = ecc ^ acc;
+
+    // if nonzero syndrome we have error
+    if (synd != 0) {
+	// check for correctable error
+	if (bch[synd] != 0) {
+		b1 = bch[synd] & 0x1f;
+		b2 = bch[synd] >> 5;
+		b2 = b2 & 0x1f;
+
+		if (b2 != 0x1f) {
+			ob[b2] = ob[b2] ^ 0x01;
+			ecc = ecc ^ ecs[b2];
 		}
-		else											// PH: FLEX
-		{
-			strcpy(szWindowText[2], "FLEX ");
+
+		if (b1 != 0x1f) {
+			ob[b1] = ob[b1] ^ 0x01;
+			ecc = ecc ^ ecs[b1];
 		}
-		if ((mode & MODE_FLEX_D) == MODE_FLEX_D)
-		strcat(szWindowText[2], "4 level 6400 (Phases ABCD)");	// PH: added "4 level 6400"
+		errors = bch[synd] >> 12;
+	} else
+		errors = 3;
 
-		else if ((mode & MODE_FLEX_B) == MODE_FLEX_B)
-		strcat(szWindowText[2], "4 level 3200 (Phases AB)");	// PH: added "4 level 3200"
+	if (errors == 1)
+		parity = parity ^ 0x01;
+    }
 
-		else if ((mode & MODE_FLEX_C) == MODE_FLEX_C)
-		strcat(szWindowText[2], "2 level 3200 (Phases AC)");	// PH: added "2 level 3200"
+    // check parity ....
+    parity = (parity + bit10(ecc)) & 0x01;
 
-		else if ((mode & MODE_FLEX_A) == MODE_FLEX_A)
-		strcat(szWindowText[2], "2 level 1600 (Phase A)");		// PH: added "2 level 1600"
+    if (parity != ob[31])
+	errors++;
 
-		if (Profile.show_cfs)	// PH: Collect cycle/frame status
-		{
-			sprintf(szWindowText[3], "Cycle:%02i Frame:%03i", iCurrentCycle, iCurrentFrame);
-		}
-	}
-	SetNewWindowText("");
+    if (errors > 3)
+	errors = 3;
 
-} // end of display_showmo()
+    CountBiterrors(errors);
 
-
-void CreateDateFilename(char *ext, SYSTEMTIME *yesterday)
-{
-	SYSTEMTIME now;
-	char *months[12] = {"JAN", "FEB", "MAR", "APR", "MAY", "JUN",
-						"JUL", "AUG", "SEP", "OCT", "NOV", "DEC"};
-
-	if (yesterday) now=*yesterday;
-	else GetLocalTime(&now);
-
-	if (Profile.MonthNumber)
-	{
-		 sprintf(szFilenameDate, "%02d%02d%02d%s", now.wYear % 100, now.wMonth, now.wDay, ext);
-	}
-	else sprintf(szFilenameDate, "%02d%s%02d%s", now.wYear % 100, months[now.wMonth-1], now.wDay, ext);
-
-	return;
+    return errors;
 }
 
 
-void display_show_hex21(PaneStruct *pane, long int l)
+// calculate all information needed to implement error correction
+void
+setupecc(void)
 {
-	char tt[10];
-
-	sprintf(tt, "%06lX", l);
-	if (l > 0x3fffffl) display_color(pane, COLOR_BITERRORS);
-	display_show_str(pane, tt);
-}
-
-
-void display_show_hex16(PaneStruct *pane, int l)
-{
-	char tt[10];
-
-	sprintf(tt, "%04X", l);
-	display_show_str(pane, tt);
-}
-
-
-//int filter_addr(char addr_str[], char filter_str[], int size)
-int filter_addr(char addr_str[], char filter_str[])
-{
-	int i=0;
-
-	int size=strlen(addr_str);
-
-	while (i < size)
-	{
-		if ((filter_str[i] == '?') || (addr_str[i] == filter_str[i]))
-		{
-			i++;
-		}
-		else return 0;
-	}
-	return 1;
-}
-
-
-int short_nOnes(char k)
-{
-	int kt=0;
-
-	if (k == 0) return(0);
-
-	for (int i=0; i<=7; i++)
-	{
-		if ((k & 0x01) != 0) kt++;
-		k = k >> 1;
-	}
-	return(kt);
-}
-
-
-int nOnes(int k)
-{
-	int kt=0;
-
-	if (k == 0) return(0);
-
-	for (int i=0; i<=15; i++)
-	{
-		if ((k & 0x0001) != 0) kt++;
-		k = k >> 1;
-	}
-	return(kt);
-}
-
-
-int bit10(int gin)
-{
-	int k=0;
-
-	for (int i=0; i<10; i++)
-	{
-		if ((gin & 0x01) != 0) k++;
-		gin = gin >> 1;
-	}
-	return(k);
-}
-
-
-int ecd()
-{
-	int synd, b1, b2, i;
-	int errors=0, parity=0;
-
-	int ecc = 0x000;
-	int acc = 0;
-
-	// run through error detection and correction routine
-
-	for (i=0; i<=20; i++)
-	{
-		if (ob[i] == 1)
-		{
-			ecc = ecc ^ ecs[i];
-			parity = parity ^ 0x01;
-		}
-	}
-
-	for (i=21; i<=30; i++)
-	{
-		acc = acc << 1;
-		if (ob[i] == 1) acc = acc ^ 0x01;
-	}
-
-	synd = ecc ^ acc;
-
-	if (synd != 0) // if nonzero syndrome we have error
-	{
-		if (bch[synd] != 0) // check for correctable error
-		{
-			b1 = bch[synd] & 0x1f;
-			b2 = bch[synd] >> 5;
-			b2 = b2 & 0x1f;
-
-			if (b2 != 0x1f)
-			{
-				ob[b2] = ob[b2] ^ 0x01;
-				ecc = ecc ^ ecs[b2];
-			}
-
-			if (b1 != 0x1f)
-			{
-				ob[b1] = ob[b1] ^ 0x01;
-				ecc = ecc ^ ecs[b1];
-			}
-			errors = bch[synd] >> 12;
-		}
-		else errors = 3;
-
-		if (errors == 1) parity = parity ^ 0x01;
-	}
-
-	// check parity ....
-	parity = (parity + bit10(ecc)) & 0x01;
-
-	if (parity != ob[31]) errors++;
-
-	if (errors > 3) errors = 3;
-
-	CountBiterrors(errors);
-
-	return(errors);
-}
-
-
-void setupecc()
-{
-	unsigned int srr, j, k;
-	int i, n;
-
-	// calculate all information needed to implement error correction
-	srr = 0x3B4;
-
-	for (i=0; i<=20; i++)
-	{
-		ecs[i] = srr;
-		if ((srr & 0x01) != 0) srr = (srr >> 1) ^ 0x3B4;
-		else                   srr = srr >> 1;
-	}
-
-	// bch holds a syndrome look-up table telling which bits to correct
-	// first 5 bits hold location of first error; next 5 bits hold location
-	// of second error; bits 12 & 13 tell how many bits are bad
-	for (i=0; i<1024; i++) bch[i] = 0;
-
-	for (n=0; n<=20; n++)	// two errors in data
-	{
-		for (i=0; i<=20; i++)
-		{
-			j = (i << 5) + n;
-			k = ecs[n] ^ ecs[i];
-			bch[k] = j + 0x2000;
-		}
-	}
-
-	// one error in data
-	for (n=0; n<=20; n++)
-	{
-		k = ecs[n];
-		j = n + (0x1f << 5);
-		bch[k] = j + 0x1000;
-	}
-
-	// one error in data and one error in ecc portion
-	for (n=0; n<=20; n++)
-	{
-		for (i=0; i<10; i++)  // ecc screwed up bit
-		{
-			k = ecs[n] ^ (1 << i);
-			j = n + (0x1f << 5);
-			bch[k] = j + 0x2000;
-		}
-	}
-
-	// one error in ecc
-	for (n=0; n<10; n++)
-	{
-		k = 1 << n;
-		bch[k] = 0x3ff + 0x1000;
-	}
-
-	// two errors in ecc
-	for (n=0; n<10; n++)
-	{
-		for (i=0; i<10; i++)
-		{
-			if (i != n)
-			{
-				k = (1 << n) ^ (1 << i);
-				bch[k] = 0x3ff + 0x2000;
-			}
-		}
-	}
-}
-
-
-void WriteStatFileHourly(FILE *fp)
-{
-	long num_msg, num_char, alpha_msg, alpha_char;
-
-	fprintf(fp, "              Numeric   Numeric      Alpha     Alpha\n");
-	fprintf(fp, "                 Msgs     Chars       Msgs     Chars\n");
-
-	fprintf(fp, "POCSAG-512   %8ld %9ld   %8ld %9ld\n",
-				hourly_stat[STAT_POCSAG512][STAT_NUMERIC],
-				hourly_char[STAT_POCSAG512][STAT_NUMERIC],
-				hourly_stat[STAT_POCSAG512][STAT_ALPHA],
-				hourly_char[STAT_POCSAG512][STAT_ALPHA]);
-
-	fprintf(fp ,"POCSAG-1200  %8ld %9ld   %8ld %9ld\n",
-				hourly_stat[STAT_POCSAG1200][STAT_NUMERIC],
-				hourly_char[STAT_POCSAG1200][STAT_NUMERIC],
-				hourly_stat[STAT_POCSAG1200][STAT_ALPHA],
-				hourly_char[STAT_POCSAG1200][STAT_ALPHA]);
-
-	fprintf(fp ,"POCSAG-2400  %8ld %9ld   %8ld %9ld\n",
-				hourly_stat[STAT_POCSAG2400][STAT_NUMERIC],
-				hourly_char[STAT_POCSAG2400][STAT_NUMERIC],
-				hourly_stat[STAT_POCSAG2400][STAT_ALPHA],
-				hourly_char[STAT_POCSAG2400][STAT_ALPHA]);
-
-	fprintf(fp, "FLEX-1600    %8ld %9ld   %8ld %9ld\n",
-				hourly_stat[STAT_FLEX1600][STAT_NUMERIC],
-				hourly_char[STAT_FLEX1600][STAT_NUMERIC],
-				hourly_stat[STAT_FLEX1600][STAT_ALPHA],
-				hourly_char[STAT_FLEX1600][STAT_ALPHA]);
-
-	fprintf(fp, "FLEX-3200    %8ld %9ld   %8ld %9ld\n",
-				hourly_stat[STAT_FLEX3200][STAT_NUMERIC],
-				hourly_char[STAT_FLEX3200][STAT_NUMERIC],
-				hourly_stat[STAT_FLEX3200][STAT_ALPHA],
-				hourly_char[STAT_FLEX3200][STAT_ALPHA]);
-
-	fprintf(fp, "FLEX-6400    %8ld %9ld   %8ld %9ld\n",
-				hourly_stat[STAT_FLEX6400][STAT_NUMERIC],
-				hourly_char[STAT_FLEX6400][STAT_NUMERIC],
-				hourly_stat[STAT_FLEX6400][STAT_ALPHA],
-				hourly_char[STAT_FLEX6400][STAT_ALPHA]);
-
-	fprintf(fp, "ACARS-2400   %8ld %9ld   %8ld %9ld\n",
-				hourly_stat[STAT_ACARS2400][STAT_NUMERIC],
-				hourly_char[STAT_ACARS2400][STAT_NUMERIC],
-				hourly_stat[STAT_ACARS2400][STAT_ALPHA],
-				hourly_char[STAT_ACARS2400][STAT_ALPHA]);
-
-	fprintf(fp, "MOBITEX      %8ld %9ld   %8ld %9ld\n",
-				hourly_stat[STAT_MOBITEX][STAT_NUMERIC],
-				hourly_char[STAT_MOBITEX][STAT_NUMERIC],
-				hourly_stat[STAT_MOBITEX][STAT_ALPHA],
-				hourly_char[STAT_MOBITEX][STAT_ALPHA]);
-
-	fprintf(fp, "ERMES        %8ld %9ld   %8ld %9ld\n",
-				hourly_stat[STAT_ERMES][STAT_NUMERIC],
-				hourly_char[STAT_ERMES][STAT_NUMERIC],
-				hourly_stat[STAT_ERMES][STAT_ALPHA],
-				hourly_char[STAT_ERMES][STAT_ALPHA]);
-
-	fprintf(fp, "             -------- ---------   -------- ---------\n");
-
-	num_msg	=	hourly_stat[STAT_FLEX6400][STAT_NUMERIC] +
-				hourly_stat[STAT_FLEX3200][STAT_NUMERIC] +
-				hourly_stat[STAT_FLEX1600][STAT_NUMERIC] +
-				hourly_stat[STAT_POCSAG2400][STAT_NUMERIC] +
-				hourly_stat[STAT_POCSAG1200][STAT_NUMERIC] +
-				hourly_stat[STAT_POCSAG512][STAT_NUMERIC] +
-				hourly_stat[STAT_ACARS2400][STAT_NUMERIC] +
-				hourly_stat[STAT_MOBITEX][STAT_NUMERIC] +
-				hourly_stat[STAT_ERMES][STAT_NUMERIC];
-	num_char =	hourly_char[STAT_FLEX6400][STAT_NUMERIC] +
-				hourly_char[STAT_FLEX3200][STAT_NUMERIC] +
-				hourly_char[STAT_FLEX1600][STAT_NUMERIC] +
-				hourly_char[STAT_POCSAG2400][STAT_NUMERIC] +
-				hourly_char[STAT_POCSAG1200][STAT_NUMERIC] +
-				hourly_char[STAT_POCSAG512][STAT_NUMERIC] +
-				hourly_char[STAT_ERMES][STAT_NUMERIC];
-	alpha_msg = hourly_stat[STAT_FLEX6400][STAT_ALPHA] +
-				hourly_stat[STAT_FLEX3200][STAT_ALPHA] +
-				hourly_stat[STAT_FLEX1600][STAT_ALPHA] +
-				hourly_stat[STAT_POCSAG2400][STAT_ALPHA] +
-				hourly_stat[STAT_POCSAG1200][STAT_ALPHA] +
-				hourly_stat[STAT_POCSAG512][STAT_ALPHA] +
-				hourly_stat[STAT_ACARS2400][STAT_ALPHA] +
-				hourly_stat[STAT_MOBITEX][STAT_ALPHA] +
-				hourly_stat[STAT_ERMES][STAT_ALPHA];
-	alpha_char =hourly_char[STAT_FLEX6400][STAT_ALPHA] +
-				hourly_char[STAT_FLEX3200][STAT_ALPHA] +
-				hourly_char[STAT_FLEX1600][STAT_ALPHA] +
-				hourly_char[STAT_POCSAG2400][STAT_ALPHA] +
-				hourly_char[STAT_POCSAG1200][STAT_ALPHA] +
-				hourly_char[STAT_POCSAG512][STAT_ALPHA] +
-				hourly_char[STAT_ERMES][STAT_ALPHA];
-
-	fprintf(fp, " Totals      %8ld %9ld   %8ld %9ld\n\n", num_msg, num_char, alpha_msg, alpha_char);
-
-	return;
-}
-
-
-void WriteStatFileDaily(FILE *fp)
-{
-	long num_msg, num_char, alpha_msg, alpha_char;
-
-	fprintf(fp, "              Numeric   Numeric      Alpha     Alpha\n");
-	fprintf(fp, "                 Msgs     Chars       Msgs     Chars\n");
-
-	fprintf(fp, "POCSAG-512   %8ld %9ld   %8ld %9ld\n",
-				daily_stat[STAT_POCSAG512][STAT_NUMERIC],
-				daily_char[STAT_POCSAG512][STAT_NUMERIC],
-				daily_stat[STAT_POCSAG512][STAT_ALPHA],
-				daily_char[STAT_POCSAG512][STAT_ALPHA]);
-
-	fprintf(fp, "POCSAG-1200  %8ld %9ld   %8ld %9ld\n",
-				daily_stat[STAT_POCSAG1200][STAT_NUMERIC],
-				daily_char[STAT_POCSAG1200][STAT_NUMERIC],
-				daily_stat[STAT_POCSAG1200][STAT_ALPHA],
-				daily_char[STAT_POCSAG1200][STAT_ALPHA]);
-
-	fprintf(fp, "POCSAG-2400  %8ld %9ld   %8ld %9ld\n",
-				daily_stat[STAT_POCSAG2400][STAT_NUMERIC],
-				daily_char[STAT_POCSAG2400][STAT_NUMERIC],
-				daily_stat[STAT_POCSAG2400][STAT_ALPHA],
-				daily_char[STAT_POCSAG2400][STAT_ALPHA]);
-
-	fprintf(fp, "FLEX-1600    %8ld %9ld   %8ld %9ld\n",
-				daily_stat[STAT_FLEX1600][STAT_NUMERIC],
-				daily_char[STAT_FLEX1600][STAT_NUMERIC],
-				daily_stat[STAT_FLEX1600][STAT_ALPHA],
-				daily_char[STAT_FLEX1600][STAT_ALPHA]);
-
-	fprintf(fp, "FLEX-3200    %8ld %9ld   %8ld %9ld\n",
-				daily_stat[STAT_FLEX3200][STAT_NUMERIC],
-				daily_char[STAT_FLEX3200][STAT_NUMERIC],
-				daily_stat[STAT_FLEX3200][STAT_ALPHA],
-				daily_char[STAT_FLEX3200][STAT_ALPHA]);
-
-	fprintf(fp, "FLEX-6400    %8ld %9ld   %8ld %9ld\n",
-				daily_stat[STAT_FLEX6400][STAT_NUMERIC],
-				daily_char[STAT_FLEX6400][STAT_NUMERIC],
-				daily_stat[STAT_FLEX6400][STAT_ALPHA],
-				daily_char[STAT_FLEX6400][STAT_ALPHA]);
-
-	fprintf(fp, "ACARS-2400   %8ld %9ld   %8ld %9ld\n",
-				daily_stat[STAT_ACARS2400][STAT_NUMERIC],
-				daily_char[STAT_ACARS2400][STAT_NUMERIC],
-				daily_stat[STAT_ACARS2400][STAT_ALPHA],
-				daily_char[STAT_ACARS2400][STAT_ALPHA]);
-
-	fprintf(fp, "MOBITEX      %8ld %9ld   %8ld %9ld\n",
-				daily_stat[STAT_MOBITEX][STAT_NUMERIC],
-				daily_char[STAT_MOBITEX][STAT_NUMERIC],
-				daily_stat[STAT_MOBITEX][STAT_ALPHA],
-				daily_char[STAT_MOBITEX][STAT_ALPHA]);
-
-	fprintf(fp, "ERMES        %8ld %9ld   %8ld %9ld\n",
-				daily_stat[STAT_ERMES][STAT_NUMERIC],
-				daily_char[STAT_ERMES][STAT_NUMERIC],
-				daily_stat[STAT_ERMES][STAT_ALPHA],
-				daily_char[STAT_ERMES][STAT_ALPHA]);
-
-//--Endof ERMES
-
-	fprintf(fp, "             -------- ---------   -------- ---------\n");
-
-	num_msg =	daily_stat[STAT_FLEX6400][STAT_NUMERIC] +
-				daily_stat[STAT_FLEX3200][STAT_NUMERIC] +
-				daily_stat[STAT_FLEX1600][STAT_NUMERIC] +
-				daily_stat[STAT_POCSAG2400][STAT_NUMERIC] +
-				daily_stat[STAT_POCSAG1200][STAT_NUMERIC] +
-				daily_stat[STAT_POCSAG512][STAT_NUMERIC] +
-				daily_stat[STAT_ACARS2400][STAT_NUMERIC] +
-				daily_stat[STAT_MOBITEX][STAT_NUMERIC] +
-				daily_stat[STAT_ERMES][STAT_NUMERIC];
-	num_char =	daily_char[STAT_FLEX6400][STAT_NUMERIC] +
-				daily_char[STAT_FLEX3200][STAT_NUMERIC] +
-				daily_char[STAT_FLEX1600][STAT_NUMERIC] +
-				daily_char[STAT_POCSAG2400][STAT_NUMERIC] +
-				daily_char[STAT_POCSAG1200][STAT_NUMERIC] +
-				daily_char[STAT_POCSAG512][STAT_NUMERIC] +
-				daily_char[STAT_ERMES][STAT_NUMERIC];
-	alpha_msg = daily_stat[STAT_FLEX6400][STAT_ALPHA] +
-				daily_stat[STAT_FLEX3200][STAT_ALPHA] +
-				daily_stat[STAT_FLEX1600][STAT_ALPHA] +
-				daily_stat[STAT_POCSAG2400][STAT_ALPHA] +
-				daily_stat[STAT_POCSAG1200][STAT_ALPHA] +
-				daily_stat[STAT_POCSAG512][STAT_ALPHA] +
-				daily_stat[STAT_ACARS2400][STAT_ALPHA] +
-				daily_stat[STAT_MOBITEX][STAT_ALPHA] +
-				daily_stat[STAT_ERMES][STAT_ALPHA];
-	alpha_char= daily_char[STAT_FLEX6400][STAT_ALPHA] +
-				daily_char[STAT_FLEX3200][STAT_ALPHA] +
-				daily_char[STAT_FLEX1600][STAT_ALPHA] +
-				daily_char[STAT_POCSAG2400][STAT_ALPHA] +
-				daily_char[STAT_POCSAG1200][STAT_ALPHA] +
-				daily_char[STAT_POCSAG512][STAT_ALPHA] +
-				daily_char[STAT_ERMES][STAT_ALPHA];
-
-	fprintf(fp, "  Totals     %8ld %9ld   %8ld %9ld\n", num_msg, num_char, alpha_msg, alpha_char);
-
-	return;
-}
-
-
-void CountBiterrors(int errors)
-{
-	extern double dRX_Quality;
-	static int nErrors=5, nErrorChecks=100, noerrors=0, count=0;
-
-	if (errors)
-	{
-		nErrorChecks+=abs(errors);
-		noerrors=0;
-		count=1;
-	}
+    unsigned int srr, j, k;
+    int i, n;
+
+    srr = 0x3B4;
+    for (i = 0; i <= 20; i++) {
+	ecs[i] = srr;
+	if ((srr & 0x01) != 0)
+		srr = (srr >> 1) ^ 0x3B4;
 	else
-	{
-		nErrorChecks++;
-		noerrors++;
-	}
-	nErrors+=errors;
+		srr = srr >> 1;
+    }
 
-	if (nErrorChecks > 10000)
-	{
-		nErrorChecks/=1.999;
-		nErrors/=2;
+    // bch holds a syndrome look-up table telling which bits to correct
+    // first 5 bits hold location of first error; next 5 bits hold location
+    // of second error; bits 12 & 13 tell how many bits are bad
+    for (i = 0; i < 1024; i++)
+	bch[i] = 0;
+
+    // two errors in data
+    for (n = 0; n <= 20; n++) {
+	for (i = 0; i <= 20; i++) {
+		j = (i << 5) + n;
+		k = ecs[n] ^ ecs[i];
+		bch[k] = j + 0x2000;
 	}
-	if (noerrors > 50)
-	{
-		count++;
-		nErrors-=count;
-		if (nErrors < 0) nErrors=0;
-		noerrors=0;
+    }
+
+    // one error in data
+    for (n = 0; n <= 20; n++) {
+	k = ecs[n];
+	j = n + (0x1f << 5);
+	bch[k] = j + 0x1000;
+    }
+
+    // one error in data and one error in ecc portion
+    for (n = 0; n <= 20; n++) {
+	for (i = 0; i < 10; i++) {
+		// ecc screwed up bit
+		k = ecs[n] ^ (1 << i);
+		j = n + (0x1f << 5);
+		bch[k] = j + 0x2000;
 	}
-	dRX_Quality = 100 - ((double)(nErrors*100)/nErrorChecks);
+    }
+
+    // one error in ecc
+    for (n = 0; n < 10; n++) {
+	k = 1 << n;
+	bch[k] = 0x3ff + 0x1000;
+    }
+
+    // two errors in ecc
+    for (n = 0; n < 10; n++) {
+	for (i = 0; i < 10; i++) {
+		if (i != n) {
+			k = (1 << n) ^ (1 << i);
+			bch[k] = 0x3ff + 0x2000;
+		}
+	}
+    }
 }
 
 
-void Get_Date_Time(void)
+int
+short_nOnes(char k)
 {
-	switch (Profile.DateFormat)
-	{
-		default:
-		case 0:
-			GetDateFormat(LOCALE_USER_DEFAULT, 0, NULL, "dd'-'MM'-'yy", szCurrentDate, 40);
-		break;
+    int i, kt = 0;
 
-		case 1:
-			GetDateFormat(LOCALE_USER_DEFAULT, 0, NULL, "MM'-'dd'-'yy", szCurrentDate, 40);
-		break;
+    if (k == 0)
+	return 0;
 
-		case 2:
-			GetDateFormat(LOCALE_USER_DEFAULT, 0, NULL, "yy'-'MM'-'dd", szCurrentDate, 40);
-		break;
-	}
+    for (i = 0; i <= 7; i++) {
+	if ((k & 0x01) != 0)
+		kt++;
+	k = k >> 1;
+    }
 
-	GetTimeFormat(LOCALE_USER_DEFAULT, TIME_FORCE24HOURFORMAT,
-												  NULL, "HH':'mm':'ss", szCurrentTime, 40);
+    return kt;
 }
 
 
-void InvertData(void)
+int
+nOnes(int k)
 {
-	Profile.invert ^= 0x01; // Flip receive polarity
+    int i, kt = 0;
 
-	low_audio  = Profile.invert ? DEFAULT_HI_AUDIO : DEFAULT_LO_AUDIO;
-	high_audio = Profile.invert ? DEFAULT_LO_AUDIO : DEFAULT_HI_AUDIO;
+    if (k == 0)
+	return 0;
+
+    for (i = 0; i <= 15; i++) {
+	if ((k & 0x0001) != 0)
+		kt++;
+	k = k >> 1;
+    }
+
+    return kt;
+}
+
+
+int
+bit10(int gin)
+{
+    int i, k = 0;
+
+    for (i = 0; i < 10; i++) {
+	if ((gin & 0x01) != 0)
+		k++;
+	gin = gin >> 1;
+    }
+
+    return k;
+}
+
+
+void
+Get_Date_Time(void)
+{
+    switch (Profile.DateFormat) {
+	default:
+	case 0:
+		GetDateFormat(LOCALE_USER_DEFAULT, 0,
+			      NULL, "dd'-'MM'-'yy", szCurrentDate, 40);
+		break;
+
+	case 1:
+		GetDateFormat(LOCALE_USER_DEFAULT, 0,
+			      NULL, "MM'-'dd'-'yy", szCurrentDate, 40);
+		break;
+
+	case 2:
+		GetDateFormat(LOCALE_USER_DEFAULT, 0,
+			      NULL, "yy'-'MM'-'dd", szCurrentDate, 40);
+		break;
+    }
+
+    GetTimeFormat(LOCALE_USER_DEFAULT, TIME_FORCE24HOURFORMAT,
+		  NULL, "HH':'mm':'ss", szCurrentTime, 40);
+}
+
+
+void
+InvertData(void)
+{
+    // Flip receive polarity
+    Profile.invert ^= 0x01;
+
+    low_audio = Profile.invert ? DFLT_HI_AUDIO : DFLT_LO_AUDIO;
+    high_audio = Profile.invert ? DFLT_LO_AUDIO : DFLT_HI_AUDIO;
 }

@@ -49,15 +49,15 @@ WAVEHDR WaveHeader[NUMBER_BUFFERS];  // Audio buffers to be put into audio queue
 int buffers_ready=0;                 // Used by callback function to indicate buffer(s) ready
 int last_buff_processed = -1;        // Used for predicting next buffer to be filled.
 int bCapturing=FALSE;               // Used to check to see if capturing is enabled.
-char high_audio=DEFAULT_HI_AUDIO;
-char low_audio =DEFAULT_LO_AUDIO;
+char high_audio= DFLT_HI_AUDIO;
+char low_audio = DFLT_LO_AUDIO;
 
 // Preamble search variables - Used by Audio_To_Bits()
 static char val=0;
 int nSamples=0;
 int preamble_count[3]={0};
 int flex_cnt_1600=0;
-int sync_bit=DEFAULT_LO_AUDIO;
+int sync_bit=DFLT_LO_AUDIO;
 int crossing=0;
 int pre_threshold=0;
 

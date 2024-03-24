@@ -1,7 +1,7 @@
 /*
  *		Define application version and build info.
  *
- * Version:	@(#)version.h	1.0.1	2024/03/21
+ * Version:	@(#)version.h	1.0.1	2024/03/23
  *
  * Author:	Fred N. van Kempen, <waltje@varcem.com>
  *
@@ -54,7 +54,7 @@
 #define APP_VER_MAJOR	3
 #define APP_VER_MINOR	2
 #define APP_VER_REV	0
-#define APP_VER_PATCH	1
+#define APP_VER_PATCH	2
 
 
 /* Standard C preprocessor macros. */

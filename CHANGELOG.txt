@@ -259,3 +259,17 @@ FVK: Fred N. van Kempen
                  version information.
                 Renamed SSL library path to drop version, so we do not
                  have to keep updating the project files all the time.
+
+2024/03/21 FVK:	Set the new version info to 3.2.0.0.
+
+2024/03/22 FVK:	More cleanups, many more. Started to reorganize code into
+		 more logical modules (and folders), and converting code
+		 back to standard C where possible.
+
+2024/03/23 FVK:	Added code to "track back" the installation root from where
+		 the executable is, in case we have it in a subfolder of the
+		 installation path (C:\HAM\PDW\bin\arm64\PDW.exe, as an
+		 example.)  Version bumbped to 3.2.0.2.
+		Removed our local copy of OpenSSL; moved to the official
+		 distribution of version 1.1.1w (OpenSSL for Windows.)
+

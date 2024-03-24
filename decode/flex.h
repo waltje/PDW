@@ -24,4 +24,7 @@ class FLEX {
 };
 
 
+extern int FLEX_9;
+
+
 #endif	/*PDW_FLEX_H*/

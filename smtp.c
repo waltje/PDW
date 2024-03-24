@@ -2,8 +2,11 @@
  *	SMTP routines for mailsend - a simple mail sender via SMTP
  *
  */
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#include <winsock2.h>
 #include <windows.h>
 #include <stdio.h>
+#include <time.h>
 #ifdef USE_SSL
 # include <openssl/ssl.h>
 # include <openssl/err.h>
@@ -161,7 +164,7 @@ openSSLConnect(void)
     fd_set fdread;
     int write_blocked = 0;
     int read_blocked = 0;
-    timeval time;
+    struct timeval time;
 
     if (m_ctx == NULL)
 	return SSL_PROBLEM;
@@ -241,7 +244,9 @@ cleanupOpenSSL(void)
     if (m_ctx != NULL) {
 	SSL_CTX_free(m_ctx);	
 	m_ctx = NULL;
-	ERR_remove_state(0);
+#if 0	/* No longer needed in OpenSSL 1.1 and up. */
+	ERR_remove_thread_state(NULL);
+#endif
 	ERR_free_strings();
 	EVP_cleanup();
 	CRYPTO_cleanup_all_ex_data();
@@ -260,7 +265,7 @@ receiveData_SSL(SSL *ssl, char *buf)
     fd_set fdwrite;
     int read_blocked_on_write = 0;
     int bFinish = FALSE;
-    timeval time;
+    struct timeval time;
 
     time.tv_sec = SEND_RECIEVE_TO;
     time.tv_usec = 0;
@@ -349,7 +354,7 @@ sendData_SSL(SSL *ssl, char *buf)
     fd_set fdwrite;
     fd_set fdread;
     int write_blocked_on_read = 0;
-    timeval time;
+    struct timeval time;
 
     time.tv_sec = SEND_RECIEVE_TO; 
     time.tv_usec = 0;

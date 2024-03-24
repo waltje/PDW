@@ -1,81 +1,38 @@
-// Microsoft Visual C++ generated resource script.
-//
-#include "resrc1.h"
-
-#define APSTUDIO_READONLY_SYMBOLS
-/////////////////////////////////////////////////////////////////////////////
-//
-// Generated from the TEXTINCLUDE 2 resource.
-//
-#define APSTUDIO_HIDDEN_SYMBOLS
-#include "windows.h"
-#undef APSTUDIO_HIDDEN_SYMBOLS
+#include <windows.h>
 #include "resource.h"
 #include "version.h"
 
-/////////////////////////////////////////////////////////////////////////////
-#undef APSTUDIO_READONLY_SYMBOLS
 
-/////////////////////////////////////////////////////////////////////////////
 // English (United States) resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
 
-/////////////////////////////////////////////////////////////////////////////
-//
 // Bitmap
-//
-
-IDT_TOOLBAR_BTN0        BITMAP                  "GFX\\open.bmp"
-
-IDT_TOOLBAR_BTN1        BITMAP                  "GFX\\copy.bmp"
-
-IDT_TOOLBAR_BTN2        BITMAP                  "GFX\\cpyUP.bmp"
-
-IDT_TOOLBAR_BTN3        BITMAP                  "GFX\\cpyLO.bmp"
-
-IDT_TOOLBAR_BTN4        BITMAP                  "GFX\\save.bmp"
-
-IDT_TOOLBAR_BTN5        BITMAP                  "GFX\\prt.bmp"
-
-IDT_TOOLBAR_BTN6        BITMAP                  "GFX\\options.bmp"
-
-IDT_TOOLBAR_BTN7        BITMAP                  "GFX\\filter.bmp"
-
-IDT_TOOLBAR_BTN8        BITMAP                  "GFX\\stats.bmp"
-
-IDT_TOOLBAR_BTN9        BITMAP                  "GFX\\pause.bmp"
-
-IDT_TOOLBAR_BTN10       BITMAP                  "GFX\\help.bmp"
-
-IDT_TOOLBAR_BTN11       BITMAP                  "GFX\\clr.bmp"
-
-IDT_TOOLBAR_BTN12       BITMAP                  "GFX\\mode.bmp"
-
-IDS_SIGIND              BITMAP                  "GFX\\sigind.bmp"
-
-IDS_EXCLAM              BITMAP                  "GFX\\exclamation.bmp"
-
-IDS_ABOUTLOGO           BITMAP                  "GFX\\pdwlogo2.bmp"
+IDT_TOOLBAR_BTN0        BITMAP                  "GFX/open.bmp"
+IDT_TOOLBAR_BTN1        BITMAP                  "GFX/copy.bmp"
+IDT_TOOLBAR_BTN2        BITMAP                  "GFX/cpyUP.bmp"
+IDT_TOOLBAR_BTN3        BITMAP                  "GFX/cpyLO.bmp"
+IDT_TOOLBAR_BTN4        BITMAP                  "GFX/save.bmp"
+IDT_TOOLBAR_BTN5        BITMAP                  "GFX/prt.bmp"
+IDT_TOOLBAR_BTN6        BITMAP                  "GFX/options.bmp"
+IDT_TOOLBAR_BTN7        BITMAP                  "GFX/filter.bmp"
+IDT_TOOLBAR_BTN8        BITMAP                  "GFX/stats.bmp"
+IDT_TOOLBAR_BTN9        BITMAP                  "GFX/pause.bmp"
+IDT_TOOLBAR_BTN10       BITMAP                  "GFX/help.bmp"
+IDT_TOOLBAR_BTN11       BITMAP                  "GFX/clr.bmp"
+IDT_TOOLBAR_BTN12       BITMAP                  "GFX/mode.bmp"
+IDS_SIGIND              BITMAP                  "GFX/sigind.bmp"
+IDS_EXCLAM              BITMAP                  "GFX/exclamation.bmp"
+IDS_ABOUTLOGO           BITMAP                  "GFX/pdwlogo2.bmp"
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
 // Icon
-//
-
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-PDWICON                 ICON                    "GFX\\pdw.ico"
+PDWICON                 ICON                    "GFX/pdw.ico"
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
 // Menu
-//
-
 PDWMENU MENU
 BEGIN
     POPUP "File"
@@ -146,11 +103,7 @@ BEGIN
 END
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
 // Accelerator
-//
-
 PDWACCEL ACCELERATORS
 BEGIN
     "C",            IDM_COPY_SELECTION,     VIRTKEY, CONTROL, NOINVERT
@@ -178,11 +131,7 @@ BEGIN
 END
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
 // Dialog
-//
-
 ABOUTDLGBOX DIALOG 10, 10, 282, 156
 STYLE DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 CAPTION "About..."
@@ -852,40 +801,7 @@ BEGIN
 END
 
 
-#ifdef APSTUDIO_INVOKED
-/////////////////////////////////////////////////////////////////////////////
-//
-// TEXTINCLUDE
-//
-
-1 TEXTINCLUDE 
-BEGIN
-    "resrc1.h\0"
-END
-
-2 TEXTINCLUDE 
-BEGIN
-    "#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
-    "#include ""windows.h""\r\n"
-    "#undef APSTUDIO_HIDDEN_SYMBOLS\r\n"
-    "#include ""headers\\resource.h""\r\n"
-    "\0"
-END
-
-3 TEXTINCLUDE 
-BEGIN
-    "\r\n"
-    "\0"
-END
-
-#endif    // APSTUDIO_INVOKED
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // Version
-//
-
 VS_VERSION_INFO VERSIONINFO
  FILEVERSION APP_VER_MAJOR,APP_VER_MINOR,APP_VER_REV,APP_VER_PATCH
  PRODUCTVERSION APP_VER_MAJOR,APP_VER_MINOR,APP_VER_REV,APP_VER_PATCH
@@ -903,8 +819,9 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "Comments", "Supports Windows 95,98,ME,2K,XP and up"
             VALUE "CompanyName", APP_COMPANY
+            VALUE "LegalCopyright", APP_COPYRIGHT
+            VALUE "LegalTrademarks", APP_LICENSE
             VALUE "FileDescription", APP_TITLE
             VALUE "FileVersion", APP_VERSION
             VALUE "InternalName", APP_NAME
@@ -920,132 +837,7 @@ BEGIN
 END
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-// DESIGNINFO
-//
-
-#ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO
-BEGIN
-    ABOUTDLGBOX, DIALOG
-    BEGIN
-        RIGHTMARGIN, 265
-        BOTTOMMARGIN, 114
-    END
-
-    DEBUGDLGBOX, DIALOG
-    BEGIN
-        HORZGUIDE, 28
-        HORZGUIDE, 58
-        HORZGUIDE, 68
-        HORZGUIDE, 78
-    END
-
-    LOGFILEDLGBOX, DIALOG
-    BEGIN
-        RIGHTMARGIN, 202
-        BOTTOMMARGIN, 128
-    END
-
-    OPTIONSDLGBOX, DIALOG
-    BEGIN
-        VERTGUIDE, 14
-        VERTGUIDE, 128
-        VERTGUIDE, 198
-        VERTGUIDE, 215
-        VERTGUIDE, 267
-        BOTTOMMARGIN, 319
-        HORZGUIDE, 179
-        HORZGUIDE, 197
-        HORZGUIDE, 215
-    END
-
-    COLORSDLGBOX, DIALOG
-    BEGIN
-        VERTGUIDE, 8
-        VERTGUIDE, 65
-        VERTGUIDE, 124
-        VERTGUIDE, 192
-        VERTGUIDE, 247
-        VERTGUIDE, 303
-        HORZGUIDE, 122
-    END
-
-    MOBITEX_COLORSDLGBOX, DIALOG
-    BEGIN
-        VERTGUIDE, 8
-        VERTGUIDE, 68
-        VERTGUIDE, 128
-        HORZGUIDE, 9
-        HORZGUIDE, 25
-    END
-
-    ERMES_COLORSDLGBOX, DIALOG
-    BEGIN
-        VERTGUIDE, 68
-        VERTGUIDE, 193
-        HORZGUIDE, 38
-    END
-
-    FILTEREDITDLGBOX, DIALOG
-    BEGIN
-        VERTGUIDE, 124
-        VERTGUIDE, 132
-        HORZGUIDE, 52
-        HORZGUIDE, 69
-        HORZGUIDE, 174
-    END
-
-    MONSTATDLGBOX, DIALOG
-    BEGIN
-        VERTGUIDE, 60
-        VERTGUIDE, 130
-        VERTGUIDE, 136
-        VERTGUIDE, 197
-        VERTGUIDE, 266
-        HORZGUIDE, 31
-        HORZGUIDE, 163
-    END
-
-    FILTERFINDDLGBOX, DIALOG
-    BEGIN
-        RIGHTMARGIN, 125
-        VERTGUIDE, 25
-        VERTGUIDE, 44
-        VERTGUIDE, 119
-    END
-
-    FILTERCHECKDUPLICATEDLGBOX, DIALOG
-    BEGIN
-        RIGHTMARGIN, 334
-        VERTGUIDE, 10
-        VERTGUIDE, 323
-        BOTTOMMARGIN, 66
-    END
-
-    MAIL_DLGBOX, DIALOG
-    BEGIN
-        VERTGUIDE, 15
-        VERTGUIDE, 56
-        VERTGUIDE, 172
-        VERTGUIDE, 191
-        VERTGUIDE, 227
-        VERTGUIDE, 233
-        VERTGUIDE, 340
-        BOTTOMMARGIN, 264
-        HORZGUIDE, 155
-        HORZGUIDE, 246
-    END
-END
-#endif    // APSTUDIO_INVOKED
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // String Table
-//
-
 STRINGTABLE
 BEGIN
     IDS_APPNAME             APP_NAME " " APP_VERSION  " " APP_TITLE
@@ -1056,19 +848,3 @@ BEGIN
     IDS_SHORT_APPNAME       APP_NAME
     IDS_API_FAILED_MSG      "A Windows API Failed"
 END
-
-#endif    // English (United States) resources
-/////////////////////////////////////////////////////////////////////////////
-
-
-
-#ifndef APSTUDIO_INVOKED
-/////////////////////////////////////////////////////////////////////////////
-//
-// Generated from the TEXTINCLUDE 3 resource.
-//
-
-
-/////////////////////////////////////////////////////////////////////////////
-#endif    // not APSTUDIO_INVOKED
-

@@ -3,12 +3,17 @@
 # Base build script for building with cmake (http://www.cmake.org)
 
 cmake_minimum_required( VERSION 2.8 )
+
 project( PDW )
 
 # Project version number
 set( PDW_VERSION_MAJOR 3 )
 set( PDW_VERSION_MINOR 2 )
 set( PDW_VERSION_MICRO 0 )
+
+# Where is OpenSSL?
+set( OPENSSL_VERSION 1_1 )
+set( OPENSSL_PATH P:/Libraries/OpenSSL )
 
 # Set base variables
 set( PDW_GFXS )
@@ -19,8 +24,8 @@ set( PWD_SRCS )
 add_subdirectory( GFX )
 add_subdirectory( utils )
 add_subdirectory( decode )
-include_directories( openssl/include )
-link_directories( ${CMAKE_CURRENT_SOURCE_DIR}/openssl/lib )
+include_directories( ${OPENSSL_PATH}/include )
+link_directories( ${OPENSSL_PATH}/lib/$(ARCH) )
 
 # Microsoft Visual Studio Specific definitions
 if( MSVC )
@@ -31,10 +36,8 @@ endif( MSVC )
 set( PDW_INCLUDES
   ${PDW_INCLUDES}
   resource.h
-  resrc1.h
   pdw.h
   language.h
-  helper_funcs.h
   gfx.h
   menu.h
   misc.h
@@ -54,7 +57,6 @@ set( PDW_SRCS
   main.cpp
   initapp.c
   language.c
-  helper_funcs.c
   gfx.c
   menu.c
   misc.cpp
@@ -76,6 +78,6 @@ target_link_libraries( PDW
   Comctl32.lib
   Winmm.lib
   Ws2_32.lib
-  libeay32.lib 
-  ssleay32.lib
+  libssl-${OPENSSL_VERSION}.lib
+  libcrypto-${OPENSSL_VERSION}.lib 
 )

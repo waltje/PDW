@@ -9,11 +9,13 @@
 //            InitializePane2()
 //
 #include <windows.h>
+#include <io.h>
 #include <stdio.h>
 #include <string.h>
 #include "resource.h"
 #include "pdw.h"
 #include "gfx.h"
+#include "utils/utils.h"
 
 
 HINSTANCE ghInstance;			// current instance
@@ -89,26 +91,59 @@ GetPathFromFullPathName(LPCTSTR lpFullPathName, LPTSTR lpPathBuffer,
 BOOL
 InitApplication(HINSTANCE hInstance)
 {
-    WNDCLASS wndclass;
+    WNDCLASS wc;
+    TCHAR szApiFailedMsg[] = TEXT("A Windows API Failed");
     LPCTSTR lpszIniFileExt = TEXT("INI");
     LPCTSTR lpszHelpFileExt = TEXT("HLP");
-    TCHAR szApiFailedMsg[] = TEXT("A Windows API Failed");
+    TCHAR temp[1024], try[1024], *p;
+    int c;
 
-    //-- Load the "A Windows API Failed" resource string
-    if (!LoadString(ghInstance, IDS_API_FAILED_MSG, szApiFailedMsg, sizeof(szApiFailedMsg)))
+    // Load the "A Windows API Failed" resource string.
+    if (! LoadString(ghInstance, IDS_API_FAILED_MSG, szApiFailedMsg, sizeof(szApiFailedMsg)))
 	 ErrorMessageBox(TEXT("1 LoadString()"), szApiFailedMsg, lpszSourceFileName, __LINE__);
 
-    //-- Load resource strings
-    if (!LoadString(ghInstance, IDS_APPNAME, szAppName, sizeof(szAppName)))
+    // Load resource strings.
+    if (! LoadString(ghInstance, IDS_APPNAME, szAppName, sizeof(szAppName)))
 	 ErrorMessageBox(TEXT("2 LoadString()"), szApiFailedMsg, lpszSourceFileName, __LINE__);
-    if (!LoadString(ghInstance, IDS_SHORT_APPNAME, szShortAppName, sizeof(szShortAppName)))
+    if (! LoadString(ghInstance, IDS_SHORT_APPNAME, szShortAppName, sizeof(szShortAppName)))
 	 ErrorMessageBox(TEXT("3 LoadString()"), szApiFailedMsg, lpszSourceFileName, __LINE__);
 
-    //-- get application pathname and store the ini and help file pathname
-    //   (which is located in the same directory as the application)
-    GetModuleFileName((HINSTANCE) NULL, szExePathName, sizeof(szExePathName)/sizeof(TCHAR));
+    // Get application pathname and store the ini and help file pathname.
+    GetModuleFileName(NULL, szExePathName, sizeof(szExePathName)/sizeof(TCHAR));
     GetPathFromFullPathName(szExePathName, szPath, sizeof(szPath)/sizeof(TCHAR));
 
+    /*
+     * See if we are perhaps in a "bin/" subfolder of the
+     * installation path, in which case the real root of
+     * the installation is one level up. We can test this
+     * by looking for the 'bin' folder.
+     */
+    strncpy(temp, szPath, sizeof(temp)-9);
+    strcat(temp, "\\PDW.hlp");
+
+    if (_access(temp, 0) != 0) {
+        /* No 'bin' folder found, so go up one level. */
+        strncpy(temp, szPath, sizeof(temp)-1);
+
+        /* Try this for several "levels" up. */
+        for (c = 0; c < 4; c++) {
+		p = strrchr(temp, '\\');
+                if (p != NULL)
+                    *p = '\0';
+
+                strncpy(try, temp, sizeof(try)-1);
+                strcat(try, "\\PDW.hlp");
+
+                if (_access(try, 0) == 0) {
+                        if (p != NULL)
+                                *p = '\0';
+                        strcpy(szPath, temp);
+                        break;
+                }
+        }
+    }
+
+fprintf(stderr, "==> '%s'\n", szPath);
     wsprintf(szLogPathName, TEXT("%s\\%s"), szPath, "Logfiles");
     wsprintf(szWavePathName, TEXT("%s\\%s"), szPath, "Wavfiles");
     wsprintf(szIniPathName, TEXT("%s\\%s.%s"), szPath, szShortAppName, lpszIniFileExt);
@@ -121,100 +156,100 @@ InitApplication(HINSTANCE hInstance)
 
     GetPrivateProfileSettings(szShortAppName, szIniPathName, &Profile);
 
-    // After getting user profile settings get all drawing objects(gfx.cpp)
-    if (!(Get_Drawing_Objects()))
+    /* After getting user profile settings get all drawing objects. */
+    if (! Get_Drawing_Objects())
 	return FALSE;
 
     // register window class
-    wndclass.style		= 0;
-    wndclass.lpfnWndProc	= PDWWndProc;
-    wndclass.cbClsExtra		= 0;
-    wndclass.cbWndExtra		= sizeof(LONG);
-    wndclass.hInstance		= hInstance;
-    wndclass.hIcon		= LoadIcon(hInstance, MAKEINTRESOURCE(PDWICON));
-    wndclass.hCursor		= LoadCursor(NULL, IDC_ARROW);
-    wndclass.hbrBackground	= hbr;  // see gfx.c
-    wndclass.lpszMenuName	= MAKEINTRESOURCE(PDWMENU);
-    wndclass.lpszClassName	= gszPDWClass;
-    if (! RegisterClass(&wndclass))
+    wc.style		= 0;
+    wc.lpfnWndProc	= PDWWndProc;
+    wc.cbClsExtra	= 0;
+    wc.cbWndExtra	= sizeof(LONG);
+    wc.hInstance	= hInstance;
+    wc.hIcon		= LoadIcon(hInstance, MAKEINTRESOURCE(PDWICON));
+    wc.hCursor		= LoadCursor(NULL, IDC_ARROW);
+    wc.hbrBackground	= hbr;
+    wc.lpszMenuName	= MAKEINTRESOURCE(PDWMENU);
+    wc.lpszClassName	= gszPDWClass;
+    if (! RegisterClass(&wc))
 	return FALSE;
 
-    wndclass.style		= 0;
-    wndclass.lpfnWndProc	= Pane1WndProc;
-    wndclass.cbClsExtra		= 0;
-    wndclass.cbWndExtra		= sizeof(LONG);
-    wndclass.hInstance		= hInstance;
-    wndclass.hIcon		= NULL;
-    wndclass.hCursor		= LoadCursor(NULL, IDC_ARROW);
-    wndclass.hbrBackground	= hbr;
-    wndclass.lpszMenuName	= NULL;
-    wndclass.lpszClassName	= gszPane1Class;
-    if (! RegisterClass(&wndclass))
+    wc.style		= 0;
+    wc.lpfnWndProc	= Pane1WndProc;
+    wc.cbClsExtra	= 0;
+    wc.cbWndExtra	= sizeof(LONG);
+    wc.hInstance	= hInstance;
+    wc.hIcon		= NULL;
+    wc.hCursor		= LoadCursor(NULL, IDC_ARROW);
+    wc.hbrBackground	= hbr;
+    wc.lpszMenuName	= NULL;
+    wc.lpszClassName	= gszPane1Class;
+    if (! RegisterClass(&wc))
 	return FALSE;
 
-    wndclass.style		= 0;
-    wndclass.lpfnWndProc	= Pane2WndProc;
-    wndclass.cbClsExtra		= 0;
-    wndclass.cbWndExtra		= sizeof(LONG);
-    wndclass.hInstance		= hInstance;
-    wndclass.hIcon		= NULL;
-    wndclass.hCursor		= LoadCursor(NULL, IDC_ARROW);
-    wndclass.hbrBackground	= hbr;
-    wndclass.lpszMenuName	= NULL;
-    wndclass.lpszClassName	= gszPane2Class;
-    if (! RegisterClass(&wndclass))
+    wc.style		= 0;
+    wc.lpfnWndProc	= Pane2WndProc;
+    wc.cbClsExtra	= 0;
+    wc.cbWndExtra	= sizeof(LONG);
+    wc.hInstance	= hInstance;
+    wc.hIcon		= NULL;
+    wc.hCursor		= LoadCursor(NULL, IDC_ARROW);
+    wc.hbrBackground	= hbr;
+    wc.lpszMenuName	= NULL;
+    wc.lpszClassName	= gszPane2Class;
+    if (! RegisterClass(&wc))
 	return FALSE;
 
-    wndclass.style		= 0;
-    wndclass.lpfnWndProc	= ColorWndProc;
-    wndclass.cbClsExtra		= 0;
-    wndclass.cbWndExtra		= sizeof(LONG);
-    wndclass.hInstance		= hInstance;
-    wndclass.hIcon		= NULL;
-    wndclass.hCursor		= LoadCursor(NULL, IDC_ARROW);
-    wndclass.hbrBackground	= hboxbr;
-    wndclass.lpszMenuName	= NULL;
-    wndclass.lpszClassName	= gszColorClass;
-    if (! RegisterClass(&wndclass))
+    wc.style		= 0;
+    wc.lpfnWndProc	= ColorWndProc;
+    wc.cbClsExtra	= 0;
+    wc.cbWndExtra	= sizeof(LONG);
+    wc.hInstance	= hInstance;
+    wc.hIcon		= NULL;
+    wc.hCursor		= LoadCursor(NULL, IDC_ARROW);
+    wc.hbrBackground	= hboxbr;
+    wc.lpszMenuName	= NULL;
+    wc.lpszClassName	= gszColorClass;
+    if (! RegisterClass(&wc))
 	return FALSE;
 
-    wndclass.style		= 0;
-    wndclass.lpfnWndProc	= ACARSColorWndProc;
-    wndclass.cbClsExtra		= 0;
-    wndclass.cbWndExtra		= sizeof(LONG);
-    wndclass.hInstance		= hInstance;
-    wndclass.hIcon		= NULL;
-    wndclass.hCursor		= LoadCursor(NULL, IDC_ARROW);
-    wndclass.hbrBackground	= hboxbr;
-    wndclass.lpszMenuName	= NULL;
-    wndclass.lpszClassName	= gszACARSColorClass;
-    if (! RegisterClass(&wndclass))
+    wc.style		= 0;
+    wc.lpfnWndProc	= ACARSColorWndProc;
+    wc.cbClsExtra	= 0;
+    wc.cbWndExtra	= sizeof(LONG);
+    wc.hInstance	= hInstance;
+    wc.hIcon		= NULL;
+    wc.hCursor		= LoadCursor(NULL, IDC_ARROW);
+    wc.hbrBackground	= hboxbr;
+    wc.lpszMenuName	= NULL;
+    wc.lpszClassName	= gszACARSColorClass;
+    if (! RegisterClass(&wc))
 	return FALSE;
 
-    wndclass.style		= 0;
-    wndclass.lpfnWndProc	= MOBITEXColorWndProc;
-    wndclass.cbClsExtra		= 0;
-    wndclass.cbWndExtra		= sizeof(LONG);
-    wndclass.hInstance		= hInstance;
-    wndclass.hIcon		= NULL;
-    wndclass.hCursor		= LoadCursor(NULL, IDC_ARROW);
-    wndclass.hbrBackground	= hboxbr;
-    wndclass.lpszMenuName	= NULL;
-    wndclass.lpszClassName	= gszMOBITEXColorClass;
-    if (! RegisterClass(&wndclass))
+    wc.style		= 0;
+    wc.lpfnWndProc	= MOBITEXColorWndProc;
+    wc.cbClsExtra	= 0;
+    wc.cbWndExtra	= sizeof(LONG);
+    wc.hInstance	= hInstance;
+    wc.hIcon		= NULL;
+    wc.hCursor		= LoadCursor(NULL, IDC_ARROW);
+    wc.hbrBackground	= hboxbr;
+    wc.lpszMenuName	= NULL;
+    wc.lpszClassName	= gszMOBITEXColorClass;
+    if (! RegisterClass(&wc))
 	return FALSE;
 
-    wndclass.style		= 0;
-    wndclass.lpfnWndProc	= ERMESColorWndProc;
-    wndclass.cbClsExtra		= 0;
-    wndclass.cbWndExtra		= sizeof(LONG);
-    wndclass.hInstance		= hInstance;
-    wndclass.hIcon		= NULL;
-    wndclass.hCursor		= LoadCursor(NULL, IDC_ARROW);
-    wndclass.hbrBackground	= hboxbr;
-    wndclass.lpszMenuName	= NULL;
-    wndclass.lpszClassName	= gszERMESColorClass;
-    if (! RegisterClass(&wndclass))
+    wc.style		= 0;
+    wc.lpfnWndProc	= ERMESColorWndProc;
+    wc.cbClsExtra	= 0;
+    wc.cbWndExtra	= sizeof(LONG);
+    wc.hInstance	= hInstance;
+    wc.hIcon		= NULL;
+    wc.hCursor		= LoadCursor(NULL, IDC_ARROW);
+    wc.hbrBackground	= hboxbr;
+    wc.lpszMenuName	= NULL;
+    wc.lpszClassName	= gszERMESColorClass;
+    if (! RegisterClass(&wc))
 	return FALSE;
 
     return TRUE;
@@ -226,7 +261,7 @@ HWND
 InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
     WINDOWPLACEMENT wpl;
-    POINT pt1,pt2;
+    POINT pt1, pt2;
     RECT rc;
 
     // load accelerators
@@ -280,7 +315,7 @@ InitializePane(PaneStruct *pane)
 {
     char *pchar;
     BYTE *pcolor;
-    int x;
+    unsigned x;
 
     pane->Bottom = 0;
 

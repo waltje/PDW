@@ -1,14 +1,20 @@
-#ifndef SOUND_IN_H
-#define SOUND_IN_H
+#ifndef PDW_SOUNDIN_H
+# define PDW_SOUNDIN_H
 
-#define DEFAULT_HI_AUDIO	1
-#define DEFAULT_LO_AUDIO	0
+
+#define DFLT_HI_AUDIO	1
+#define DFLT_LO_AUDIO	0
 
 #define INDEX512	0
 #define INDEX1200	1
 #define INDEX2400	2
 #define INDEX1600	3
 #define INDEX3200	4
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 extern int bCapturing;
 extern char high_audio;
@@ -29,8 +35,11 @@ void ERMES_To_Bits  (char *lpAudioBuffer, long LenAudioBuffer); // PH: test
 
 void Reset_ATB(void);
 void SetAudioConfig(int sac_type);
-int Get_Percent(int x,int percent);
+int Get_Percent(int x, int percent);
 
+#ifdef __cplusplus
+}
 #endif
 
 
+#endif	/*PDW_SOUNDIN_H*/

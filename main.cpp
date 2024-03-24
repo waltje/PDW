@@ -204,7 +204,7 @@ DWORD GetColorRGB(BYTE color);
 void AutoRecording();	// PH: temp/test
 
 
-int
+int WINAPI
 WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpszCmdLine, int nCmdShow)
 {
     MSG msg;
@@ -763,8 +763,8 @@ PDWWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		stat_timer = 100 - ((statTime.wSecond % 10) * 10);
 
 		// invert audio input-bits?.
-		low_audio  = Profile.invert ? DEFAULT_HI_AUDIO : DEFAULT_LO_AUDIO;
-		high_audio = Profile.invert ? DEFAULT_LO_AUDIO : DEFAULT_HI_AUDIO;
+		low_audio  = Profile.invert ? DFLT_HI_AUDIO : DFLT_LO_AUDIO;
+		high_audio = Profile.invert ? DFLT_LO_AUDIO : DFLT_HI_AUDIO;
 
 		pd_reset_all();		// see decode.cpp.
 
@@ -6218,18 +6218,18 @@ FilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 		InitListControl(hDlg);
 
-		font_listview.lfHeight			= -11;
-		font_listview.lfWidth			= 0;
-		font_listview.lfEscapement		= 0;
-		font_listview.lfOrientation		= 0;
-		font_listview.lfWeight			= FW_BOLD;
-		font_listview.lfItalic			= 0;
-		font_listview.lfUnderline		= 0;
-		font_listview.lfStrikeOut		= 0;
-		font_listview.lfCharSet			= OEM_CHARSET;
+		font_listview.lfHeight		= -11;
+		font_listview.lfWidth		= 0;
+		font_listview.lfEscapement	= 0;
+		font_listview.lfOrientation	= 0;
+		font_listview.lfWeight		= FW_BOLD;
+		font_listview.lfItalic		= 0;
+		font_listview.lfUnderline	= 0;
+		font_listview.lfStrikeOut	= 0;
+		font_listview.lfCharSet		= OEM_CHARSET;
 		font_listview.lfOutPrecision	= OUT_STROKE_PRECIS;
 		font_listview.lfClipPrecision	= CLIP_DEFAULT_PRECIS;
-		font_listview.lfQuality			= DEFAULT_QUALITY;
+		font_listview.lfQuality		= DEFAULT_QUALITY;
 		font_listview.lfPitchAndFamily	= FIXED_PITCH | FF_MODERN;
 		lstrcpy(font_listview.lfFaceName, "MS Sans Serif");
 
@@ -7116,18 +7116,18 @@ FilterEditDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 	LOGFONT font_labelcolor;
 
-	font_labelcolor.lfHeight			= -11;
-	font_labelcolor.lfWidth				= 0;
+	font_labelcolor.lfHeight		= -11;
+	font_labelcolor.lfWidth			= 0;
 	font_labelcolor.lfEscapement		= 0;
 	font_labelcolor.lfOrientation		= 0;
-	font_labelcolor.lfWeight			= Profile.fontInfo.lfWeight;
-	font_labelcolor.lfItalic			= Profile.fontInfo.lfItalic;
-	font_labelcolor.lfUnderline			= 0;
-	font_labelcolor.lfStrikeOut			= 0;
-	font_labelcolor.lfCharSet			= OEM_CHARSET;
+	font_labelcolor.lfWeight		= Profile.fontInfo.lfWeight;
+	font_labelcolor.lfItalic		= Profile.fontInfo.lfItalic;
+	font_labelcolor.lfUnderline		= 0;
+	font_labelcolor.lfStrikeOut		= 0;
+	font_labelcolor.lfCharSet		= OEM_CHARSET;
 	font_labelcolor.lfOutPrecision		= OUT_STROKE_PRECIS;
 	font_labelcolor.lfClipPrecision		= CLIP_DEFAULT_PRECIS;
-	font_labelcolor.lfQuality			= DEFAULT_QUALITY;
+	font_labelcolor.lfQuality		= DEFAULT_QUALITY;
 	font_labelcolor.lfPitchAndFamily	= FIXED_PITCH | FF_MODERN;
 	lstrcpy(font_labelcolor.lfFaceName, Profile.fontInfo.lfFaceName);
 
