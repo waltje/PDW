@@ -43,7 +43,6 @@ set( PDW_INCLUDES
   misc.h
   printer.h
   sigind.h
-  slicer.h
   smtp.h
   smtp_int.h
   sound_in.h

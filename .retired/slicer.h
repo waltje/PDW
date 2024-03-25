@@ -1,3 +1,6 @@
+#ifndef PDW_SLICER_H
+# define PDW_SLICER_H
+
 
 typedef struct {
    unsigned int  irq;        // IRQ number for COM port
@@ -11,3 +14,5 @@ typedef struct {
    long bufsize;             // size of freqdata and linedata buffers
 } SLICER_OUT_STR;
 
+
+#endif	/*PDW_SLICER_H*/

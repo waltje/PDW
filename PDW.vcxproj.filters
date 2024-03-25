@@ -113,9 +113,6 @@
     <ClInclude Include="sigind.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="slicer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="smtp.h">
       <Filter>Header Files</Filter>
     </ClInclude>

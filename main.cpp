@@ -39,7 +39,6 @@
 #include "menu.h"
 #include "printer.h"
 #include "sigind.h"
-#include "slicer.h"
 #include "smtp.h"
 #include "sound_in.h"
 #include "toolbar.h"
@@ -403,7 +402,8 @@ WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpszCmdLine, int nCmdShow)
     Get_Date_Time();
     sprintf(szDebugStarted, "%s %s", szCurrentDate, szCurrentTime);
 
-    pComPorts = FindComPorts();	// Put all available comports in array pComports
+    // Put all available comports in array pComports
+    pComPorts = rs232_find_ports();
 
     tStarted = time(NULL);		// Time when PDW was started
 
@@ -1041,7 +1041,7 @@ PDWWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 						if (LoadDriver())	// HWi
 						{
-							if (Profile.comPortRS232 && (GetRs232DriverType() == DRIVER_TYPE_SLICER))
+							if (Profile.comPortRS232 && (rs232_driver_type() == DRIVER_TYPE_SLICER))
 							{
 								MessageBox(ghWnd, "You have selected an RS232 interface.\nFor best results, de-install Slicer.sys", "PDW Slicer.sys", MB_ICONINFORMATION);
 							}

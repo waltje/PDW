@@ -292,7 +292,6 @@
     <ClInclude Include="printer.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="sigind.h" />
-    <ClInclude Include="slicer.h" />
     <ClInclude Include="smtp.h" />
     <ClInclude Include="smtp_int.h" />
     <ClInclude Include="sound_in.h" />
