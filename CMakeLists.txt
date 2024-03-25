@@ -53,7 +53,7 @@ set( PDW_INCLUDES
 # Source Files
 set( PDW_SRCS
   ${PDW_SRCS}
-  rsrc.rc
+  PDW.rc
   main.cpp
   initapp.c
   language.c

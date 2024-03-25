@@ -172,7 +172,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="rsrc.rc">
+    <ResourceCompile Include="PDW.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>

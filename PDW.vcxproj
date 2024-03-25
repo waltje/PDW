@@ -305,7 +305,7 @@
     <ClInclude Include="decode/pocsag.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="rsrc.rc" />
+    <ResourceCompile Include="PDW.rc" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="GFX/clr.bmp" />
