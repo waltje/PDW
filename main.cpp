@@ -726,10 +726,7 @@ PDWWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 		setupecc();
 
-		phase_A.ppp='A';		// tag each phase
-		phase_B.ppp='B';
-		phase_C.ppp='C';
-		phase_D.ppp='D';
+		flex_init();
 
 		for (g_index=0; g_index<64; g_index++) rcver[g_index] = 0.0;
 

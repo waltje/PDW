@@ -394,7 +394,7 @@ void AddAssignment(int assignedframe, int groupbit, int capcode)
 	}
 }
 
-void ConvertGroupcall(int groupbit, char *vtype, int capcode)
+void ConvertGroupcall(int groupbit, const char *vtype, int capcode)
 {
 	char szFile[MAX_PATH];
 

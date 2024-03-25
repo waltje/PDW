@@ -21,8 +21,8 @@
 #include "pocsag.h"
 #include "decode.h"
 
-FILE *pd_raw_fp = NULL;		// Debug - Raw data file for logging POCSAG/FLEX symbol data.
 
+FILE *pd_raw_fp = NULL;		// Debug - Raw data file for logging POCSAG/FLEX symbol data.
 char szCurrentDate[40]="";	// PH: Buffer for current date
 char szCurrentTime[40]="";	// PH: Buffer for current time
 
@@ -40,8 +40,6 @@ SYSTEMTIME prev_statTime;
 int stat_timer = 0;
 
 char ob[32];
-//unsigned int bch[1025];
-//unsigned int ecs[25];            // error correction sequence
 
 int    ircver=0;
 double ct1600, ct3200, ct_bit;
@@ -55,17 +53,6 @@ double rcv_clkt_fl = 0.015;      // fine rcv clock (data) - FLEX
 double rcv_clkt_po = 0.025;      // fine rcv clock (data) - POCSAG/ACARS
 double rcv_clkt_mb = 0.080;      // sync ups & data - Mobitex
 double rcv_clkt_em = 0.030;      // sync ups & data - Ermes
-
-// Flex globals
-FLEX phase_A, phase_B, phase_C, phase_D;	// FLEX phases
-int  flex_timer = 0;				// FLEX active timer
-bool bReflex = FALSE;				// Reflex mode flag
-bool bFlexActive = FALSE;			// FLEX mode flag
-
-// Pocsag globals
-POCSAG pocsag;
-int pocsag_baud_rate;				// Pocsag baudrate
-int pocbit = 0;					// Pocsag mode flag
 
 // this table translates received modem status line combinations into
 // the received symbol; it gives the number of modem status lines that
@@ -216,7 +203,7 @@ void pdw_playback(void)
 
 	while (bMore)
 	{
-		bMore = fread(&recdata,recsize,1,pRecording);
+		bMore = !!fread(&recdata,recsize,1,pRecording);
 
 		if (bMore)
 		{	// Data from playback file

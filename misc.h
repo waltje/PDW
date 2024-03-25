@@ -35,7 +35,7 @@ void display_line(PaneStruct *pane);
 void display_show_strV2(PaneStruct *pane, char strin[]);
 
 void AddAssignment(int assignedframe, int groupbit, int capcode);
-void ConvertGroupcall(int groupbit, char *vtype, int capcode);
+void ConvertGroupcall(int groupbit, const char *vtype, int capcode);
 void SortGroupCall(int groupbit);
 void Check4_MissedGroupcalls(void);
 void Remove_MissedGroupcall(int groupbit);

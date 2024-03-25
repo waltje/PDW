@@ -17,14 +17,16 @@ extern FILE *pd_raw_fp;
 extern FILTER filter;
 
 // Statistics - globals
-extern unsigned long hourly_stat[NUM_STAT][2], hourly_char[NUM_STAT][2];
-extern unsigned long daily_stat[NUM_STAT][2],  daily_char[NUM_STAT][2];
+extern unsigned long	hourly_stat[NUM_STAT][2],
+			hourly_char[NUM_STAT][2];
+extern unsigned long	daily_stat[NUM_STAT][2],
+			daily_char[NUM_STAT][2];
 
-extern SYSTEMTIME statTime, prev_statTime;
-extern int stat_timer;
+extern SYSTEMTIME	statTime,
+			prev_statTime;
+extern int		stat_timer;
 
 extern char ob[32];
-//extern unsigned int bch[1025], ecs[25];     // error correction sequence
 extern double rcver[65];         // rcv clock error ring buf
 extern double exc;
 extern int ircver;
@@ -37,17 +39,6 @@ extern double rcv_clkt_fl;      // fine rcv clock (data) - FLEX
 extern double rcv_clkt_po;      // fine rcv clock (data) - POCSAG
 extern double rcv_clkt_mb;      // fine rcv clock (data) - Mobitex
 
-// Flex globals
-#ifdef PDW_FLEX_H
-extern int flex_timer;
-extern FLEX phase_A, phase_B, phase_C, phase_D;
-#endif
-
-// Pocsag/golay globals
-#ifdef PDW_POCSAG_H
-extern POCSAG pocsag;
-extern int pocsag_baud_rate, pocbit;
-#endif
 
 // this table translates received modem status line combinations into
 // the received symbol; it gives the number of modem status lines that

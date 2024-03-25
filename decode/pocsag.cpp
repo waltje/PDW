@@ -16,31 +16,27 @@
 
 #define MSB		0
 
-extern int pocsag_baud_rate, pocbit;
 
-int mode;
-int iType;		// Current Message type (ALPHA / NUMERIC)
-int iNumScore = 0;	// Contains possible numeric percentage
-int iAlpScore = 0;	// Contains possible alphanumeric percentage
+POCSAG	pocsag;
+int	pocsag_baud_rate,
+	pocbit;
 
-unsigned int sr = 0;
+static int mode;
+static int iType;		// Current Message type (ALPHA / NUMERIC)
+static int iNumScore = 0;	// Contains possible numeric percentage
+static int iAlpScore = 0;	// Contains possible alphanumeric percentage
+
+static unsigned int sr = 0;
 
 #define REST_ALPHA_BITS_LEN	6
-char szRestAlphaBits[REST_ALPHA_BITS_LEN] = "";
+static char szRestAlphaBits[REST_ALPHA_BITS_LEN] = "";
 
-extern unsigned long hourly_stat[NUM_STAT][2];
-extern unsigned long hourly_char[NUM_STAT][2];
-extern unsigned long daily_stat[NUM_STAT][2];
-extern unsigned long daily_char[NUM_STAT][2];
-
-extern char ob[32];
-
-BYTE message_color_alp[MAX_STR_LEN];		// buffer for message colors (ALPHA)
-BYTE message_color_num[MAX_STR_LEN];		// buffer for message colors (NUMERIC)
+static BYTE message_color_alp[MAX_STR_LEN];		// buffer for message colors (ALPHA)
+static BYTE message_color_num[MAX_STR_LEN];		// buffer for message colors (NUMERIC)
 
 // general purpose buffers for text conversions
-char ptr1[LINE_SIZE] = "";
-char ptr2[LINE_SIZE] = "";
+static char ptr1[LINE_SIZE] = "";
+static char ptr2[LINE_SIZE] = "";
 
 
 POCSAG::POCSAG()
@@ -50,7 +46,7 @@ POCSAG::POCSAG()
     nnum = 0;
     srcn = 0;
     srca = 0;
-    bAddressWord = false;
+    bAddressWord = FALSE;
     pocsag_baud_rate = STAT_POCSAG1200;
 }
 
@@ -62,7 +58,7 @@ POCSAG::~POCSAG()
 
 // reset in preperation of next message
 void
-POCSAG::reset()
+POCSAG::reset(void)
 {
     // have we just shown a message? then do crlf; flush message if it passed filtering test...
 
@@ -73,31 +69,29 @@ POCSAG::reset()
     nalp = 0;
     nnum = 0;
     wordc = 0;
-    bAddressWord = false;
+    bAddressWord = FALSE;
 }
 
 
 void
 POCSAG::frame(int bit)
 {
-    static unsigned int iWordNumber = 0, cc, sr0 = 0, sr1 = 0;
-    static bool bSynced = false;
-//  unsigned int fs0 = 0x7CD2, fs1 = 0x15D8;
+    static unsigned iWordNumber = 0, cc, sr0 = 0, sr1 = 0;
+    static int bSynced = FALSE;
+//  unsigned fs0 = 0x7CD2, fs1 = 0x15D8;
     int nh;
 
     // update register
-    sr0 = sr0 << 1;
-
-    if ((sr1 & 0x8000) != 0) {
-	sr0 = sr0 ^ 0x01;
-    }
-    sr1 = sr1 << 1;
+    sr0 <<= 1;
+    if ((sr1 & 0x8000) != 0)
+	sr0 ^= 0x01;
+    sr1 <<= 1;
 
     if (bit == 1) {
 	sr1 = sr1 ^ 0x01;
     } else if (bit == -1) {
 	// reset
-	bSynced = false;
+	bSynced = FALSE;
 
 	// reset in preperation of next message
 	reset();
@@ -113,7 +107,7 @@ POCSAG::frame(int bit)
 	nh = nOnes(sr0 ^ 0x7CD2) + nOnes(sr1 ^ 0x15D8);
 
 	if (nh < 5) {
-		bSynced = true;
+		bSynced = TRUE;
 
 		iWordNumber = 0;
 		cc = 0;
@@ -121,7 +115,7 @@ POCSAG::frame(int bit)
 		// 32 errors, so must be inverted
 		InvertData();	// Invert receive polarity
 
-		bSynced = true;
+		bSynced = TRUE;
 
 		iWordNumber = 0;
 		cc = 0;
@@ -145,9 +139,8 @@ POCSAG::frame(int bit)
 			// This will be true for all messages with wordc < 8.
 			// Next line finds them and flushes them out of
 			// the woodwork
-			if (bAddressWord) {
+			if (bAddressWord)
 				show_message();
-			}
 
 			// IDLE means message is terminated
 			reset();
@@ -165,7 +158,7 @@ POCSAG::frame(int bit)
 
 	if (iWordNumber == 16) {
 		// if block count is zero go back to look for sync word
-		bSynced = false;
+		bSynced = FALSE;
 	}
     }
 }
@@ -174,19 +167,21 @@ POCSAG::frame(int bit)
 void
 POCSAG::process_word(int fn2)
 {
-    static unsigned int du;
-    int i, errl = ecd();		// run error correcting routine
+    static unsigned du;
+    int restbits, startbit;
+    int i, errl;
 
+    // run error correcting routine
+    errl = ecd();
     if (errl < 2)
 	pocbit = 170;
 
     if (ob[MSB] == 1) {
 	// MSB=1 means message
 	for (i = 1; i <= 20; i++) {
-		sr = sr >> 1;
-
+		sr >>= 1;
 		if (ob[i] == 1)
-			sr = sr + 0x40;
+			sr += 0x40;
 
 		if (srca++ == 6) {
 		        // store alpha char (7 bits)
@@ -221,8 +216,8 @@ POCSAG::process_word(int fn2)
 
 		wordc++;
 
-		int restbits = (20*wordc) % REST_ALPHA_BITS_LEN;
-		int startbit = 21-restbits;
+		restbits = (20*wordc) % REST_ALPHA_BITS_LEN;
+		startbit = 21-restbits;
 		strncpy(szRestAlphaBits, &ob[startbit], restbits);
 		szRestAlphaBits[restbits] = '\0';
 	} else {
@@ -231,9 +226,8 @@ POCSAG::process_word(int fn2)
 		// address then wordc is zero but lwad would be set - so we call show_short
 		// to display the tone only address. Previously this routine was always
 		// called when wordc was zero which made the "fake" tone only display
-		if (bAddressWord) {
+		if (bAddressWord)
 			show_message();
-		}
 
 		// reset in preperation of next message
 		reset();
@@ -260,14 +254,14 @@ POCSAG::process_word(int fn2)
 		function = ((ob[19] << 1) | ob[20]) + 1;
 
 		// We have an address word
-		bAddressWord = true;
+		bAddressWord = TRUE;
 	}
 }
 
 
 // show POCSAG address in decimal along with function number
 void
-POCSAG::show_addr(bool bAlpha)
+POCSAG::show_addr(int bAlpha)
 {
     int speed, baud;
 
@@ -329,9 +323,9 @@ POCSAG::show_addr(bool bAlpha)
 
 
 int
-POCSAG::GetMessageType()
+POCSAG::GetMessageType(void)
 {
-    char szSpaces[7][8] = {
+    static const char *szSpaces[7] = {
 	"0201804", "2018040", "0180402", "1804020",
 	"8040201", "0402018", "4020180"
     };
@@ -377,15 +371,15 @@ POCSAG::GetMessageType()
 //	if (strstr(szRestAlphaBits, "1")) 
 	{
 		// Last (wordc % 7) bits != 0, so this is Numeric
-		return(TYPE_NUMERIC);
+		return TYPE_NUMERIC;
 	}
     } else {
 	// More than 6 messagewords, must be alphanumeric
-	return(TYPE_ALPHA);
+	return TYPE_ALPHA;
     }
 
     if (Profile.pocsag_fnu) {
-	return((function == 4) ? TYPE_ALPHA : TYPE_NUMERIC);
+	return (function == 4) ? TYPE_ALPHA : TYPE_NUMERIC;
     }
 
     // Store bits as numeric characters in array num[]
@@ -466,28 +460,28 @@ POCSAG::GetMessageType()
     // Both less than 50% -> Bad decoded?
     if ((iNumScore < 50) && (iAlpScore < 50)) {
 		// Let's not display this message
-		return(0);
+		return 0;
     }
 
     // If character scores are equal
     if (iNumScore == iAlpScore) {	
 	if (Profile.pocsag_showboth) {
 		bDoubleDisplay = true;
-		return(TYPE_ALPHA + TYPE_NUMERIC);
+		return TYPE_ALPHA + TYPE_NUMERIC;
 	}
     }
 
     // If character scores are not equal or if iNumScore > iAlpScore,
     if (!nBadnum || (iNumScore > iAlpScore)) {
 	// If no bad numeric characters,
-	return(TYPE_NUMERIC);	// guess NUMERIC
+	return TYPE_NUMERIC;	// guess NUMERIC
     } else if (!nBadalp || (iAlpScore > iNumScore)) {
 	// If no bad alpha characters, or if iAlpScore > iNumScore,
-	return(TYPE_ALPHA);	// guess ALPHA
+	return TYPE_ALPHA;	// guess ALPHA
     }
 
     // IF we ever reach this point, don't display anything
-    return(0);
+    return 0;
 }
 
 
@@ -503,17 +497,17 @@ POCSAG::show_message()
 	iType = GetMessageType();
 
     if (iType & TYPE_ALPHA) {
-	show_addr(true);
+	show_addr(TRUE);
 
 	for (i = 0; i < nalp; i++) {
 		// print out stored words
 		display_color(&Pane1, message_color_alp[i]);
 		display_show_char(&Pane1, alp[i]);
 		hourly_char[pocsag_baud_rate][STAT_ALPHA]++;
-		daily_char [pocsag_baud_rate][STAT_ALPHA]++;
+		daily_char[pocsag_baud_rate][STAT_ALPHA]++;
 	}
 	hourly_stat[pocsag_baud_rate][STAT_ALPHA]++;
-	daily_stat [pocsag_baud_rate][STAT_ALPHA]++;
+	daily_stat[pocsag_baud_rate][STAT_ALPHA]++;
 
 	ShowMessage();
     }
@@ -524,12 +518,12 @@ POCSAG::show_message()
 	if ((iType & TYPE_NUMERIC) && !Profile.shownumeric)
 		return;
 
-	show_addr(false);
+	show_addr(FALSE);
 
 	display_color(&Pane1, COLOR_NUMERIC);
 
 	hourly_stat[pocsag_baud_rate][STAT_NUMERIC]++;
-	daily_stat [pocsag_baud_rate][STAT_NUMERIC]++;
+	daily_stat[pocsag_baud_rate][STAT_NUMERIC]++;
 
 	if (iType == TYPE_TONE_ONLY) {
 		display_show_str(&Pane1, "TONE ONLY");
@@ -541,12 +535,12 @@ POCSAG::show_message()
 		display_color(&Pane1, message_color_num[i]);
 		display_show_char(&Pane1, num[i]);
 		hourly_char[pocsag_baud_rate][STAT_NUMERIC]++;
-		daily_char [pocsag_baud_rate][STAT_NUMERIC]++;
+		daily_char[pocsag_baud_rate][STAT_NUMERIC]++;
 	}
 
 	ShowMessage();
     }
 
     if (bDoubleDisplay)
-	bDoubleDisplay = false;
+	bDoubleDisplay = FALSE;
 }
