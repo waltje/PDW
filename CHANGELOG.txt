@@ -273,3 +273,10 @@ FVK: Fred N. van Kempen
 		Removed our local copy of OpenSSL; moved to the official
 		 distribution of version 1.1.1w (OpenSSL for Windows.)
 
+2024/03/24 FVK:	Did some more cleaning of the Pogsag and Flex modules to
+		 making local stuff static, remove unneeded visibility and
+		 so on, preparing it for conversion to standard C.
+		Changed the project files to use a single property sheet
+		 for the OpenSSL library (see PDW.OpenSSL.props for its
+		 parameters.)
+

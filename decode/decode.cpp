@@ -89,7 +89,7 @@ void pd_reset_all(void)
 
 	mb.reset();				// reset mobitex routines
 	acars.reset();				// reset acars routines
-	pocsag.frame(-1);			// reset pocsag routines
+	pocsag_reset();				// reset pocsag routines
 	flex_reset();				// reset flex routines
 
 	if (Profile.monitor_acars)		// Decoding ACARS?
@@ -602,7 +602,8 @@ void pdw_decode(void)
 
 			if (Profile.decodeflex && !pocbit)
 			{
-				frame_flex(pd_cw1);			// Put into FLEX decoding routine
+				// Put into FLEX decoding routine
+				flex_input(pd_cw1);
 				rcver[ircver++] = pd_rer;
 				if (ircver > 63) ircver = 0;
 			}
@@ -613,7 +614,9 @@ void pdw_decode(void)
 					UpdateSigInd(1);		// Move signal indicator right 1
 					sig_flg++;
 				}
-				pocsag.frame(pd_cw1 > 1);	// Put into POCSAG decoding routine
+
+				// Put into POCSAG decoding routine
+				pocsag_input(pd_cw1 > 1);
 
 				// decrement pocsag bit counter; if zero we're back to flex
 				// note : pocbit is reset by pocsag processing routines whenever
@@ -623,7 +626,7 @@ void pdw_decode(void)
 				if (pocbit == 0)				// we have just dropped out of POCSAG mode
 				{
 					display_showmo(MODE_IDLE);
-					pocsag.frame(-1);			// reset pocsag routine
+					pocsag_reset();		// reset pocsag routine
 					ct_bit = ct1600;			// reset rcv clock to 1600 baud
 					rcv_clkt = rcv_clkt_hi;		// widen up rcv clk again
 				}
@@ -654,11 +657,11 @@ void pdw_decode(void)
 	if (pocbit)
 	{
 		pocbit--;
-		if (pocbit == 0)				// we have just dropped out of POCSAG mode
+		if (pocbit == 0)			// we have just dropped out of POCSAG mode
 		{
 			display_showmo(MODE_IDLE);
-			pocsag.frame(-1);			// reset pocsag routine
-			ct_bit = ct1600;			// reset rcv clock to 1600 baud
+			pocsag_reset();			// reset pocsag routine
+			ct_bit = ct1600;		// reset rcv clock to 1600 baud
 			rcv_clkt = rcv_clkt_hi;		// widen up rcv clk again
 		}
 	}

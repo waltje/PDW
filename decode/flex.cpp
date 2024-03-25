@@ -2,17 +2,9 @@
 //
 // This file uses the following functions:
 //
-//	  FLEX::FLEX()
-//	  FLEX::~FLEX()
-//	  int FLEX::xsumchk(long int l)
-//	  void FLEX::show_addr(long int l)
-//	  void FLEX::show_addr(long int l1, long int l2)
-//	  void FLEX::show_phase_speed(int vt)
-//	  void FLEX::showframe(int asa, int vsa)
-//	  void FLEX::showblock(int blknum)
-//	  void FLEX::showword(int wordnum)
-//	  void FLEX::showwordhex(int wordnum)
-//	  void frame_flex(char gin)
+//	void flex_init(void)
+//	void flex_input(char gin)
+//
 #include <windows.h>
 #include "../pdw.h"
 #include "../misc.h"
@@ -42,6 +34,28 @@
 
 #define min(a,b)	(((a) < (b)) ? (a) : (b))
 #define max(a,b)	(((a) > (b)) ? (a) : (b))
+
+
+class FLEX {
+    private:
+	void	FlexTIME();
+	int	xsumchk(long l);
+	void	show_address(long l, long l2, int bLongAddress);
+	void	showframe(int asa, int vsa);
+	void	show_phase_speed(int vt);
+
+    public:
+	char	block[256];
+	long	frame[200];
+	char	ppp;
+
+	FLEX();
+	~FLEX();
+
+	void	showblock(int blknum);
+	void	showword(int wordnum);
+	void	showwordhex(int wordnum);
+};
 
 
 /* Global data for module. */
@@ -82,6 +96,37 @@ static int level = 2;
 static char phase;
 
 
+static void
+display_cfstatus(int cycle, int frame)
+{
+    static int oldframe = -1;
+
+    if (oldframe == frame) {
+	if (Profile.convert_si && bFLEX_Frame_contains_SI) {
+		if (frame++ == 128) {
+			frame = 0;
+			if (cycle++ == 15)
+				cycle = 0;
+		}
+	}
+    }
+    oldframe = frame;
+
+    if (cycle == 15) {
+	// Sometimes PDW seems to display cycle "15", which
+	iCurrentCycle = 99;
+
+	// does not exist, so let's display 99/999
+	iCurrentFrame = 999;
+
+	CountBiterrors(5);
+    } else {
+	iCurrentCycle = cycle;
+	iCurrentFrame = frame;
+    }
+}
+
+
 FLEX::FLEX()
 {
 }
@@ -89,40 +134,6 @@ FLEX::FLEX()
 
 FLEX::~FLEX()
 {
-}
-
-
-// Reset routine called when changing data mode or if
-// switching between soundcard & serial port input.
-void
-flex_reset(void)
-{
-    flex_blk = 0;
-    flex_bc = 0;
-    flex_timer = 0;
-    bReflex = FALSE;
-    bFlexActive = FALSE;
-}
-
-
-void
-flex_init(void)
-{
-    // tag each phase
-    phase_A.ppp = 'A';
-    phase_B.ppp = 'B';
-    phase_C.ppp = 'C';
-    phase_D.ppp = 'D';
-
-    bFlexTIME_detected = FALSE;
-    bFlexTIME_not_used = FALSE;
-    FLEX_9 = 0;
-    flex_speed = STAT_FLEX1600;
-    g_sps = 1600;
-    g_sps2 = 1600;
-    level = 2;
-
-    flex_reset();
 }
 
 
@@ -818,8 +829,42 @@ FLEX::showwordhex(int wordnum)
 }
 
 
+// Reset routine called when changing data mode or if
+// switching between soundcard & serial port input.
 void
-frame_flex(char gin)
+flex_reset(void)
+{
+    flex_blk = 0;
+    flex_bc = 0;
+    flex_timer = 0;
+    bReflex = FALSE;
+    bFlexActive = FALSE;
+}
+
+
+void
+flex_init(void)
+{
+    // tag each phase
+    phase_A.ppp = 'A';
+    phase_B.ppp = 'B';
+    phase_C.ppp = 'C';
+    phase_D.ppp = 'D';
+
+    bFlexTIME_detected = FALSE;
+    bFlexTIME_not_used = FALSE;
+    FLEX_9 = 0;
+    flex_speed = STAT_FLEX1600;
+    g_sps = 1600;
+    g_sps2 = 1600;
+    level = 2;
+
+    flex_reset();
+}
+
+
+void
+flex_input(char gin)
 {
     static unsigned short slr[4] = { 0, 0, 0, 0 };
     static int cy, fr;
@@ -843,16 +888,6 @@ frame_flex(char gin)
 
     if (gin < 2)
 	slr[3] |= 0x0001;
-
-#if 0
-    {
-	FILE *pTest;
-	if ((pTest = fopen("test.txt", "a")) != NULL) {
-		fwrite(gin < 2 ? "1" : "0", 1, 1, pTest);
-		fclose(pTest);
-	}
-    }
-#endif
 
     // Need sync-up, or just end of transmission?
     if (flex_blk == 0) {
@@ -1209,36 +1244,5 @@ frame_flex(char gin)
 			}
 		}
 	}
-    }
-}
-
-
-void
-display_cfstatus(int cycle, int frame)
-{
-    static int oldframe = -1;
-
-    if (oldframe == frame) {
-	if (Profile.convert_si && bFLEX_Frame_contains_SI) {
-		if (frame++ == 128) {
-			frame = 0;
-			if (cycle++ == 15)
-				cycle = 0;
-		}
-	}
-    }
-    oldframe = frame;
-
-    if (cycle == 15) {
-	// Sometimes PDW seems to display cycle "15", which
-	iCurrentCycle = 99;
-
-	// does not exist, so let's display 99/999
-	iCurrentFrame = 999;
-
-	CountBiterrors(5);
-    } else {
-	iCurrentCycle = cycle;
-	iCurrentFrame = frame;
     }
 }

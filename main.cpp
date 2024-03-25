@@ -727,6 +727,7 @@ PDWWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		setupecc();
 
 		flex_init();
+		pocsag_init();
 
 		for (g_index=0; g_index<64; g_index++) rcver[g_index] = 0.0;
 

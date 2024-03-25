@@ -562,7 +562,7 @@ void Audio_To_Bits(char *lpAudioBuffer, long LenAudioBuffer)
 
 		if (cross_over)
 		{                
-			if (skipped_sc < 39) frame_flex(3);		// If skipping unreadable data, still need to keep flex routines happy!
+			if (skipped_sc < 39) flex_input(3);		// If skipping unreadable data, still need to keep flex routines happy!
 			if (skipped_sc < 1080)					// Works out to around 40 "1600 bits" or 80 "3200 bits".
 			{
 				skipped_sc++;
@@ -583,13 +583,16 @@ void Audio_To_Bits(char *lpAudioBuffer, long LenAudioBuffer)
 			// Decode POCSAG?
 			if (pocbit)
 			{
-				pocsag.frame(atb_bit);
+				pocsag_input(atb_bit);
 				pocbit--;
 
 				if (pocbit == 0)	// If pocbit==0, end of pocsag signal.
 				{
 					display_showmo(MODE_IDLE);
-					pocsag.frame('X');      // Reset pocsag routine.
+
+					// Reset pocsag routine.
+					pocsag_reset();
+
 					BaudRate = 1600;        // Allow flex sync-ups again.
 					config_index=INDEX1600;
 				}
@@ -598,7 +601,7 @@ void Audio_To_Bits(char *lpAudioBuffer, long LenAudioBuffer)
 			{
 				if (Profile.decodeflex)
 				{
-					frame_flex(atb_bit ? 0 : 3);
+					flex_input(atb_bit ? 0 : 3);
 				}
 				exc = 0.0;  // Not used by soundcard input-keep as 0.0 see - flex.cpp.
 			}

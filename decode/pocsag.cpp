@@ -14,29 +14,49 @@
 #define TYPE_NUMERIC	0x02
 #define TYPE_ALPHA	0x04
 
+#define ALPHA_BITS_LEN	6
+
 #define MSB		0
 
 
-POCSAG	pocsag;
+class POCSAG {
+    private:
+	int	bAddressWord; // Will be set if last word was an address flag
+	long	pocaddr;
+	int	wordc, nalp, nnum, shown, srca, srcn;
+	int	alp[MAX_STR_LEN],
+		num[40];
+	int	function;
+
+	void	show_addr(int bAlpha);
+	void	show_message();
+	void	logbits(char *text, int bClose);
+	int	GetMessageType(void);
+
+    public:
+	POCSAG();
+	~POCSAG();
+
+	void	reset(void);
+	void	process_word(int fn2);
+	void	frame(int bit);
+};
+
+
 int	pocsag_baud_rate,
 	pocbit;
 
+static POCSAG pocsag;
 static int mode;
-static int iType;		// Current Message type (ALPHA / NUMERIC)
-static int iNumScore = 0;	// Contains possible numeric percentage
-static int iAlpScore = 0;	// Contains possible alphanumeric percentage
-
-static unsigned int sr = 0;
-
-#define REST_ALPHA_BITS_LEN	6
-static char szRestAlphaBits[REST_ALPHA_BITS_LEN] = "";
-
-static BYTE message_color_alp[MAX_STR_LEN];		// buffer for message colors (ALPHA)
-static BYTE message_color_num[MAX_STR_LEN];		// buffer for message colors (NUMERIC)
-
-// general purpose buffers for text conversions
-static char ptr1[LINE_SIZE] = "";
-static char ptr2[LINE_SIZE] = "";
+static int iType;		// current Message type (ALPHA / NUMERIC)
+static int iNumScore;		// contains possible numeric percentage
+static int iAlpScore;		// contains possible alphanumeric percentage
+static unsigned int sr;
+static char RestAlphaBits[ALPHA_BITS_LEN];
+static BYTE message_color_alp[MAX_STR_LEN];	// message colors (ALPHA)
+static BYTE message_color_num[MAX_STR_LEN];	// message colors (NUMERIC)
+static char ptr1[LINE_SIZE];		// general buffers for text conversions
+static char ptr2[LINE_SIZE];
 
 
 POCSAG::POCSAG()
@@ -46,6 +66,7 @@ POCSAG::POCSAG()
     nnum = 0;
     srcn = 0;
     srca = 0;
+
     bAddressWord = FALSE;
     pocsag_baud_rate = STAT_POCSAG1200;
 }
@@ -69,6 +90,7 @@ POCSAG::reset(void)
     nalp = 0;
     nnum = 0;
     wordc = 0;
+
     bAddressWord = FALSE;
 }
 
@@ -216,10 +238,10 @@ POCSAG::process_word(int fn2)
 
 		wordc++;
 
-		restbits = (20*wordc) % REST_ALPHA_BITS_LEN;
+		restbits = (20*wordc) % ALPHA_BITS_LEN;
 		startbit = 21-restbits;
-		strncpy(szRestAlphaBits, &ob[startbit], restbits);
-		szRestAlphaBits[restbits] = '\0';
+		strncpy(RestAlphaBits, &ob[startbit], restbits);
+		RestAlphaBits[restbits] = '\0';
 	} else {
 		// MSB bit = 0 means address
 		// message with more than a word in them are OK; If we had a Tone Only
@@ -364,11 +386,11 @@ POCSAG::GetMessageType(void)
 	// If we have less than 7 messagewords
 //	restbits = (20*wordc) % 7;
 //	startbit = 21-restbits;
-//	strncpy(szRestAlphaBits, &ob[startbit], restbits);
-//	szRestAlphaBits[restbits] = '\0';
-//	int test = szRestAlphaBits[0] + szRestAlphaBits[1] + szRestAlphaBits[2] + szRestAlphaBits[3] + szRestAlphaBits[4] + szRestAlphaBits[5] + szRestAlphaBits[6];
-	if (strchr(szRestAlphaBits, char(1)))
-//	if (strstr(szRestAlphaBits, "1")) 
+//	strncpy(RestAlphaBits, &ob[startbit], restbits);
+//	RestAlphaBits[restbits] = '\0';
+//	int test = RestAlphaBits[0] + RestAlphaBits[1] + RestAlphaBits[2] + RestAlphaBits[3] + RestAlphaBits[4] + RestAlphaBits[5] + RestAlphaBits[6];
+	if (strchr(RestAlphaBits, char(1)))
+//	if (strstr(RestAlphaBits, "1")) 
 	{
 		// Last (wordc % 7) bits != 0, so this is Numeric
 		return TYPE_NUMERIC;
@@ -543,4 +565,33 @@ POCSAG::show_message()
 
     if (bDoubleDisplay)
 	bDoubleDisplay = FALSE;
+}
+
+
+void
+pocsag_init(void)
+{
+    memset(RestAlphaBits, 0x00, sizeof(RestAlphaBits));
+    memset(ptr1, 0x00, sizeof(ptr1));
+    memset(ptr2, 0x00, sizeof(ptr2));
+
+    iNumScore = 0;
+    iAlpScore = 0;
+    sr = 0;
+
+    pocsag.reset();
+}
+
+
+void
+pocsag_input(char gin)
+{
+    pocsag.frame((int)gin);
+}
+
+
+void
+pocsag_reset(void)
+{
+    pocsag.frame(-1);
 }
